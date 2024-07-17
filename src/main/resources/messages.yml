@@ -1,0 +1,219 @@
+# _ ________________ ________________ ________________ _
+#|_|________________|________________|________________|_|
+#| |   _____  ______  _       _    _ __   __ ______   | |
+#| |  |  __ \|  ___ \| |     | |  | |\ \ / /|  ___ \  | |
+#|_|  | |  | | |__ \/| |     | |  | | \ V / | |__ \/  |_|
+#| |  | |  | |  __|  | |     | |  | |  > <  |  __     | |
+#| |  | |__| | |___/\| |___/\| |__| | / . \ | |___/\  | |
+#|_|  |_____/|______/|______/\______//_/ \_\\______/  |_|
+#| |                                                  | |
+#| |          DeluxeAuctions - SedatTR#8666           | |
+#|_|________________ ________________ ________________|_|
+#|_|________________|________________|________________|_|
+# If you have any question or suggestion please contact to me.
+# If you are using this plugin, you are accepting Terms of Use.
+#
+# Discord Account: SedatTR#8666
+# Discord Server: https://discord.gg/nchk86TKMT
+# Plugin Wiki: https://sedattr.gitbook.io/deluxeauctions
+no_permission: "&8[&cAuctions&8] &cYou don't have enough permission!"
+converted: "&8[&aAuctions&8] &f%convert_type% &7converted! Took &a%convert_time%ms &7to complete."
+converting: "&8[&cAuctions&8] &7Database is currently converting."
+reloaded: "&8[&aAuctions&8] &7Plugin successfully reloaded! Took &a%reload_time%ms &7to complete."
+only_console: "&8[&cAuctions&8] &7Only console can use this command!"
+loading: "&8[&cAuctions&8] &7Plugin is currently loading!"
+closed: "&8[&cAuctions&8] &7Plugin is temporarily closed!"
+locked: "&8[&aAuctions&8] &7Plugin is locked!"
+unlocked: "&8[&aAuctions&8] &7Plugin is unlocked!"
+refreshing: "&8[&cAuctions&8] &7Auction is currently refreshing!"
+
+player_usage:
+  - "&8[&2DeluxeAuctions&8] &2Player Commands"
+  - "&8- &a/%command_name% menu: &fOpens auctions main menu."
+  - "&8- &a/%command_name% auctions: &fOpens auctions menu."
+  - "&8- &a/%command_name% view [player]: &fOpens player's auctions menu."
+  - "&8- &a/%command_name% sell [bin/normal] [price] [duration]: &fSells Auctions item."
+  - "&8- &a/%command_name% bids: &fOpens view bids menu."
+  - "&8- &a/%command_name% manage: &fOpens manage auctions bids menu."
+  - "&8- &a/%command_name% info: &fShows information about plugin."
+admin_usage:
+  - "&8[&4DeluxeAuctions&8] &4Admin Commands"
+  - "&8- &c/%command_name% menu [player]: &fOpens auctions menu to player."
+  - "&8- &c/%command_name% cancel [auction uuid]: &fCancels player's auction."
+  - "&8- &c/%command_name% lock: &fLocks plugin to close temporarily. (Type again to unlock)"
+  - "&8- &c/%command_name% convert [auctionmaster/zauctionhouse]: &fConverts auctions from other plugins."
+  - "&8- &c/%command_name% reload: &fReloads plugin."
+view_usage: "&cCorrect Usage: &7/%command_name% view [player name/auction uuid]"
+sell_usage: "&cCorrect Usage: &7/%command_name% sell [bin/normal] [price] [duration]"
+admin_cancel_usage: "&cCorrect Usage: &7/%command_name% cancel [auction uuid]"
+admin_convert_usage: "&cCorrect Usage: &7/%command_name% convert [auctionmaster/zauctionhouse]"
+admin_menu_usage: "&cCorrect Usage: &7/%command_name% menu [player]"
+
+bought: "&8[&aAuctions&8] &7You purchased &f%item_displayname% &7for &6%auction_price% coins&7!"
+sold: "&8[&aAuctions&8] &f%buyer_displayname% &7bought &f%item_displayname% &7for &6%auction_price% coins&7!"
+bid: "&8[&aAuctions&8] &7Bid of &6%bid_price% coins &7placed for &f%item_displayname%&7!"
+new_bid: "&8[&aAuctions&8] &f%bidder_displayname% &7bid &6%bid_price% coins &7on &f%item_displayname%&7!"
+outbid: "&8[&aAuctions&8] &f%bidder_displayname% &7outbid you by &6%outbid_price% coins &7for &f%item_displayname%&7!"
+cancelled: "&8[&aAuctions&8] &7You cancelled your auction for &f%item_displayname%&7!"
+admin_cancelled: "&8[&aAuctions&8] &7You cancelled &f%player_displayname%'s &7auction!"
+ended_auction: "&8[&cAuctions&8] &f%item_displayname% &7auction is ended!"
+
+created_normal_auction: "&8[&aAuctions&8] &7You started &eNORMAL &7auction for &f%item_displayname%&7!"
+created_bin_auction: "&8[&aAuctions&8] &7You started &eBIN &7auction for &f%item_displayname%&7!"
+normal_auction_broadcast: "&8[&aAuctions&8] &f%player_displayname% &7created &eNORMAL AUCTION &7for &f%item_displayname%&7!"
+bin_auction_broadcast: "&8[&aAuctions&8] &f%player_displayname% &7created &eBIN AUCTION &7for &f%item_displayname%&7!"
+
+seller_collected_item: "&8[&cAuctions&8] &7You claimed &f%item_displayname% &7back from your expired auction!"
+seller_collected_money: "&8[&aAuctions&8] &7You collected &6%auction_price% coins &7from selling &f%item_displayname% &7to &f%buyer_displayname%&7!"
+buyer_collected_money: "&8[&aAuctions&8] &7You collected &6%auction_price% coins &7back from an auction which you didn't hold the top bid!"
+buyer_collected_item: "&8[&aAuctions&8] &7You claimed &f%item_displayname% &7from &f%seller_displayname%&7's auction!"
+
+buyer_collected_moneys: "&8[&aAuctions&8] &7You collected &6%total_money_amount% coins &7back from an auction which you didn't hold the top bid!"
+buyer_collected_items: "&8[&aAuctions&8] &7You claimed &a%total_item_amount%x items &7from auctions!"
+seller_collected_items: "&8[&cAuctions&8] &7You claimed &a%total_item_amount%x items &7back from your expired auctions!"
+seller_collected_moneys: "&8[&cAuctions&8] &7You collected &6%total_money_amount% coins &7from your sold auctions!"
+
+not_player: "&8[&cAuctions&8] &7Only players can use this command!"
+not_enough_money: "&8[&cAuctions&8] &7You need more &6%required_money% coins &7to afford this!"
+no_auction: "&8[&cAuctions&8] &7This player doesn't have any active auctions!"
+no_permission_for_item: "&8[&cAuctions&8] &7You don't have enough permission to sell this item!"
+no_empty_slot: "&8[&cAuctions&8] &7You don't have enough empty slot!"
+
+wrong_price: "&8[&cAuctions&8] &7Couldn't read this price!"
+wrong_duration: "&8[&cAuctions&8] &7Couldn't read this duration!"
+wrong_auction: "&8[&cAuctions&8] &7This auction is wrong!"
+wrong_item: "&8[&cAuctions&8] &7You are not holding an item!"
+wrong_type: "&8[&cAuctions&8] &7You need to write bin or normal as type!"
+
+blacklisted_item: "&8[&cAuctions&8] &7This item is blacklisted!"
+unsellable_item: "&8[&cAuctions&8] &7This item is not sellable!"
+disabled_world: "&8[&cAuctions&8] &7You can't use auctions in this world!"
+laggy: "&8[&cAuctions&8] &7You can't use auctions while it is laggy!"
+disabled_auction_type: "&8[&cAuctions&8] &f%auction_type% &7auctions are disabled!"
+auction_view_info: "&8[&aAuctions&8] &7UUID: &e%auction_uuid%"
+click_cooldown: "&8[&cAuctions&8] &7Please wait a moment while clicking between items."
+command_cooldown: "&8[&cAuctions&8] &7Please wait a moment while using auction command."
+
+reached_bid_limit: "&8[&cAuctions&8] &7You reached your bid limit!"
+reached_auction_limit: "&8[&cAuctions&8] &7You reached your auction limit!"
+reached_duration_limit: "&8[&cAuctions&8] &7You reached your duration limit! (Maximum: &f%duration_limit%&7)"
+reached_price_limit: "&8[&cAuctions&8] &7You reached your auction limit! (Maximum: &f%price_limit%&7)"
+
+input_lines:
+  chat:
+    text: "&8[&aAuction&8] &7Please write text in 10 seconds..."
+    number: "&8[&aAuction&8] &7Please write number in 10 seconds..."
+    too_slow: "&8[&cAuction&8] &7You are too slow, input cancelled!"
+  anvil:
+    text: "&eEnter Text"
+    number: "&eWrite Number"
+  sign:
+    text:
+      - ""
+      - "^^^^^^^^^^"
+      - "Enter Text"
+      - ""
+    number:
+      - ""
+      - "^^^^^^^^^^"
+      - "Write Number"
+      - ""
+
+lores:
+  category_items:
+    selected:
+      - "&8Category"
+      - ""
+      - "%category_description%"
+      - "&aCurrently browsing!"
+    not_selected:
+      - "&8Category"
+      - ""
+      - "%category_description%"
+      - "&eClick to view items!"
+    no_permission:
+      - "&8Category"
+      - ""
+      - "%category_description%"
+      - "&cYou don't have enough permission!"
+  auction_items:
+    bin:
+      not_sold:
+        name: "%item_name%"
+        lore:
+          - "%item_lore%"
+          - ""
+          - "&8&l▶ &7Seller: &a%seller_displayname%"
+          - "&8&l▶ &7Price: &6%auction_price% coins"
+          - ""
+          - "&8&l▶ &7Type: &b%auction_type%"
+          - "&8&l▶ &7Time Left: &e%auction_time%"
+      sold:
+        name: "%item_name%"
+        lore:
+          - "%item_lore%"
+          - ""
+          - "&8&l▶ &7Seller: &a%seller_displayname%"
+          - "&8&l▶ &7Price: &6%auction_price% coins"
+          - ""
+          - "&8&l▶ &7Type: &b%auction_type%"
+          - "&8&l▶ &7Buyer: &d%buyer_displayname%"
+          - "&8&l▶ &7Status: &aSOLD"
+      expired:
+        name: "%item_name%"
+        lore:
+          - "%item_lore%"
+          - ""
+          - "&8&l▶ &7Seller: &a%seller_displayname%"
+          - "&8&l▶ &7Price: &6%auction_price% coins"
+          - ""
+          - "&8&l▶ &7Type: &b%auction_type%"
+          - "&8&l▶ &7Status: &cEXPIRED"
+
+    normal:
+      no_bids:
+        name: "%item_name%"
+        lore:
+          - "%item_lore%"
+          - ""
+          - "&8&l▶ &7Seller: &a%seller_displayname%"
+          - "&8&l▶ &7Starting Bid: &6%auction_price% coins"
+          - ""
+          - "&8&l▶ &7Type: &b%auction_type%"
+          - "&8&l▶ &7Time Left: &e%auction_time%"
+      bids:
+        name: "%item_name%"
+        lore:
+          - "%item_lore%"
+          - ""
+          - "&8&l▶ &7Seller: &a%seller_displayname%"
+          - "&8&l▶ &7Total Bids: &b%bid_amount% bids"
+          - ""
+          - "&8&l▶ &7Top Bid: &6%bid_price% coins"
+          - "&8&l▶ &7Bidder: &d%bidder_displayname%"
+          - ""
+          - "&8&l▶ &7Type: &b%auction_type%"
+          - "&8&l▶ &7Time Left: &e%auction_time%"
+      sold:
+        name: "%item_name%"
+        lore:
+          - "%item_lore%"
+          - ""
+          - "&8&l▶ &7Seller: &a%seller_displayname%"
+          - "&8&l▶ &7Total Bids: &b%bid_amount% bids"
+          - ""
+          - "&8&l▶ &7Top Bid: &6%bid_price% coins"
+          - "&8&l▶ &7Bidder: &d%bidder_displayname%"
+          - ""
+          - "&8&l▶ &7Type: &b%auction_type%"
+          - "&8&l▶ &7Status: &aSOLD"
+      expired:
+        name: "%item_name%"
+        lore:
+          - "%item_lore%"
+          - ""
+          - "&8&l▶ &7Seller: &a%seller_displayname%"
+          - "&8&l▶ &7Starting Bid: &6%auction_price% coins"
+          - ""
+          - "&8&l▶ &7Type: &b%auction_type%"
+          - "&8&l▶ &7Status: &cEXPIRED"

@@ -1,0 +1,64 @@
+package me.sedattr.deluxeauctions.menus;
+
+import de.rapha149.signgui.SignGUI;
+import me.sedattr.deluxeauctions.DeluxeAuctions;
+import me.sedattr.deluxeauctions.others.ChatInput;
+import me.sedattr.deluxeauctions.others.Utils;
+import net.wesjd.anvilgui.AnvilGUI;
+import org.bukkit.entity.Player;
+import org.bukkit.event.enchantment.EnchantItemEvent;
+import org.bukkit.scheduler.BukkitRunnable;
+
+import java.util.Collections;
+import java.util.List;
+
+public class InputMenu {
+    private String type;
+
+    public InputMenu() {
+        this.type = DeluxeAuctions.getInstance().configFile.getString("settings.input_type");
+        if (this.type == null)
+            this.type = "sign";
+    }
+
+    public void open(Player player, MenuManager menuManager) {
+        String textType = menuManager.getClass().equals(AuctionsMenu.class) ? "text" : "number";
+
+        if (this.type.equalsIgnoreCase("sign")) {
+            List<String> lines = DeluxeAuctions.getInstance().messagesFile.getStringList("input_lines.sign." + textType);
+            if (!lines.isEmpty() && lines.size() > 3) {
+                SignGUI gui = SignGUI.builder()
+                        .setLines(lines.get(0), lines.get(1), lines.get(2), lines.get(3))
+                        .setHandler((p, entry) -> {
+                            new BukkitRunnable() {
+                                @Override
+                                public void run() {
+                                    menuManager.inputResult(entry.getLineWithoutColor(0));
+                                }
+                            }.runTask(DeluxeAuctions.getInstance());
+
+                            return Collections.emptyList();
+                        }).build();
+                gui.open(player);
+
+                return;
+            }
+        }
+
+        if (this.type.equalsIgnoreCase("chat")) {
+            player.closeInventory();
+            Utils.sendMessage(player, "input_lines.chat." + textType);
+
+            new ChatInput(player, menuManager::inputResult);
+            return;
+        }
+
+        new AnvilGUI.Builder()
+                .onClick((slot, state) -> {
+                    menuManager.inputResult(state.getText());
+                    return Collections.singletonList(AnvilGUI.ResponseAction.close());
+                }).text(Utils.colorize((DeluxeAuctions.getInstance().messagesFile.getString("input_lines.anvil." + textType))))
+                .plugin(DeluxeAuctions.getInstance())
+                .open(player);
+    }
+}

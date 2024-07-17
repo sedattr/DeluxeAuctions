@@ -1,0 +1,190 @@
+package me.sedattr.deluxeauctions.menus;
+
+import me.sedattr.deluxeauctions.api.AuctionHook;
+import me.sedattr.deluxeauctions.cache.AuctionCache;
+import me.sedattr.deluxeauctions.cache.PlayerCache;
+import me.sedattr.deluxeauctions.inventoryapi.HInventory;
+import me.sedattr.deluxeauctions.inventoryapi.inventory.InventoryAPI;
+import me.sedattr.deluxeauctions.inventoryapi.item.ClickableItem;
+import me.sedattr.deluxeauctions.DeluxeAuctions;
+import me.sedattr.deluxeauctions.managers.*;
+import me.sedattr.deluxeauctions.others.PlaceholderUtil;
+import me.sedattr.deluxeauctions.others.Utils;
+import org.bukkit.Bukkit;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitTask;
+import java.util.ArrayList;
+import java.util.List;
+
+public class BidsMenu {
+    private final Player player;
+    private final ConfigurationSection section;
+    private HInventory gui;
+    private BukkitTask itemUpdater;
+    private final PlayerPreferences playerAuction;
+    private final List<Auction> bids;
+    private final int totalPage;
+    private int page;
+
+    public BidsMenu(Player player) {
+        this.player = player;
+        this.section = DeluxeAuctions.getInstance().menusFile.getConfigurationSection("view_bids");
+
+        this.playerAuction = PlayerCache.getPreferences(player.getUniqueId());
+        this.bids = AuctionCache.getBidAuctions(player.getUniqueId());
+        this.totalPage = getTotalPage();
+    }
+
+    public void open(int page) {
+        this.page = page;
+        PlaceholderUtil placeholderUtil = new PlaceholderUtil()
+                .addPlaceholder("%current_page%", String.valueOf(page))
+                .addPlaceholder("%total_page%", String.valueOf(getTotalPage()));
+
+        this.gui = DeluxeAuctions.getInstance().menuHandler.createInventory(this.player, this.section, "bids", placeholderUtil);
+
+        int goBackSlot = this.section.getInt("back");
+        ItemStack goBackItem = DeluxeAuctions.getInstance().normalItems.get("go_back");
+        if (goBackSlot > 0 && goBackItem != null)
+            gui.setItem(goBackSlot-1, ClickableItem.of(goBackItem, (event) -> new MainMenu(this.player).open()));
+
+        loadClaimAll();
+        loadBids();
+
+        if (this.section.getBoolean("pagination")) {
+            if (this.totalPage > page) {
+                ItemStack nextPage = Utils.createItemFromSection(this.section.getConfigurationSection("next_page"), placeholderUtil);
+                if (nextPage != null) {
+                    this.gui.setItem(this.section.getInt("next_page.slot")-1, ClickableItem.of(nextPage, (event -> {
+                        ClickType clickType = event.getClick();
+                        if (clickType.equals(ClickType.RIGHT) || clickType.equals(ClickType.SHIFT_RIGHT))
+                            open(this.totalPage);
+                        else
+                            open(page+1);
+                    })));
+                }
+            }
+
+            if (page > 1) {
+                ItemStack previousPage = Utils.createItemFromSection(this.section.getConfigurationSection("previous_page"), placeholderUtil);
+                if (previousPage != null)
+                    this.gui.setItem(this.section.getInt("previous_page.slot")-1, ClickableItem.of(previousPage, (event -> {
+                        ClickType clickType = event.getClick();
+                        if (clickType.equals(ClickType.RIGHT) || clickType.equals(ClickType.SHIFT_RIGHT))
+                            open(1);
+                        else
+                            open(page-1);
+                    })));
+            }
+        }
+
+        this.gui.open(this.player);
+        updateItems();
+    }
+
+    private int getTotalPage() {
+        List<Integer> slots = this.section.getIntegerList("slots");
+        if (slots.isEmpty())
+            return 1;
+
+        int totalPage = this.bids.size() / slots.size() + 1;
+        if (this.bids.size() <= slots.size()*(totalPage-1))
+            totalPage--;
+
+        return Math.max(totalPage, 1);
+    }
+
+    private void loadBids() {
+        List<Integer> slots = this.section.getIntegerList("slots");
+        if (slots.isEmpty())
+            return;
+
+        int lower = (this.page - 1) * slots.size();
+        int upper = Math.min(this.page * slots.size(), this.bids.size());
+
+        List<Auction> newAuctions = new ArrayList<>(upper - lower);
+        for (int i = lower; i < upper; i++) {
+            Auction auction = this.bids.get(i);
+            newAuctions.add(auction);
+        }
+
+        int i = 0;
+        for (Auction auction : newAuctions) {
+            ItemStack itemStack = AuctionHook.getUpdatedAuctionItem(auction);
+            if (itemStack == null)
+                continue;
+
+            int slot = i >= slots.size() ? 0 : slots.get(i);
+            this.gui.setItem(slot-1, ClickableItem.of(itemStack, (event) -> {
+                if (auction.getAuctionType().equals(AuctionType.BIN))
+                    new BinViewMenu(this.player, auction).open("bids");
+                else
+                    new NormalViewMenu(this.player, auction).open("bids");
+            }));
+
+            i++;
+        }
+    }
+
+
+    private void loadClaimAll() {
+        ConfigurationSection itemSection = this.section.getConfigurationSection("claim_all");
+        if (itemSection == null)
+            return;
+
+        double money = 0;
+        int item = 0;
+        for (Auction auction : this.bids) {
+            if (!auction.isEnded())
+                continue;
+
+            PlayerBid playerBid = auction.getAuctionBids().getPlayerBid(player.getUniqueId());
+            if (auction.getAuctionBids().getHighestBid().equals(playerBid))
+                item++;
+            else
+                money+=playerBid.getBidPrice();
+        }
+
+        if (money == 0.0 && item == 0) {
+            ConfigurationSection claimSection = itemSection.getConfigurationSection("without_claimable");
+
+            ItemStack itemStack = Utils.createItemFromSection(claimSection, null);
+            if (itemStack == null)
+                return;
+
+            this.gui.setItem(claimSection.getInt("slot")-1, ClickableItem.empty(itemStack));
+        } else {
+            ConfigurationSection claimSection = itemSection.getConfigurationSection("with_claimable");
+            PlaceholderUtil placeholderUtil = new PlaceholderUtil()
+                    .addPlaceholder("%claimable_items%", String.valueOf(item))
+                    .addPlaceholder("%claimable_money%", DeluxeAuctions.getInstance().numberFormat.format(money));
+
+            ItemStack itemStack = Utils.createItemFromSection(claimSection, placeholderUtil);
+            if (itemStack == null)
+                return;
+
+            this.gui.setItem(claimSection.getInt("slot")-1, ClickableItem.of(itemStack, (event) -> {
+                this.player.closeInventory();
+                this.playerAuction.collectBids(this.player);
+            }));
+        }
+    }
+
+    private void updateItems() {
+        if (this.itemUpdater != null)
+            this.itemUpdater.cancel();
+
+        this.itemUpdater = Bukkit.getScheduler().runTaskTimerAsynchronously(DeluxeAuctions.getInstance(), () -> {
+            HInventory inventory = InventoryAPI.getInventory(this.player);
+            if (inventory == null || !inventory.getId().equalsIgnoreCase("bids")) {
+                this.itemUpdater.cancel();
+                return;
+            }
+
+            loadBids();
+        }, 0, 20);
+    }
+}

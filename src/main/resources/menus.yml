@@ -1,0 +1,1087 @@
+# _ ________________ ________________ ________________ _
+#|_|________________|________________|________________|_|
+#| |   _____  ______  _       _    _ __   __ ______   | |
+#| |  |  __ \|  ___ \| |     | |  | |\ \ / /|  ___ \  | |
+#|_|  | |  | | |__ \/| |     | |  | | \ V / | |__ \/  |_|
+#| |  | |  | |  __|  | |     | |  | |  > <  |  __     | |
+#| |  | |__| | |___/\| |___/\| |__| | / . \ | |___/\  | |
+#|_|  |_____/|______/|______/\______//_/ \_\\______/  |_|
+#| |                                                  | |
+#| |          DeluxeAuctions - SedatTR#8666           | |
+#|_|________________ ________________ ________________|_|
+#|_|________________|________________|________________|_|
+# If you have any question or suggestion please contact to me.
+# If you are using this plugin, you are accepting Terms of Use.
+#
+# Discord Account: SedatTR#8666
+# Discord Server: https://discord.gg/nchk86TKMT
+# Plugin Wiki: https://sedattr.gitbook.io/deluxeauctions
+
+# DEFAULT ITEMS FOR MENUS
+default_items:
+  glass: # Menu Glasses
+    material: BLACK_STAINED_GLASS_PANE
+    data: 15
+    name: "&r"
+  close: # Close Items
+    material: BARRIER
+    data: 0
+    name: "&cClose Menu"
+    lore:
+      - "&7Click to close menu!"
+  go_back: # Go Back Items
+    material: ARROW
+    data: 0
+    name: "&eGo Back"
+    lore:
+      - "&7Click to go back to previous menu!"
+
+main_menu:
+  title: "&8Auction House"
+  size: 27
+  glass: [1,2,3,4,5,6,7,8,9,10,18,19,20,21,22,24,25,26]
+  close: 23
+  stats:
+    material: PAPER
+    data: 0
+    slot: 27
+    name: "&aAuction Stats"
+    lore:
+      - "&7View various statistics about"
+      - "&7you and the Auction House."
+      - ""
+      - "&eClick to view!"
+  browser:
+    material: GOLD_INGOT
+    data: 0
+    slot: 11
+    name: "&6Auctions Browser"
+    lore:
+      - "&7Find items for sale by players"
+      - "&7across all server!"
+      - ""
+      - "&eClick to browse!"
+  bids:
+    material: GOLDEN_CARROT
+    data: 0
+    slot: 13
+    name: "&2View Bids"
+    lore:
+      no_bids:
+        - "&7View and manage your bids."
+        - "&r"
+        - "&cYou don't have any outgoing bids."
+      bids:
+        - "&7View and manage your bids."
+        - "&r"
+        - "&7You placed &a%total_bid_amount% bids"
+        - "&7on pending auctions."
+        - "&r"
+        - "&7You hold the top bid on &7(&a%top_bid_amount%&7/&a%total_bid_amount%&7)"
+        - "&7of these auctions."
+        - "&r"
+        - "&aClick to view!"
+      collectable_with_bids:
+        - "&7View and manage your bids."
+        - "&r"
+        - "&7You placed &a%total_bid_amount% bids"
+        - "&7on pending auctions."
+        - "&r"
+        - "&7You hold the top bid on &7(&a%top_bid_amount%&7/&a%total_bid_amount%&7)"
+        - "&7of these auctions."
+        - "&r"
+        - "&eYou have &a%collectable_item_amount% items &eto pickup!"
+        - "&eYou have &6%collectable_money_amount% coins &eto pickup!"
+        - "&aClick to view!"
+      collectable_without_bids:
+        - "&7View and manage your bids."
+        - "&r"
+        - "&eYou have &a%collectable_item_amount% items &eto pickup!"
+        - "&eYou have &6%collectable_money_amount% coins &eto pickup!"
+        - "&aClick to view!"
+  manage:
+    material: GOLDEN_APPLE
+    data: 0
+    slot: 15
+    name: "&3Manage Auctions"
+    lore:
+      without_auctions:
+        - "&7View and manage your auctions."
+        - "&r"
+        - "&cYou don't have any outgoing auctions."
+      with_auctions:
+        - "&7View and manage your auctions."
+        - "&r"
+        - "&7You have total &a%total_auction_amount% auctions&7."
+        - "&r"
+        - "&bClick to view!"
+      collectable:
+        - "&7View and manage your auctions."
+        - "&r"
+        - "&7You have total &a%total_auction_amount% auctions&7."
+        - "&7You have ended &a%ended_auction_amount% auctions&7."
+        - "&r"
+        - "&eYou have &a%collectable_item_amount% items &eto pickup!"
+        - "&eYou have &6%collectable_money_amount% coins &eto pickup!"
+        - "&bClick to view!"
+  create:
+    material: GOLDEN_HORSE_ARMOR
+    data: 0
+    slot: 17
+    name: "&5Create Auction"
+    lore:
+      - "&7Set your own items on auction"
+      - "&7for other players to purchase!"
+      - ""
+      - "&dClick to sell your items!"
+
+auctions_menu:
+  title: "&8Auctions Browser (%current_page%/%total_page%)"
+  size: 54
+  glass: [1,2,3,4,5,6,7,8,9,11,18,20,27,29,36,38,45,46,47,54]
+  close: 50
+  back: 49
+  category_list:
+    type: "pagination" # normal or pagination
+    pagination:
+      add_page_slots: false
+      slots: [ 10, 19, 28, 37 ]
+      fill_type: "page_glass" # all_glass, page_glass, empty
+    previous_page:
+      material: ARROW
+      data: 0
+      slot: 1
+      name: "&aPrevious Page"
+      lore:
+        - "&7(%current_page%/%total_page%)"
+        - ""
+        - "&bRight click to skip pages!"
+        - "&eClick to go back to next menu!"
+    next_page:
+      material: ARROW
+      data: 0
+      slot: 46
+      name: "&aNext Page"
+      lore:
+        - "&7(%current_page%/%total_page%)"
+        - ""
+        - "&bRight click to skip pages!"
+        - "&eClick to go to next menu!"
+  reset_settings:
+    material: ANVIL
+    data: 0
+    slot: 9
+    name: "&aReset Settings"
+    flags:
+      - HIDE_ENCHANTS
+      - HIDE_ATTRIBUTES
+    lore:
+      - "&7Clears your auction browsing"
+      - "&7settings except auction filter."
+      - ""
+      - "&eClick to clear!"
+  search:
+    material: OAK_SIGN
+    data: 0
+    slot: 48
+    name: "&aSearch"
+    title: '&8Auctions: "%search%"'
+    enabled: true
+    flags:
+      - HIDE_ENCHANTS
+      - HIDE_ATTRIBUTES
+    lore:
+      selected:
+        - "&7Found total %found_items% items."
+        - "&7Query: &a%searched%"
+        - ""
+        - "&eLeft click to edit search!"
+        - "&bRight click to clear search!"
+      not_selected:
+        - "&7Find items by name, type or lore."
+        - ""
+        - "&eClick to search!"
+  next_page:
+    material: ARROW
+    data: 0
+    slot: 54
+    name: "&aNext Page"
+    lore:
+      - "&7(%current_page%/%total_page%)"
+      - ""
+      - "&bRight click to skip pages!"
+      - "&eClick to go to next page!"
+  previous_page:
+    material: ARROW
+    data: 0
+    slot: 47
+    name: "&aPrevious Page"
+    lore:
+      - "&7(%current_page%/%total_page%)"
+      - ""
+      - "&bRight click to skip pages!"
+      - "&eClick to go back to next menu!"
+  auction_sorter:
+    material: HOPPER
+    data: 0
+    slot: 51
+    name: "&eAuction Sorter"
+    # type ranking
+    types:
+      - HIGHEST_PRICE
+      - LOWEST_PRICE
+      - MOST_BIDS
+      - ALPHABETICAL
+      - ENDING_SOON
+      - RANDOM
+    lore:
+      highest_price:
+        - "&2&l▶ &aHighest Price"
+        - "&8&l▶ &7Lowest Price"
+        - "&8&l▶ &7Most Bids"
+        - "&8&l▶ &7Alphabetical"
+        - "&8&l▶ &7Ending Soon"
+        - "&8&l▶ &7Random"
+        - ""
+        - "&bRight click to go backwards!"
+        - "&eLeft click to switch sort!"
+      lowest_price:
+        - "&8&l▶ &7Highest Price"
+        - "&2&l▶ &aLowest Price"
+        - "&8&l▶ &7Most Bids"
+        - "&8&l▶ &7Alphabetical"
+        - "&8&l▶ &7Ending Soon"
+        - "&8&l▶ &7Random"
+        - ""
+        - "&bRight click to go backwards!"
+        - "&eLeft click to switch sort!"
+      most_bids:
+        - "&8&l▶ &7Highest Price"
+        - "&8&l▶ &7Lowest Price"
+        - "&2&l▶ &aMost Bids"
+        - "&8&l▶ &7Alphabetical"
+        - "&8&l▶ &7Ending Soon"
+        - "&8&l▶ &7Random"
+        - ""
+        - "&bRight click to go backwards!"
+        - "&eLeft click to switch sort!"
+      alphabetical:
+        - "&8&l▶ &7Highest Price"
+        - "&8&l▶ &7Lowest Price"
+        - "&8&l▶ &7Most Bids"
+        - "&2&l▶ &aAlphabetical"
+        - "&8&l▶ &7Ending Soon"
+        - "&8&l▶ &7Random"
+        - ""
+        - "&bRight click to go backwards!"
+        - "&eLeft click to switch sort!"
+      ending_soon:
+        - "&8&l▶ &7Highest Price"
+        - "&8&l▶ &7Lowest Price"
+        - "&8&l▶ &7Most Bids"
+        - "&8&l▶ &7Alphabetical"
+        - "&2&l▶ &aEnding Soon"
+        - "&8&l▶ &7Random"
+        - ""
+        - "&bRight click to go backwards!"
+        - "&eLeft click to switch sort!"
+      random:
+        - "&8&l▶ &7Highest Price"
+        - "&8&l▶ &7Lowest Price"
+        - "&8&l▶ &7Most Bids"
+        - "&8&l▶ &7Alphabetical"
+        - "&8&l▶ &7Ending Soon"
+        - "&2&l▶ &aRandom"
+        - ""
+        - "&bRight click to go backwards!"
+        - "&eLeft click to switch sort!"
+  auction_filter:
+    material: GOLD_INGOT
+    data: 0
+    slot: 52
+    name: "&eAuction Filter"
+    # type ranking
+    types:
+      - ALL
+      - BIN
+      - NORMAL
+    lore:
+      all:
+        - "&2&l▶ &aShow All"
+        - "&8&l▶ &7BIN"
+        - "&8&l▶ &7Auctions"
+        - ""
+        - "&bRight click to go backwards!"
+        - "&eLeft click to switch filter!"
+      bin:
+        - "&8&l▶ &7Show All"
+        - "&2&l▶ &aBIN"
+        - "&8&l▶ &7Auctions"
+        - ""
+        - "&bRight click to go backwards!"
+        - "&eLeft click to switch filter!"
+      normal:
+        - "&8&l▶ &7Show All"
+        - "&8&l▶ &7BIN"
+        - "&2&l▶ &aAuctions"
+        - ""
+        - "&bRight click to go backwards!"
+        - "&eLeft click to switch filter!"
+  categories:
+    material: ENDER_EYE
+    data: 0
+    slot: 53
+    name: "&eAuction Categories"
+    category:
+      selected: "&2&l▶ &a%category_name%"
+      not_selected: "&8&l▶ &7%category_name%"
+    lore:
+      - "%category_list%"
+      - ""
+      - "&bRight click to go backwards!"
+      - "&eLeft click to switch category!"
+
+bin_auction_view_menu:
+  title: "&8Auction View ➜ Buy It Now"
+  size: 27
+  glass: [1,2,3,4,6,7,8,9,10,18,19,20,21,22,24,25,26,27]
+  close: 23
+  back: 22
+  example_item: 5
+  cancel_auction:
+    material: RED_TERRACOTTA
+    data: 14
+    slot: 14
+    name: "&cCancel Auction"
+    lore:
+      - "&7You can cancel your auction"
+      - "&7before someone buys your auction."
+      - "&r"
+      - "&eClick to cancel auction!"
+  collect_auction:
+    not_sold:
+      material: GOLD_NUGGET
+      data: 0
+      slot: 14
+      name: "&6Collect Auction"
+      lore:
+        - "&7No one bought your auction."
+        - "&r"
+        - "&eClick to pick up item!"
+    sold:
+      material: GOLD_NUGGET
+      data: 0
+      slot: 14
+      name: "&6Collect Auction"
+      lore:
+        - "&f%buyer_displayname% &7bought your"
+        - "&7auction for &6%auction_price% coins&7."
+        - "&r"
+        - "&eClick to collect coins!"
+  purchase_item:
+    enough_money:
+      material: GOLD_NUGGET
+      data: 0
+      slot: 14
+      name: "&aPurchase Item"
+      lore:
+        - "&7Price: &6%auction_price% coins"
+        - "&r"
+        - "&eClick to purchase!"
+    not_enough_money:
+      material: POTATO_ITEM
+      data: 0
+      slot: 14
+      name: "&aPurchase Item"
+      lore:
+        - "&7Price: &6%auction_price% coins"
+        - "&r"
+        - "&cYou don't have enough coins!"
+
+normal_auction_view_menu:
+  title: "&8Auction View ➜ Normal"
+  size: 27
+  glass: [1,2,3,4,6,7,8,9,10,18,19,20,21,22,24,25,26,27]
+  close: 23
+  back: 22
+  example_item: 5
+  buyer_collect_auction:
+    top_bidder:
+      material: GOLD_NUGGET
+      data: 0
+      slot: 12
+      name: "&aCollect Auction"
+      lore:
+        - "&7You won the auction."
+        - "&r"
+        - "&eClick to collect auction!"
+    not_top_bidder:
+      material: GOLD_NUGGET
+      data: 0
+      slot: 12
+      name: "&aCollect Auction"
+      lore:
+        - "&7You didn't won the auction."
+        - "&r"
+        - "&eClick to collect money!"
+    not_bidder:
+      material: RED_TERRACOTTA
+      data: 14
+      slot: 12
+      name: "&aCollect Auction"
+      lore:
+        - "&cYou didn't bid!"
+  cancel_auction:
+    without_bids:
+      material: RED_TERRACOTTA
+      data: 14
+      slot: 12
+      name: "&cCancel Auction"
+      lore:
+        - "&7You can cancel your auction"
+        - "&7before someone buys your auction."
+        - "&r"
+        - "&eClick to cancel auction!"
+    with_bids:
+      material: RED_TERRACOTTA
+      data: 14
+      slot: 12
+      name: "&cCancel Auction"
+      lore:
+        - "&7You can cancel your auction"
+        - "&7before someone buys your auction."
+        - "&r"
+        - "&cYou can't cancel auction!"
+  collect_auction:
+    not_sold:
+      material: GOLD_NUGGET
+      data: 0
+      slot: 12
+      name: "&6Collect Auction"
+      lore:
+        - "&7No one bought your auction."
+        - "&r"
+        - "&eClick to pick up item!"
+    sold:
+      material: GOLD_NUGGET
+      data: 0
+      slot: 12
+      name: "&6Collect Auction"
+      lore:
+        - "&f%buyer_displayname% &7bought your"
+        - "&7auction for &6%auction_price% coins&7."
+        - "&r"
+        - "&eClick to collect coins!"
+  bid_history:
+    without_bids:
+      material: PAPER
+      data: 0
+      slot: 16
+      name: "&bBid History"
+      lore:
+        - "&7No bids have been placed on this item yet."
+        - "&r"
+        - "&eBe the first bid on it!"
+    with_bids:
+      material: PAPER
+      data: 0
+      slot: 16
+      maximum_bids: 5
+      name: "&bBid History"
+      lore:
+        - "&7Total Bids: &a%total_bid_amount%"
+        - "%bid_descriptions%"
+      bid_description:
+        - "&r"
+        - "&7Bid: &6%bid_amount% coins"
+        - "&7By: &a%bidder_username%"
+        - "&7When: &b%bid_time% ago"
+  custom_bid:
+    enough_money:
+      material: GOLD_INGOT
+      data: 0
+      slot: 14
+      name: "&eCustom Bid"
+      lore:
+        - "&7You need to bid at least"
+        - "&6%minimum_bid_amount% coins &7to hold"
+        - "&7the top bid on this auction."
+        - "&r"
+        - "&eClick to edit custom bid!"
+    not_enough_money:
+      material: RED_DYE
+      data: 1
+      slot: 14
+      name: "&eCustom Bid"
+      lore:
+        - "&7You need to bid at least"
+        - "&6%minimum_bid_amount% coins &7to hold"
+        - "&7the top bid on this auction."
+        - "&r"
+        - "&cYou don't have enough coins!"
+    top_bid:
+      material: LIME_DYE
+      data: 10
+      slot: 14
+      name: "&eCustom Bid"
+      lore:
+        - "&7You need to bid at least"
+        - "&6%minimum_bid_amount% coins &7to hold"
+        - "&7the top bid on this auction."
+        - "&r"
+        - "&eYou are top bidder already!"
+  submit_bid:
+    enough_money:
+      material: GOLD_NUGGET
+      data: 0
+      slot: 12
+      name: "&aSubmit Bid"
+      lore:
+        - "&7Price: &6%auction_price% coins"
+        - "&r"
+        - "&eClick to bid!"
+    not_enough_money:
+      material: POTATO_ITEM
+      data: 0
+      slot: 12
+      name: "&aSubmit Bid"
+      lore:
+        - "&7Price: &6%auction_price% coins"
+        - "&r"
+        - "&cYou don't have enough coins!"
+    top_bid:
+      material: GOLD_NUGGET
+      data: 0
+      slot: 12
+      name: "&aSubmit Bid"
+      lore:
+        - "&7Price: &6%auction_price% coins"
+        - "&r"
+        - "&eYou are top bidder already!"
+
+normal_auction_create_menu:
+  title: "&8Create Normal Auction"
+  size: 27
+  glass: [1,2,3,4,6,7,8,9,10,18,19,20,21,22,25,26,27]
+  close: 23
+  back: 22
+  example_item:
+    without_item:
+      material: STONE_BUTTON
+      data: 0
+      slot: 5
+      name: "&eClick an item in your inventory"
+      lore:
+        - "&7Select the item that you want to sell!"
+    with_item:
+      slot: 5
+      name: "%item_name%"
+      lore:
+        - "&f%item_lore%"
+        - ""
+        - "&eClick to pickup!"
+  auction_duration:
+    material: CLOCK
+    data: 0
+    slot: 16
+    name: "&aAuction Duration"
+    lore:
+      - "&7How long the item will be up for sale."
+      - "&7Bids automatically increase the duration of auction."
+      - "&r"
+      - "&7Duration: &a%auction_time%"
+      - "&7Extra Fee: &6%time_fee% coins"
+      - "&r"
+      - "&eClick to edit duration!"
+  select_price:
+    material: IRON_INGOT
+    data: 0
+    slot: 14
+    name: "&aStarting Price"
+    lore:
+      - "&7Current Price: &6%auction_price% coins"
+      - "&r"
+      - "&7The lowest bid price a player can bid."
+      - "&r"
+      - "&7Fee: &6%price_fee% coins &e(%price_fee_percent%%)"
+      - "&eClick to change price!"
+  switch_type:
+    material: GOLD_INGOT
+    data: 0
+    slot: 24
+    name: "&aSwitch to BIN Auction"
+    lore:
+      - "&8Buy It Now Auction"
+      - "&r"
+      - "&7Only one player can buy"
+      - "&7the item with the fixed price."
+      - "&r"
+      - "&eClick to switch!"
+  confirm_auction:
+    with_item:
+      material: LIME_TERRACOTTA
+      data: 5
+      slot: 12
+      name: "&aCreate Auction"
+      lore:
+        - "&7This item will be added"
+        - "&7to auction house for other"
+        - "&7players to purchase."
+        - "&r"
+        - "&7Item Name: &f%item_displayname%"
+        - "&7Duratiom Time: &a%auction_time%"
+        - "&7Item Price: &6%auction_price% coins"
+        - "&r"
+        - "&7Creation Fee: &6%auction_fee% coins"
+        - "&eClick to submit!"
+    without_item:
+      material: RED_TERRACOTTA
+      data: 14
+      slot: 12
+      name: "&cCreate Auction"
+      lore:
+        - "&7No item selected!"
+        - "&r"
+        - "&7Click an item in your inventory"
+        - "&7to select it for this auction."
+
+bin_auction_create_menu:
+  title: "&8Create BIN Auction"
+  size: 27
+  glass: [1,2,3,4,6,7,8,9,10,18,19,20,21,22,25,26,27]
+  close: 23
+  back: 22
+  example_item:
+    without_item:
+      material: STONE_BUTTON
+      data: 0
+      slot: 5
+      name: "&eClick an item in your inventory"
+      lore:
+        - "&7Select the item that you want to sell!"
+    with_item:
+      slot: 5
+      name: "%item_name%"
+      lore:
+        - "&f%item_lore%"
+        - ""
+        - "&eClick to pickup!"
+  auction_duration:
+    material: CLOCK
+    data: 0
+    slot: 16
+    name: "&aAuction Duration"
+    lore:
+      - "&7How long the item will be up for sale."
+      - "&r"
+      - "&7Duration: &a%auction_time%"
+      - "&7Extra Fee: &6%time_fee% coins"
+      - "&r"
+      - "&eClick to edit duration!"
+  select_price:
+    material: GOLD_INGOT
+    data: 0
+    slot: 14
+    name: "&aSelect Price"
+    lore:
+      - "&7Current Price: &6%auction_price% coins"
+      - "&r"
+      - "&7The price at which you"
+      - "&7want to sell this item."
+      - "&r"
+      - "&7Fee: &6%price_fee% coins &e(%price_fee_percent%%)"
+      - "&eClick to change price!"
+  switch_type:
+    material: IRON_INGOT
+    data: 0
+    slot: 24
+    name: "&aSwitch to Normal Auction"
+    lore:
+      - "&8Normal Auction"
+      - "&r"
+      - "&7Multiple buyers compete for the item"
+      - "&7by bidding turn by turn."
+      - "&r"
+      - "&eClick to switch!"
+  confirm_auction:
+    with_item:
+      material: LIME_TERRACOTTA
+      data: 5
+      slot: 12
+      name: "&aCreate BIN Auction"
+      lore:
+        - "&7This item will be sold on"
+        - "&7auction house to other players."
+        - "&r"
+        - "&7Item Name: &f%item_displayname%"
+        - "&7Duratiom Time: &a%auction_time%"
+        - "&7Item Price: &6%auction_price% coins"
+        - "&r"
+        - "&7Creation Fee: &6%auction_fee% coins"
+        - "&eClick to submit!"
+    without_item:
+      material: RED_TERRACOTTA
+      data: 14
+      slot: 12
+      name: "&cCreate BIN Auction"
+      lore:
+        - "&7No item selected!"
+        - "&r"
+        - "&7Click an item in your inventory"
+        - "&7to select it for this auction."
+
+confirm_auction:
+  title: "&8Confirm Auction Create"
+  size: 27
+  glass: [1,2,3,4,5,6,7,8,9,10,18,19,20,21,24,25,26,27]
+  close: 23
+  back: 22
+  example_item: 14
+  confirm:
+    material: LIME_TERRACOTTA
+    data: 5
+    slot: 12
+    name: "&aConfirm"
+    lore:
+      - "&7Item to Sell: &f%item_displayname%"
+      - "&7Create Cost: &6%auction_fee% coins"
+      - "&r"
+      - "&eClick to confirm!"
+  cancel:
+    material: RED_TERRACOTTA
+    data: 14
+    slot: 16
+    name: "&cCancel"
+    lore:
+      - "&7Click to cancel!"
+
+confirm_purchase:
+  title: "&8Confirm Purchase"
+  size: 27
+  glass: [1,2,3,4,5,6,7,8,9,10,18,19,20,21,22,24,25,26,27]
+  close: 23
+  example_item: 14
+  confirm:
+    material: LIME_TERRACOTTA
+    data: 5
+    slot: 12
+    name: "&aConfirm"
+    lore:
+      - "&7Item to Buy: &f%item_displayname%"
+      - "&7Price: &6%auction_price% coins"
+      - "&r"
+      - "&eClick to confirm!"
+  cancel:
+    material: RED_TERRACOTTA
+    data: 14
+    slot: 16
+    name: "&cCancel"
+    lore:
+      - "&7Click to cancel!"
+
+confirm_bid:
+  title: "&8Confirm Bid"
+  size: 27
+  glass: [1,2,3,4,5,6,7,8,9,10,18,19,20,21,22,24,25,26,27]
+  close: 23
+  example_item: 14
+  confirm:
+    material: LIME_TERRACOTTA
+    data: 5
+    slot: 12
+    name: "&aConfirm"
+    lore:
+      - "&7Item to Bid: &f%item_displayname%"
+      - "&7Price: &6%bid_price% coins"
+      - "&r"
+      - "&eClick to confirm!"
+  cancel:
+    material: RED_TERRACOTTA
+    data: 14
+    slot: 16
+    name: "&cCancel"
+    lore:
+      - "&7Click to cancel!"
+
+manage_auctions:
+  title: "&8Manage Auctions"
+  size: 45
+  glass: [1,2,3,4,5,6,7,8,9,10,18,19,27,28,36,37,38,43,44,45]
+  slots: [11,12,13,14,15,16,17,20,21,22,23,24,25,26,29,30,31,32,33,34,35]
+  close: 41
+  back: 40
+  pagination: false
+  claim_all:
+    without_claimable:
+      material: CAULDRON_ITEM
+      data: 0
+      slot: 42
+      name: "&aClaim All"
+      lore:
+        - "&7You can claim your ended auctions."
+        - ""
+        - "&cYou don't have anything to claim!"
+    with_claimable:
+      material: CAULDRON_ITEM
+      data: 0
+      slot: 42
+      name: "&aClaim All"
+      lore:
+        - "&7You can claim your ended auctions."
+        - ""
+        - "&7You have &a%claimable_items% items &7to claim."
+        - "&7You have &6%claimable_money% coins &7to claim."
+        - ""
+        - "&eClick to claim all!"
+  create:
+    material: GOLDEN_HORSE_ARMOR
+    data: 0
+    slot: 43
+    name: "&5Create Auction"
+    lore:
+      - "&7Set your own items on auction"
+      - "&7for other players to purchase!"
+      - ""
+      - "&dClick to sell your items!"
+  auction_sorter:
+    material: HOPPER
+    data: 0
+    slot: 39
+    name: "&eAuction Sorter"
+    types:
+      - HIGHEST_PRICE
+      - MOST_BIDS
+      - ENDING_SOON
+    lore:
+      highest_price:
+        - "&2&l▶ &aHighest Price"
+        - "&8&l▶ &7Most Bids"
+        - "&8&l▶ &7Ending Soon"
+        - ""
+        - "&bRight click to go backwards!"
+        - "&eLeft click to switch sort!"
+      most_bids:
+        - "&8&l▶ &7Highest Price"
+        - "&2&l▶ &aMost Bids"
+        - "&8&l▶ &7Ending Soon"
+        - ""
+        - "&bRight click to go backwards!"
+        - "&eLeft click to switch sort!"
+      ending_soon:
+        - "&8&l▶ &7Highest Price"
+        - "&8&l▶ &7Most Bids"
+        - "&2&l▶ &aEnding Soon"
+        - ""
+        - "&bRight click to go backwards!"
+        - "&eLeft click to switch sort!"
+  next_page:
+    material: ARROW
+    data: 0
+    slot: 45
+    name: "&aNext Page"
+    lore:
+      - "&7(%current_page%/%total_page%)"
+      - ""
+      - "&bRight click to skip pages!"
+      - "&eClick to go to next page!"
+  previous_page:
+    material: ARROW
+    data: 0
+    slot: 37
+    name: "&aPrevious Page"
+    lore:
+      - "&7(%current_page%/%total_page%)"
+      - ""
+      - "&bRight click to skip pages!"
+      - "&eClick to go back to next menu!"
+
+view_bids:
+  title: "&8View Bids"
+  size: 45
+  glass: [1,2,3,4,5,6,7,8,9,10,18,19,27,28,36,37,38,39,43,44,45]
+  slots: [11,12,13,14,15,16,17,20,21,22,23,24,25,26,29,30,31,32,33,34,35]
+  close: 41
+  back: 40
+  pagination: false
+  claim_all:
+    without_claimable:
+      material: CAULDRON_ITEM
+      data: 0
+      slot: 42
+      name: "&aClaim All"
+      lore:
+        - "&7You can claim your bids in ended auctions."
+        - ""
+        - "&cYou don't have anything to claim!"
+    with_claimable:
+      material: CAULDRON_ITEM
+      data: 0
+      slot: 42
+      name: "&aClaim All"
+      lore:
+        - "&7You can claim your bids in ended auctions."
+        - ""
+        - "&7You have &a%claimable_items% items &7to claim."
+        - "&7You have &6%claimable_money% coins &7to claim."
+        - ""
+        - "&eClick to claim all!"
+  next_page:
+    material: ARROW
+    data: 0
+    slot: 45
+    name: "&aNext Page"
+    lore:
+      - "&7(%current_page%/%total_page%)"
+      - ""
+      - "&bRight click to skip pages!"
+      - "&eClick to go to next page!"
+  previous_page:
+    material: ARROW
+    data: 0
+    slot: 37
+    name: "&aPrevious Page"
+    lore:
+      - "&7(%current_page%/%total_page%)"
+      - ""
+      - "&bRight click to skip pages!"
+      - "&eClick to go back to next menu!"
+
+duration_menu:
+  title: "&8Auction Duration"
+  size: 27
+  glass: [1,2,3,4,5,6,7,8,9,10,18,19,20,21,24,25,26,27]
+  close: 23
+  back: 22
+  custom_duration:
+    material: CLOCK
+    data: 0
+    slot: 17
+    name: "&aCustom Duration"
+    lore:
+      - "&7Specify how long you want"
+      - "&7the auction to last."
+      - "&r"
+      - "&bRight-click for minutes!"
+      - "&eLeft-click for hours!"
+  durations:
+    1hour:
+      material: RED_TERRACOTTA
+      data: 14
+      slot: 11
+      duration: 3600 # seconds
+      name: "&a1 Hour"
+      lore:
+        - "&7Extra Fee: &6%duration_fee% coins"
+        - "&r"
+        - "&eClick to pick!"
+    6hours:
+      material: PINK_TERRACOTTA
+      data: 6
+      slot: 12
+      duration: 21600 # seconds
+      name: "&a6 Hours"
+      lore:
+        - "&7Extra Fee: &6%duration_fee% coins"
+        - "&r"
+        - "&eClick to pick!"
+    12hours:
+      material: ORANGE_TERRACOTTA
+      data: 1
+      slot: 13
+      duration: 43200 # seconds
+      name: "&a12 Hours"
+      lore:
+        - "&7Extra Fee: &6%duration_fee% coins"
+        - "&r"
+        - "&eClick to pick!"
+    1day:
+      material: YELLOW_TERRACOTTA
+      data: 4
+      slot: 14
+      duration: 86400 # seconds
+      name: "&a1 Day"
+      lore:
+        - "&7Extra Fee: &6%duration_fee% coins"
+        - "&r"
+        - "&eClick to pick!"
+    2days:
+      material: LIME_TERRACOTTA
+      data: 5
+      slot: 15
+      duration: 172800 # seconds
+      name: "&a2 Days"
+      lore:
+        - "&7Extra Fee: &6%duration_fee% coins"
+        - "&r"
+        - "&eClick to pick!"
+
+view_player_auctions:
+  title: "&8%player_name%'s Auctions"
+  size: 45
+  glass: [1,2,3,4,5,6,7,8,9,10,18,19,27,28,36,37,38,39,40,42,43,44,45]
+  slots: [11,12,13,14,15,16,17,20,21,22,23,24,25,26,29,30,31,32,33,34,35]
+  close: 41
+  pagination: false
+  next_page:
+    material: ARROW
+    data: 0
+    slot: 45
+    name: "&aNext Page"
+    lore:
+      - "&7(%current_page%/%total_page%)"
+      - ""
+      - "&bRight click to skip pages!"
+      - "&eClick to go to next page!"
+  previous_page:
+    material: ARROW
+    data: 0
+    slot: 37
+    name: "&aPrevious Page"
+    lore:
+      - "&7(%current_page%/%total_page%)"
+      - ""
+      - "&bRight click to skip pages!"
+      - "&eClick to go back to next menu!"
+
+shulker_view_menu:
+  title: "&8Shulker Preview"
+  size: 36
+  slots: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27]
+  glass: [28,29,30,33,34,35,36]
+  close: 32
+  back: 31
+
+stats_menu:
+  title: "&8Auction Stats"
+  size: 27
+  glass: [1,2,3,4,5,6,7,8,9,10,18,19,20,21,24,25,26,27]
+  back: 22
+  close: 23
+  buyer_stats:
+    material: PAPER
+    data: 0
+    slot: 12
+    name: "&aBuyer Stats"
+    lore:
+      - "&8%player_name%'s stats"
+      - "&r"
+      - "&7Auctions Won: &a%won_auctions_amount%"
+      - "&7Auctions Lost: &a%lost_auctions_amount%"
+      - "&7Total Bids: &a%total_bids_amount%"
+      - "&r"
+      - "&7Most Bids: &e%highest_bid% coins"
+      - "&7Coins Spent: &e%spent_money_amount% coins"
+  seller_stats:
+    material: PAPER
+    data: 0
+    slot: 16
+    name: "&eSeller Stats"
+    lore:
+      - "&8%player_name%'s stats"
+      - "&r"
+      - "&7Auctions Created: &a%created_auctions_amount%"
+      - "&7Auctions Completed with Bids: &a%completed_auctions_with_bids%"
+      - "&7Auctions Completed without Bids: &a%completed_auctions_with_bids%"
+      - "&r"
+      - "&7Coins Earned: &e%earned_money_amount% coins"
+      - "&7Coins Spent on Fees: &e%spent_money_on_fees% coins"

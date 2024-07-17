@@ -1,0 +1,36 @@
+name: DeluxeAuctions
+main: me.sedattr.deluxeauctions.DeluxeAuctions
+
+author: SedatTR
+version: 1.4
+api-version: 1.13
+
+description: The best, cheap, advanced, fully customizable auction plugin; like popular server!
+website: https://discord.gg/nchk86TKMT
+softdepend:
+  - Vault
+  - HeadDatabase
+  - RoyaleEconomy
+  - PlaceholderAPI
+  - PlayerPoints
+  - TokenManager
+  - Lands
+  - UltraEconomy
+  - LiteBans
+  - AdvancedBan
+  - EcoItems
+  - AuctionMaster
+  - zAuctionHouseV3
+  - DeluxeAuctionsRedis
+  - DeluxeAuctionsDisplay
+loadbefore:
+  - DeluxeAuctionsDisplay
+  - DeluxeAuctionsRedis
+
+commands:
+  auction:
+    description: Default auction command.
+    aliases: [deluxeauctions, ah, auc]
+  auctionadmin:
+    description: Default auction admin command.
+    aliases: [deluxeauctionsadmin, ahadmin, aucadmin]

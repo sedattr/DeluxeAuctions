@@ -1,0 +1,334 @@
+# _ ________________ ________________ ________________ _
+#|_|________________|________________|________________|_|
+#| |   _____  ______  _       _    _ __   __ ______   | |
+#| |  |  __ \|  ___ \| |     | |  | |\ \ / /|  ___ \  | |
+#|_|  | |  | | |__ \/| |     | |  | | \ V / | |__ \/  |_|
+#| |  | |  | |  __|  | |     | |  | |  > <  |  __     | |
+#| |  | |__| | |___/\| |___/\| |__| | / . \ | |___/\  | |
+#|_|  |_____/|______/|______/\______//_/ \_\\______/  |_|
+#| |                                                  | |
+#| |          DeluxeAuctions - SedatTR#8666           | |
+#|_|________________ ________________ ________________|_|
+#|_|________________|________________|________________|_|
+# If you have any question or suggestion please contact to me.
+# If you are using this plugin, you are accepting Terms of Use.
+#
+# Discord Account: SedatTR#8666
+# Discord Server: https://discord.gg/nchk86TKMT
+# Plugin Wiki: https://sedattr.gitbook.io/deluxeauctions
+
+# PLUGIN SETTINGS
+settings:
+  enable_plugin: true # Plugin can be enabled and disabled
+  enable_debug: false # Useful for debugging database and some systems.
+  enable_log: true # Internal logging system, useful for finding exploits and bugs
+  # Uncategorized items will be found in this category
+  # All items can be sold with this setting
+  return_category:
+    enabled: true
+    category: "miscellaneous"
+  open_menu_directly: false # Auction menu will be opened when the /ah command used with this setting.
+  add_time_when_bid: 10 # SECONDS. When new bid is created, time is automatically added to the auction.
+  default_type: "BIN"
+  default_price: 1000 # Default auction creation price.
+  default_duration: 21600 # SECONDS.3 Default auction creation duration.
+  default_category: "weapons" # Default category that is selected when opening /ah menu
+  default_sort_type: "HIGHEST_PRICE" # Default sort that is selected when opening /ah menu
+  default_filter_type: "ALL" # Default filter that is selected when opening /ah menu
+  purge_auctions: 60 # DAYS. Auctions older than this day will be automatically deleted. Recommended to keep the database clean.
+  bid_formula: "%highest_bid% + %highest_bid% / 10" # You can set the minimum amount more than the previous bid for a new bid.
+  duration_fee: # Duration fee can be customizable
+    minimum_fee: 50 # Duration fee can't be lower than this setting
+    formula: "%hours% * 50" # Current Placeholders: %hours%
+  auction_flags: # Auctions' example items will have these flags
+    - HIDE_ATTRIBUTES
+  anti_lag: # With this system, you can prevent dupe problems a bit.
+    player:
+      enabled: false
+      maximum_ping: 250
+    server:
+      enabled: false
+      minimum_tps: 15
+      seconds: 5 # TPS will be calculated every this seconds
+  disabled_worlds: # Auction system can be disabled on some worlds
+    enabled: false
+    world_list:
+      - world_the_end
+      - world_nether
+
+# AUCTION MESSAGE BROADCASTS
+# With this system, messages can be clickable.
+# Messages can be found in the messages.yml file.
+broadcast_messages:
+  enabled: true
+  check_if_muted: false # Broadcasts will not be sent if the player is muted. (Currently AdvancedBans and LiteBans supported)
+  # Commands can be executed along with the broadcasts.
+  # Examples:
+  # [player] /ah open (Player will execute this command.)
+  # [console] /ahadmin open %player_name% (Console will execute this command.)
+  commands: []
+  # Text Types: COPY_TO_CLIPBOARD, RUN_COMMAND, SUGGEST_COMMAND, OPEN_URL, OPEN_FILE, CHANGE_PAGE
+  # Current Placeholders: %auction_uuid%
+  normal_auction_broadcast:
+    type: SUGGEST_COMMAND
+    text: "/ah view %auction_uuid%"
+    hover: "&fClick to get view auction command!"
+  bin_auction_broadcast:
+    type: SUGGEST_COMMAND
+    text: "/ah view %auction_uuid%"
+    hover: "&fClick to get view auction command!"
+  new_bid:
+    type: SUGGEST_COMMAND
+    text: "/ah view %auction_uuid%"
+    hover: "&fClick to get view auction command!"
+  outbid:
+    type: SUGGEST_COMMAND
+    text: "/ah view %auction_uuid%"
+    hover: "&fClick to get view auction command!"
+  sold:
+    type: SUGGEST_COMMAND
+    text: "/ah view %auction_uuid%"
+    hover: "&fClick to get view auction command!"
+  auction_view_info:
+    type: SUGGEST_COMMAND
+    text: "/ah view %auction_uuid%"
+    hover: "&fClick to get view auction command!"
+
+# BIN AUCTION SETTINGS
+bin_auction:
+  enabled: true # BIN auctions can be enabled or disabled.
+  # Fee percentages can be editable within certain price ranges.
+  # Default Configuration:
+  # 0 to 500,000: 1%
+  # 500,000 to 1,000,000: 2.5%
+  # 1,000,000 and higher: 5%
+  price_fees: # PERCENT.
+    0: 1
+    500000: 2.5
+    1000000: 5
+
+# NORMAL AUCTION SETTINGS
+normal_auction:
+  enabled: true # NORMAL auctions can be enabled or disabled.
+  # Fee percentages can be editable within certain price ranges.
+  # Default Configuration:
+  # 0 and higher: 1%
+  price_fees: # PERCENT.
+    0: 1
+
+# AUCTION LIMITS
+player_limits:
+  bid_limit:
+    default: 9
+    permissions:
+      deluxeauctions.vip: 18
+      deluxeauctions.mvip: 27
+  auction_limit:
+    default: 9
+    permissions:
+      deluxeauctions.vip: 18
+      deluxeauctions.mvip: 27
+  price_limit:
+    default: 250000000
+    permissions:
+      deluxeauctions.vip: 500000000
+      deluxeauctions.mvip: 100000000
+  duration_limit:
+    default: 604800
+    permissions:
+      deluxeauctions.vip: 907200
+      deluxeauctions.mvip: 1209600
+
+# PLUGIN ECONOMY
+economy:
+  type: "vault" # Types: vault, royaleeconomy_balance, royaleeconomy_bank, lands, tokenmanager, playerpoints, ultraeconomy, yaml
+  yaml_settings: # For yaml economy, ignore if you use any of the other economy-types
+    folder_name: "plugins/YAMLEconomy/players" # economy folder that includes players' balance files
+    file_name: "%player_uuid%.yml" # player's balance file name in folder (placeholders: %uuid% & %player%)
+    # player's balance in file
+    # example (you can put . for line)
+    # balance:
+    #   total: 100
+    node_text: "balance.total"
+  ultraeconomy_settings:
+    currency_name: "gold"
+
+# PLUGIN DATABASE
+database:
+  type: "sqlite" # Database Types: mysql, sqlite.
+  table_prefix: "da_"
+  mysql_settings: # FOR MYSQL DATABASE
+    link: "com.mysql.jdbc.Driver" # new version: com.mysql.cj.jdbc.Driver
+    url: "jdbc:mysql://localhost:1907/Auction" # jdbc:mysql://host:port/database
+    user: "SedatTR" # MySQL Username
+    password: "DeluxeAuctions" # MySQL Password
+
+# PLUGIN ADDONS
+addons:
+  head_database: false # Set to true if some of your items in the auctions use the HeadDatabase plugin
+  placeholder_api: false # Set to true if you want to integrate/use placeholders for the Auctions
+  eco_items: false # Set to true if you want to use EcoItems items in the auction items
+  lite_bans: false # Set to true if you want to check for player mute while broadcasting auctions
+  advanced_ban: false # Set to true if you want to check for player mute while broadcasting auctions
+  bungeecord: false # Set to true if you want to use bungeecord. You need DeluxeAuctionsBungee plugin.
+  discord: # Enable this to use the discord webhook system for sending useful messages.
+    enabled: false
+    webhook_url: ""
+    create_auction:
+      enabled: true
+      message: ":small_blue_diamond:__%player_name%__ created **%auction_type% AUCTION** for **%item_name%**!"
+    cancel_auction:
+      enabled: true
+      message: ":small_blue_diamond:__%player_name%__ cancelled **%auction_type% AUCTION** for **%item_name%**!"
+    bought_item:
+      enabled: true
+      message: ":small_blue_diamond:__%player_name%__ bought **%item_name%** for **%auction_price% coins** from **%seller_name%**!"
+    sold_item:
+      enabled: true
+      message: ":small_orange_diamond:__%player_name%__ sold **%item_name%** for **%auction_price% coins** to **%buyer_name%**!"
+    bid_item:
+      enabled: true
+      message: ":small_blue_diamond:__%player_name%__ bid **%bid_price% coins** for **%item_name%** in **%seller_name%**'s auction!"
+
+# NUMBER FORMAT SETTINGS
+number_format:
+  enabled: true # Enable or disable number formatting
+  type: "decimal" # Number format type, types: decimal, short
+  decimal_settings: # Example: 10.2
+    minimum_fraction: 0
+    maximum_fraction: 2
+    remove_decimal: true
+  short_settings: # Examples: 10k, 25M, 1T
+    thousand: "k"
+    million: "M"
+    billion: "G"
+    trillion: "T"
+    quadrillion: "Q"
+    quintillion: "E"
+
+# TIME FORMAT SETTINGS
+time_format:
+  # These texts are used to indicate the duration in the /ah sell command.
+  # Example: /ah sell [type] [price] [1w 3days 5minutes/2weeks 3m 5seconds]
+  convert_times:
+    weeks:
+      - w
+      - weeks
+    days:
+      - d
+      - days
+    hours:
+      - h
+      - hours
+    minutes:
+      - m
+      - minutes
+    seconds:
+      - s
+      - seconds
+  auction_times:
+    weeks: "w"
+    days: "d"
+    hours: "h"
+    minutes: "m"
+    seconds: "s"
+    ending: "ENDING"
+  other_times:
+    weeks: " weeks"
+    days: " days"
+    hours: " hours"
+    minutes: " minutes"
+    seconds: " seconds"
+    ending: "ENDING"
+
+# PLUGIN PERMISSIONS
+permissions:
+  item:
+    enabled: false
+    permission: "deluxeauctions.item.%item_name%"
+    item_list:
+      - DIAMOND
+  category:
+    enabled: false
+    permission: "deluxeauctions.category.%category_name%"
+    category_list:
+      - tools
+  search:
+    enabled: false
+    permission: "deluxeauctions.search"
+  player_commands:
+    command: ""
+    menu: ""
+    sell: ""
+    auctions: "auctions.auctions"
+    view: "auctions.view"
+    bids: "auctions.bids"
+    manage: "auctions.manage"
+  admin_commands:
+    command: "auctionadmin.command"
+    convert: "auctionadmin.convert"
+    cancel: "auctionadmin.cancel"
+    lock: "auctionadmin.lock"
+    menu: "auctionadmin.menu"
+    reload: "auctionadmin.reload"
+
+# MENU SOUNDS
+sounds:
+  inventory_item_click: # When player clicks an item in his own inventory to select for the auctions, the plugin will play this sound.
+    enabled: false
+    name: "CLICK"
+    volume: 1
+    pitch: 2
+  auction_item_click: # When player clicks to auction item in auctions menu, the plugin will play this sound.
+    enabled: false
+    name: "CLICK"
+    volume: 1
+    pitch: 2
+  category_item_click: # When the player clicks the auction category item, the plugin will play this sound.
+    enabled: false
+    name: "CLICK"
+    volume: 1
+    pitch: 1.5
+  filter_item_click: # When player switches filters, the plugin will play this sound.
+    enabled: false
+    name: "CLICK"
+    volume: 1
+    pitch: 1
+  sorter_item_click: # When player switches sorters, the plugin will play this sound.
+    enabled: false
+    name: "CLICK"
+    volume: 1
+    pitch: 1
+  bought_auction:
+    enabled: false
+    name: "ORB_PICKUP"
+    volume: 1
+    pitch: 0.6
+  bid_auction:
+    enabled: false
+    name: "ORB_PICKUP"
+    volume: 1
+    pitch: 0.6
+  cancel_auction:
+    enabled: false
+    name: "ORB_PICKUP"
+    volume: 1
+    pitch: 0.6
+  buyer_collect_auction:
+    enabled: false
+    name: "ORB_PICKUP"
+    volume: 1
+    pitch: 0.6
+  seller_collect_auction:
+    enabled: false
+    name: "ORB_PICKUP"
+    volume: 1
+    pitch: 0.6
+  sold_auction:
+    enabled: false
+    name: "ORB_PICKUP"
+    volume: 1
+    pitch: 0.6
+
+# DON'T CHANGE THIS MANUALLY
+file_versions: 1.1

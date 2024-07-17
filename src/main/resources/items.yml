@@ -1,0 +1,61 @@
+# _ ________________ ________________ ________________ _
+#|_|________________|________________|________________|_|
+#| |   _____  ______  _       _    _ __   __ ______   | |
+#| |  |  __ \|  ___ \| |     | |  | |\ \ / /|  ___ \  | |
+#|_|  | |  | | |__ \/| |     | |  | | \ V / | |__ \/  |_|
+#| |  | |  | |  __|  | |     | |  | |  > <  |  __     | |
+#| |  | |__| | |___/\| |___/\| |__| | / . \ | |___/\  | |
+#|_|  |_____/|______/|______/\______//_/ \_\\______/  |_|
+#| |                                                  | |
+#| |          DeluxeAuctions - SedatTR#8666           | |
+#|_|________________ ________________ ________________|_|
+#|_|________________|________________|________________|_|
+# If you have any question or suggestion please contact to me.
+# If you are using this plugin, you are accepting Terms of Use.
+#
+# Discord Account: SedatTR#8666
+# Discord Server: https://discord.gg/nchk86TKMT
+# Plugin Wiki: https://sedattr.gitbook.io/deluxeauctions
+
+# ITEM BLACKLIST SYSTEM
+blacklisted_items:
+  materials: # Items can be blacklisted with their material names.
+    enabled: false
+    list:
+      - BEDROCK
+  models: # Items can be blacklisted with their model data.
+    enabled: false
+    list:
+      - 1000
+  names: # Items can be blacklisted with their display names.
+    enabled: false
+    list:
+      - "&cAdmin Sword"
+  lores: # Items can be blacklisted with their lores.
+    enabled: false
+    list:
+      1:
+        - "&cAdmin Only"
+        - "&cNo Auction"
+
+# CUSTOM ITEM SYSTEM
+# These items can be added to the category's item list.
+# Currently material, display name, lore and model is supported.
+# You don't need to use them all.
+custom_items:
+  CUSTOM_SWORD:
+    material: DIAMOND_SWORD
+    name: "&aCustom Sword"
+  EPIC_SWORD:
+    material: IRON_SWORD
+    name: "&dEpic Sword"
+    lore:
+      - "&7This sword is epic! (What a cool lore)"
+    model: 69
+  LORE_EXAMPLE:
+    type: contains_lore
+    lore:
+      - "&7Weapon"
+  NAME_EXAMPLE:
+    type: contains_name
+    name: "Sword"

@@ -1,0 +1,210 @@
+# _ ________________ ________________ ________________ _
+#|_|________________|________________|________________|_|
+#| |   _____  ______  _       _    _ __   __ ______   | |
+#| |  |  __ \|  ___ \| |     | |  | |\ \ / /|  ___ \  | |
+#|_|  | |  | | |__ \/| |     | |  | | \ V / | |__ \/  |_|
+#| |  | |  | |  __|  | |     | |  | |  > <  |  __     | |
+#| |  | |__| | |___/\| |___/\| |__| | / . \ | |___/\  | |
+#|_|  |_____/|______/|______/\______//_/ \_\\______/  |_|
+#| |                                                  | |
+#| |          DeluxeAuctions - SedatTR#8666           | |
+#|_|________________ ________________ ________________|_|
+#|_|________________|________________|________________|_|
+# If you have any question or suggestion please contact to me.
+# If you are using this plugin, you are accepting Terms of Use.
+#
+# Discord Account: SedatTR#8666
+# Discord Server: https://discord.gg/nchk86TKMT
+# Plugin Wiki: https://sedattr.gitbook.io/deluxeauctions
+global:
+  name: '&fGlobal Auctions'
+  description:
+    - "&7Item List:"
+    - "&8■ &7All Items"
+    - ""
+    - "&7Item Amount: &e%category_item_amount% items"
+  material: BEACON
+  slot: 1
+  glass:
+    material: WHITE_STAINED_GLASS_PANE
+    data: 0
+  flags:
+    - HIDE_ENCHANTS
+    - HIDE_ATTRIBUTES
+  priority: 1
+  slots: [12,13,14,15,16,17,21,22,23,24,25,26,30,31,32,33,34,35,39,40,41,42,43,44]
+  global: true
+
+weapons:
+  name: '&eWeapons & Armor'
+  description:
+    - "&7Item List:"
+    - "&8■ &7Swords"
+    - "&8■ &7Bows"
+    - "&8■ &7Armors"
+    - ""
+    - "&7Item Amount: &e%category_item_amount% items"
+  material: GOLDEN_SWORD
+  slot: 10
+  glass:
+    material: YELLOW_STAINED_GLASS_PANE
+    data: 4
+  flags:
+    - HIDE_ENCHANTS
+    - HIDE_ATTRIBUTES
+  priority: 2
+  slots: [12,13,14,15,16,17,21,22,23,24,25,26,30,31,32,33,34,35,39,40,41,42,43,44]
+  items:
+    - ALL_SWORDS
+    - ALL_ARMORS
+    - TRIDENT
+    - SHIELD
+    - CROSSBOW
+    - BOW
+
+tools:
+  name: '&bTools'
+  description:
+    - "&7Item List:"
+    - "&8■ &7Tools"
+    - ""
+    - "&7Item Amount: &b%category_item_amount% items"
+  material: DIAMOND_PICKAXE
+  slot: 19
+  glass:
+    material: LIGHT_BLUE_STAINED_GLASS_PANE
+    data: 3
+  flags:
+    - HIDE_ENCHANTS
+    - HIDE_ATTRIBUTES
+  priority: 3
+  slots: [12,13,14,15,16,17,21,22,23,24,25,26,30,31,32,33,34,35,39,40,41,42,43,44]
+  items:
+    - ALL_TOOLS
+    - FLINT_AND_STEEL
+    - CLOCK
+    - FISHING_ROD
+    - COMPASS
+    - NAME_TAG
+
+enchants:
+  name: '&cEnchants'
+  description:
+    - "&7Item List:"
+    - "&8■ &7Enchanted Books"
+    - "&8■ &7Books"
+    - ""
+    - "&7Item Amount: &c%category_item_amount% items"
+  material: ENCHANTING_TABLE
+  slot: 28
+  glass:
+    material: RED_STAINED_GLASS_PANE
+    data: 14
+  flags:
+    - HIDE_ENCHANTS
+    - HIDE_ATTRIBUTES
+    - HIDE_POTION_EFFECTS
+  priority: 4
+  slots: [12,13,14,15,16,17,21,22,23,24,25,26,30,31,32,33,34,35,39,40,41,42,43,44]
+  items:
+    - BOOK
+    - ENCHANTED_BOOK
+
+consumables:
+  name: '&6Consumables'
+  description:
+    - "&7Item List:"
+    - "&8■ &7Foods"
+    - "&8■ &7Potions"
+    - ""
+    - "&7Item Amount: &6%category_item_amount% items"
+  material: CARROT_ITEM
+  slot: 20
+  glass:
+    material: ORANGE_STAINED_GLASS_PANE
+    data: 1
+  flags:
+    - HIDE_ENCHANTS
+    - HIDE_ATTRIBUTES
+  priority: 5
+  slots: [12,13,14,15,16,17,21,22,23,24,25,26,30,31,32,33,34,35,39,40,41,42,43,44]
+  items:
+    - ALL_CONSUMABLES
+    - ALL_POTIONS
+    - BLAZE_ROD
+    - GHAST_TEAR
+    - NETHER_STAR
+    - GLASS_BOTTLE
+    - SPIDER_EYE
+    - FERMENTED_SPIDER_EYE
+    - BLAZE_POWDER
+    - MAGMA_CREAM
+    - CAULDRON
+    - GLISTERING_MELON_SLICE
+
+ingredients:
+  name: '&9Ingredients'
+  description:
+    - "&7Item List:"
+    - "&8■ &7Materials"
+    - "&8■ &7Dyes"
+    - ""
+    - "&7Item Amount: &e%category_item_amount% items"
+  material: LAPIS_LAZULI
+  data: 4
+  slot: 29
+  glass:
+    material: BLUE_STAINED_GLASS_PANE
+    data: 11
+  flags:
+    - HIDE_ENCHANTS
+    - HIDE_ATTRIBUTES
+  priority: 6
+  slots: [12,13,14,15,16,17,21,22,23,24,25,26,30,31,32,33,34,35,39,40,41,42,43,44]
+  items:
+    - ALL_DYES
+    - ALL_INGOTS
+    - ALL_NUGGETS
+    - ALL_TEMPLATES
+    - BRICK
+    - NETHER_BRICK
+
+blocks:
+  name: '&aBlocks'
+  description:
+    - "&7Item List:"
+    - "&8■ &7Blocks"
+    - ""
+    - "&7Item Amount: &a%category_item_amount% items"
+  material: GRASS_BLOCK
+  slot: 37
+  glass:
+    material: LIME_STAINED_GLASS_PANE
+    data: 5
+  flags:
+    - HIDE_ENCHANTS
+    - HIDE_ATTRIBUTES
+  priority: 7
+  slots: [12,13,14,15,16,17,21,22,23,24,25,26,30,31,32,33,34,35,39,40,41,42,43,44]
+  items:
+    - ALL_BLOCKS
+
+miscellaneous:
+  name: '&dMiscellaneous'
+  description:
+    - "&7Item List:"
+    - "&8■ &7Other Items"
+    - ""
+    - "&7Item Amount: &d%category_item_amount% items"
+  material: PINK_DYE
+  data: 9
+  slot: 46
+  glass:
+    material: PINK_STAINED_GLASS_PANE
+    data: 6
+  flags:
+    - HIDE_ENCHANTS
+    - HIDE_ATTRIBUTES
+  priority: 8
+  slots: [12,13,14,15,16,17,21,22,23,24,25,26,30,31,32,33,34,35,39,40,41,42,43,44]
+  items: []
