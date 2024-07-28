@@ -32,6 +32,4 @@ public interface DatabaseManager {
     void saveStats(PlayerStats stats);
 
     void shutdown();
-
-    boolean isAuctionLoading(UUID uuid);
 }

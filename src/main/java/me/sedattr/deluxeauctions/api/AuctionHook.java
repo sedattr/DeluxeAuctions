@@ -18,6 +18,11 @@ import java.util.List;
 import java.util.Set;
 
 public class AuctionHook {
+    private static final double MAX_PRICE = 1000000000000.0;
+    private static final double MAX_BID = 1000000000000.0;
+    private static final int MAX_DURATION = 31556926;
+    private static final int MAX_AUCTION = 100;
+
     public static boolean isAuctionTypeDisabled(String type) {
         if (!type.equalsIgnoreCase("bin") && !type.equalsIgnoreCase("normal"))
             return false;
@@ -71,13 +76,39 @@ public class AuctionHook {
         return Math.max(formulaPrice, durationSection.getDouble("minimum_fee", 50));
     }
 
-    public static int getLimit(Player player, String type) {
+    public static double getPriceLimit(Player player, String type) {
         if (player.isOp())
-            return Integer.MAX_VALUE;
+            return type.equals("price_limit") ? MAX_PRICE : MAX_BID;
 
         ConfigurationSection section = DeluxeAuctions.getInstance().configFile.getConfigurationSection("player_limits." + type);
         if (section == null)
-            return Integer.MAX_VALUE;
+            return type.equals("price_limit") ? MAX_PRICE : MAX_BID;
+
+        int current = section.getInt("default");
+        ConfigurationSection permissions = section.getConfigurationSection("permissions");
+        if (permissions != null) {
+            Set<String> keys = permissions.getKeys(false);
+            if (!keys.isEmpty())
+                for (String key : keys) {
+                    if (!player.hasPermission(key))
+                        continue;
+
+                    int amount = permissions.getInt(key);
+                    if (amount > current)
+                        current = amount;
+                }
+        }
+
+        return current;
+    }
+
+    public static int getLimit(Player player, String type) {
+        if (player.isOp())
+            return type.equals("duration_limit") ? MAX_DURATION : MAX_AUCTION;
+
+        ConfigurationSection section = DeluxeAuctions.getInstance().configFile.getConfigurationSection("player_limits." + type);
+        if (section == null)
+            return type.equals("duration_limit") ? MAX_DURATION : MAX_AUCTION;
 
         int current = section.getInt("default");
         ConfigurationSection permissions = section.getConfigurationSection("permissions");

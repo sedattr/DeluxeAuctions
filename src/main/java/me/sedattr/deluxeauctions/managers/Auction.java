@@ -70,6 +70,8 @@ public class Auction {
         if (event.isCancelled())
             return false;
 
+        AuctionCache.addUpdatingAuction(this.auctionUUID);
+
         AuctionCache.addAuction(this);
         DeluxeAuctions.getInstance().economyManager.removeBalance(player, totalFee);
 
@@ -98,39 +100,58 @@ public class Auction {
     }
 
     public boolean cancel(Player player) {
+        if (AuctionCache.getAuction(this.auctionUUID) == null)
+            return false;
+
+        // Check if auction is ended already
         if (isEnded())
             return false;
 
+        // Check if seller is claimed auction
         if (this.isSellerClaimed())
             return false;
 
+        // Check if someone bid to the auction
         if (!this.auctionBids.getPlayerBids().isEmpty())
             return false;
 
+        // Check if player has no empty slot
         if (!Utils.hasEmptySlot(player)) {
             Utils.sendMessage(player, "no_empty_slot");
             return false;
         }
 
+        // Check if player is laggy
         if (Utils.isLaggy(player)) {
             Utils.sendMessage(player, "laggy");
             return false;
         }
 
-        if (DeluxeAuctions.getInstance().databaseManager.isAuctionLoading(this.auctionUUID)) {
+        // Check if auction is updating in multi-server system
+        if (AuctionCache.isAuctionUpdating(this.auctionUUID)) {
             Utils.sendMessage(player, "refreshing");
             return false;
         }
 
-        if (DeluxeAuctions.getInstance().multiServerManager != null && DeluxeAuctions.getInstance().multiServerManager.checkAuction(this.auctionUUID.toString())) {
+        // Check if auction is updating in multi-server system
+        if (DeluxeAuctions.getInstance().multiServerManager != null && DeluxeAuctions.getInstance().multiServerManager.isAuctionUpdating(this.auctionUUID)) {
             Utils.sendMessage(player, "refreshing");
             return false;
         }
 
+        // Custom event
         AuctionCancelEvent event = new AuctionCancelEvent(player, this);
         Bukkit.getPluginManager().callEvent(event);
         if (event.isCancelled())
             return false;
+
+        // Update auction in multi server
+        if (DeluxeAuctions.getInstance().multiServerManager != null && !DeluxeAuctions.getInstance().multiServerManager.deleteAuction(this.auctionUUID)) {
+            Utils.sendMessage(player, "refreshing");
+            return false;
+        }
+
+        AuctionCache.addUpdatingAuction(this.auctionUUID);
 
         // Give Item
         this.sellerClaimed = true;
@@ -153,33 +174,56 @@ public class Auction {
     }
 
     public boolean placeBid(Player player, double price) {
+        if (AuctionCache.getAuction(this.auctionUUID) == null)
+            return false;
+
+        // Check if auction is already ended
         if (isEnded())
             return false;
+
+        // Check if seller is claimed
         if (this.isSellerClaimed())
             return false;
+
+        // Check if auction type is not normal
         if (this.auctionType != AuctionType.NORMAL)
             return false;
+
+        // Check if player's balance is not enough
         if (DeluxeAuctions.getInstance().economyManager.getBalance(player) < price)
             return false;
+
+        // Check if player is laggy
         if (Utils.isLaggy(player)) {
             Utils.sendMessage(player, "laggy");
             return false;
         }
 
-        if (DeluxeAuctions.getInstance().databaseManager.isAuctionLoading(this.auctionUUID)) {
+        // Check if auction is updating in multi-server system
+        if (AuctionCache.isAuctionUpdating(this.auctionUUID)) {
             Utils.sendMessage(player, "refreshing");
             return false;
         }
 
-        if (DeluxeAuctions.getInstance().multiServerManager != null && DeluxeAuctions.getInstance().multiServerManager.checkAuction(this.auctionUUID.toString())) {
+        // Check if auction is updating in multi-server system
+        if (DeluxeAuctions.getInstance().multiServerManager != null && DeluxeAuctions.getInstance().multiServerManager.isAuctionUpdating(this.auctionUUID)) {
             Utils.sendMessage(player, "refreshing");
             return false;
         }
 
+        // Custom event
         PlayerBidEvent event = new PlayerBidEvent(player, this);
         Bukkit.getPluginManager().callEvent(event);
         if (event.isCancelled())
             return false;
+
+        // Multi server system
+        if (DeluxeAuctions.getInstance().multiServerManager != null && ! DeluxeAuctions.getInstance().multiServerManager.playerPlaceBidAuction(this.auctionUUID, player.getUniqueId(), price)) {
+            Utils.sendMessage(player, "refreshing");
+            return false;
+        }
+
+        AuctionCache.addUpdatingAuction(this.auctionUUID);
 
         // Add Time
         this.auctionEndTime += DeluxeAuctions.getInstance().configFile.getLong("settings.add_time_when_bid", 0);
@@ -215,6 +259,9 @@ public class Auction {
     }
 
     public boolean purchase(Player player) {
+        if (AuctionCache.getAuction(this.auctionUUID) == null)
+            return false;
+
         // Checking auction status
         if (isEnded())
             return false;
@@ -243,13 +290,13 @@ public class Auction {
             return false;
         }
 
-        // Auction status in database
-        if (DeluxeAuctions.getInstance().databaseManager.isAuctionLoading(this.auctionUUID)) {
+        if (AuctionCache.isAuctionUpdating(this.auctionUUID)) {
             Utils.sendMessage(player, "refreshing");
             return false;
         }
 
-        if (DeluxeAuctions.getInstance().multiServerManager != null && DeluxeAuctions.getInstance().multiServerManager.checkAuction(this.auctionUUID.toString())) {
+        // Check if auction is updating in multi-server system
+        if (DeluxeAuctions.getInstance().multiServerManager != null && DeluxeAuctions.getInstance().multiServerManager.isAuctionUpdating(this.auctionUUID)) {
             Utils.sendMessage(player, "refreshing");
             return false;
         }
@@ -259,6 +306,13 @@ public class Auction {
         Bukkit.getPluginManager().callEvent(event);
         if (event.isCancelled())
             return false;
+
+        if (DeluxeAuctions.getInstance().multiServerManager != null && !DeluxeAuctions.getInstance().multiServerManager.playerBoughtAuction(this.auctionUUID, player.getUniqueId())) {
+            Utils.sendMessage(player, "refreshing");
+            return false;
+        }
+
+        AuctionCache.addUpdatingAuction(this.auctionUUID);
 
         // Player
         DeluxeAuctions.getInstance().economyManager.removeBalance(player, this.auctionPrice);
@@ -284,10 +338,15 @@ public class Auction {
     }
 
     public String sellerCollect(Player player) {
+        if (AuctionCache.getAuction(this.auctionUUID) == null)
+            return "";
+
         if (!isEnded())
             return "";
+
         if (this.isSellerClaimed())
             return "";
+
         PlayerBid highestBid = this.auctionBids.getHighestBid();
         if (highestBid == null && !Utils.hasEmptySlot(player)) {
             Utils.sendMessage(player, "no_empty_slot");
@@ -299,12 +358,13 @@ public class Auction {
             return "";
         }
 
-        if (DeluxeAuctions.getInstance().databaseManager.isAuctionLoading(this.auctionUUID)) {
+        if (AuctionCache.isAuctionUpdating(this.auctionUUID)) {
             Utils.sendMessage(player, "refreshing");
             return "";
         }
 
-        if (DeluxeAuctions.getInstance().multiServerManager != null && DeluxeAuctions.getInstance().multiServerManager.checkAuction(this.auctionUUID.toString())) {
+        // Check if auction is updating in multi-server system
+        if (DeluxeAuctions.getInstance().multiServerManager != null && DeluxeAuctions.getInstance().multiServerManager.isAuctionUpdating(this.auctionUUID)) {
             Utils.sendMessage(player, "refreshing");
             return "";
         }
@@ -313,6 +373,22 @@ public class Auction {
         Bukkit.getPluginManager().callEvent(event);
         if (event.isCancelled())
             return "";
+
+        boolean isAllClaimed = this.getAuctionBids().isAllCollected();
+        if (DeluxeAuctions.getInstance().multiServerManager != null) {
+            boolean status;
+            if (isAllClaimed)
+                status = DeluxeAuctions.getInstance().multiServerManager.deleteAuction(this.auctionUUID);
+            else
+                status = DeluxeAuctions.getInstance().multiServerManager.sellerCollectedAuction(this.auctionUUID);
+
+            if (!status) {
+                Utils.sendMessage(player, "refreshing");
+                return "";
+            }
+        }
+
+        AuctionCache.addUpdatingAuction(this.auctionUUID);
 
         this.sellerClaimed = true;
         PlayerStats stats = PlayerCache.getStats(player.getUniqueId());
@@ -332,10 +408,11 @@ public class Auction {
             stats.addSoldAuction();
             stats.addEarnedMoney(highestBid.getBidPrice());
         }
+
         DeluxeAuctions.getInstance().databaseManager.saveStats(stats);
 
         // Database
-        if (this.getAuctionBids().isAllCollected()) {
+        if (isAllClaimed) {
             AuctionCache.removeAuction(this.auctionUUID);
             DeluxeAuctions.getInstance().databaseManager.deleteAuction(this.auctionUUID.toString());
         } else
@@ -344,8 +421,12 @@ public class Auction {
     }
 
     public String buyerCollect(Player player) {
+        if (AuctionCache.getAuction(this.auctionUUID) == null)
+            return "";
+
         if (!isEnded())
             return "";
+
         PlayerBid playerBid = this.auctionBids.getPlayerBid(player.getUniqueId());
         if (playerBid == null)
             return "";
@@ -364,12 +445,13 @@ public class Auction {
             return "";
         }
 
-        if (DeluxeAuctions.getInstance().databaseManager.isAuctionLoading(this.auctionUUID)) {
+        if (AuctionCache.isAuctionUpdating(this.auctionUUID)) {
             Utils.sendMessage(player, "refreshing");
             return "";
         }
 
-        if (DeluxeAuctions.getInstance().multiServerManager != null && DeluxeAuctions.getInstance().multiServerManager.checkAuction(this.auctionUUID.toString())) {
+        // Check if auction is updating in multi-server system
+        if (DeluxeAuctions.getInstance().multiServerManager != null && DeluxeAuctions.getInstance().multiServerManager.isAuctionUpdating(this.auctionUUID)) {
             Utils.sendMessage(player, "refreshing");
             return "";
         }
@@ -379,22 +461,44 @@ public class Auction {
         if (event.isCancelled())
             return "";
 
+
+        boolean isClaimed = playerBid.isCollected();
+        playerBid.setCollected(true);
+
+        boolean isAllClaimed = this.sellerClaimed && this.getAuctionBids().isAllCollected();
+
+        if (DeluxeAuctions.getInstance().multiServerManager != null) {
+            boolean status;
+
+            if (isAllClaimed)
+                status = DeluxeAuctions.getInstance().multiServerManager.deleteAuction(this.auctionUUID);
+            else
+                status = DeluxeAuctions.getInstance().multiServerManager.buyerCollectedAuction(this.auctionUUID, player.getUniqueId());
+
+            if (!status) {
+                playerBid.setCollected(false);
+                Utils.sendMessage(player, "refreshing");
+                return "";
+            }
+        }
+        AuctionCache.addUpdatingAuction(this.auctionUUID);
+
         String type;
         PlayerStats stats = PlayerCache.getStats(player.getUniqueId());
         if (playerBid == highestBid) {
             type = "item";
             DeluxeAuctions.getInstance().dataHandler.writeToLog("[BUYER COLLECTED AUCTION] " + player.getName() + " (" + player.getUniqueId() + ") collected ITEM from " + Utils.getDisplayName(this.auctionItem) + " (" + this.auctionUUID + ") auction!");
-            player.getInventory().addItem(this.auctionItem.clone());
+
+            if (!isClaimed)
+                player.getInventory().addItem(this.auctionItem.clone());
 
             stats.addWonAuction();
         } else {
             type = "money";
             DeluxeAuctions.getInstance().dataHandler.writeToLog("[BUYER COLLECTED AUCTION] " + player.getName() + " (" + player.getUniqueId() + ") collected from " + Utils.getDisplayName(this.auctionItem) + " (" + this.auctionUUID + ") auction!");
 
-            if (!playerBid.isCollected()) {
+            if (!isClaimed)
                 DeluxeAuctions.getInstance().economyManager.addBalance(player, playerBid.getBidPrice());
-                playerBid.setCollected(true);
-            }
 
             stats.addLostAuction();
         }
@@ -402,7 +506,7 @@ public class Auction {
         DeluxeAuctions.getInstance().databaseManager.saveStats(stats);
 
         // Database
-        if (this.sellerClaimed && this.getAuctionBids().isAllCollected()) {
+        if (isAllClaimed) {
             AuctionCache.removeAuction(this.auctionUUID);
             DeluxeAuctions.getInstance().databaseManager.deleteAuction(this.auctionUUID.toString());
         } else

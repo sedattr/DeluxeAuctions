@@ -2,6 +2,7 @@ package me.sedattr.deluxeauctions.cache;
 
 import com.google.common.collect.Maps;
 import lombok.Getter;
+import me.sedattr.deluxeauctions.DeluxeAuctions;
 import me.sedattr.deluxeauctions.managers.*;
 import me.sedattr.deluxeauctions.others.Utils;
 import org.bukkit.inventory.ItemStack;
@@ -11,8 +12,22 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+
 public class AuctionCache {
-    @Getter private static HashMap<UUID, Auction> auctions = Maps.newHashMap();
+    @Getter private static final HashMap<UUID, Auction> auctions = Maps.newHashMap();
+    private static final Set<UUID> updatedAuctions = new HashSet<>();
+
+    public static boolean isAuctionUpdating(UUID auctionUUID) {
+        return updatedAuctions.contains(auctionUUID);
+    }
+
+    public static void addUpdatingAuction(UUID auctionUUID) {
+        updatedAuctions.add(auctionUUID);
+    }
+
+    public static void removeUpdatingAuction(UUID auctionUUID) {
+        updatedAuctions.remove(auctionUUID);
+    }
 
     public static Auction getAuction(UUID uuid) {
         return auctions.get(uuid);
@@ -87,12 +102,26 @@ public class AuctionCache {
                     }
                 }
 
-                if (meta != null && meta.getDisplayName() != null && Utils.strip(meta.getDisplayName().toLowerCase()).contains(lowerCaseSearch)) {
-                    result.add(auction);
-                    return;
+                if (meta != null) {
+                    if (meta.getDisplayName() != null) {
+                        if (Utils.strip(meta.getDisplayName().toLowerCase()).contains(lowerCaseSearch)) {
+                            result.add(auction);
+                            return;
+                        }
+                    }
+
+                    if (DeluxeAuctions.getInstance().version >= 21) {
+                        String itemName = meta.getItemName();
+                        if (itemName != null && !itemName.isEmpty()) {
+                            if (Utils.strip(itemName.toLowerCase()).contains(lowerCaseSearch)) {
+                                result.add(auction);
+                                return;
+                            }
+                        }
+                    }
                 }
 
-                if (itemStack.getType().name().toLowerCase().contains(lowerCaseSearch))
+                if (itemStack.getType().name().replace("_", " ").toLowerCase().contains(lowerCaseSearch))
                     result.add(auction);
 
                 return;

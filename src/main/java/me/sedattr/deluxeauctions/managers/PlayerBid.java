@@ -2,6 +2,8 @@ package me.sedattr.deluxeauctions.managers;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 import java.time.ZonedDateTime;
@@ -31,6 +33,17 @@ public class PlayerBid {
         this.bidPrice = price;
         this.bidTime = ZonedDateTime.now().toInstant().getEpochSecond();
         this.collected = collected;
+    }
+
+    public PlayerBid(UUID player, double price, boolean collected) {
+        this.uuid = UUID.randomUUID();
+        this.bidOwner = player;
+        this.bidPrice = price;
+        this.bidTime = ZonedDateTime.now().toInstant().getEpochSecond();
+        this.collected = collected;
+
+        OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(player);
+        this.bidOwnerDisplayName = offlinePlayer.getName();
     }
 
     public PlayerBid(UUID player, String displayName, double price, long time) {

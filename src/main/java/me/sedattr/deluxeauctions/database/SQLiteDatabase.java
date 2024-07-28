@@ -1,7 +1,6 @@
 package me.sedattr.deluxeauctions.database;
 
 import me.sedattr.deluxeauctions.DeluxeAuctions;
-import me.sedattr.deluxeauctions.api.events.AuctionCreateEvent;
 import me.sedattr.deluxeauctions.cache.AuctionCache;
 import me.sedattr.deluxeauctions.cache.PlayerCache;
 import me.sedattr.deluxeauctions.managers.*;
@@ -24,12 +23,7 @@ public class SQLiteDatabase implements DatabaseManager {
     private String items;
     private String stats;
 
-    Set<UUID> loadedAuctions = new HashSet<>();
-    public boolean isAuctionLoading(UUID uuid) {
-        return this.loadedAuctions.contains(uuid);
-    }
-
-    private void load(ResultSet set, boolean check) throws SQLException {
+    private void load(ResultSet set) throws SQLException {
         long endTime = set.getLong(7);
         String auctionUUID = set.getString(1);
         UUID uuid = UUID.fromString(auctionUUID);
@@ -39,7 +33,7 @@ public class SQLiteDatabase implements DatabaseManager {
             daysTime += endTime;
             if (ZonedDateTime.now().toInstant().getEpochSecond() > daysTime) {
                 deleteAuction(auctionUUID);
-                this.loadedAuctions.remove(uuid);
+                AuctionCache.removeUpdatingAuction(uuid);
                 return;
             }
         }
@@ -54,21 +48,21 @@ public class SQLiteDatabase implements DatabaseManager {
 
         Auction auction = new Auction(uuid, owner, displayName, item, price, type, endTime, isClaimed);
         if (auction.getAuctionCategory().isEmpty()) {
-            this.loadedAuctions.remove(uuid);
+            AuctionCache.removeUpdatingAuction(uuid);
             return;
         }
 
+        /*
         if (check) {
             Auction oldAuction = AuctionCache.getAuction(uuid);
             if (oldAuction == null) {
                 AuctionCreateEvent event = new AuctionCreateEvent(Bukkit.getPlayer(owner), auction);
                 Bukkit.getPluginManager().callEvent(event);
-                if (event.isCancelled()) {
-                    this.loadedAuctions.remove(uuid);
+                if (event.isCancelled())
                     return;
-                }
             }
         }
+        */
 
         String bids = set.getString(5);
         if (bids != null) {
@@ -95,7 +89,7 @@ public class SQLiteDatabase implements DatabaseManager {
         }
 
         AuctionCache.addAuction(auction);
-        this.loadedAuctions.remove(uuid);
+        AuctionCache.removeUpdatingAuction(uuid);
     }
 
     public void shutdown() {
@@ -226,7 +220,7 @@ public class SQLiteDatabase implements DatabaseManager {
                     if (DeluxeAuctions.getInstance().disabled)
                         return;
 
-                    load(set, false);
+                    load(set);
                 }
 
                 DeluxeAuctions.getInstance().loaded = true;
@@ -239,8 +233,6 @@ public class SQLiteDatabase implements DatabaseManager {
     }
 
     public void loadAuction(UUID uuid) {
-        this.loadedAuctions.add(uuid);
-
         String sql = "SELECT * FROM " + this.auctions + " WHERE uuid = ?";
         runTask(() -> {
             try (PreparedStatement statement = getConnection().prepareStatement(sql)) {
@@ -248,16 +240,12 @@ public class SQLiteDatabase implements DatabaseManager {
 
                 ResultSet set = statement.executeQuery();
                 if (set.next())
-                    Bukkit.getScheduler().runTask(DeluxeAuctions.getInstance(), () -> {
-                        try {
-                            load(set, true);
-                        } catch (SQLException e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
+                    load(set);
             } catch (SQLException x) {
-                this.loadedAuctions.remove(uuid);
-                handleSQLException(x, () -> loadAuction(uuid));
+                handleSQLException(x, () -> {
+                    AuctionCache.addUpdatingAuction(uuid);
+                    loadAuction(uuid);
+                });
             }
         });
     }
@@ -398,8 +386,14 @@ public class SQLiteDatabase implements DatabaseManager {
                 statement.setBoolean(9, auction.isSellerClaimed());
 
                 statement.execute();
+
+                AuctionCache.removeUpdatingAuction(auction.getAuctionUUID());
             } catch (SQLException x) {
-                handleSQLException(x, () -> saveAuction(auction));
+                AuctionCache.removeUpdatingAuction(auction.getAuctionUUID());
+                handleSQLException(x, () -> {
+                    AuctionCache.removeUpdatingAuction(auction.getAuctionUUID());
+                    saveAuction(auction);
+                });
             }
         });
     }

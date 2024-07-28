@@ -241,7 +241,8 @@ public class Utils {
         Bukkit.getScheduler().runTaskAsynchronously(DeluxeAuctions.getInstance(), () -> {
             ConfigurationSection section = DeluxeAuctions.getInstance().configFile.getConfigurationSection("broadcast_messages");
             if (section == null || !section.getBoolean("enabled")) {
-                Utils.sendMessage(player, type, placeholderUtil);
+                if (!type.endsWith("broadcast"))
+                    Utils.sendMessage(player, type, placeholderUtil);
                 return;
             }
 

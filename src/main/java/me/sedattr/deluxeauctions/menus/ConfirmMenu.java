@@ -169,7 +169,7 @@ public class ConfirmMenu {
                         }
                     }
                     case "confirm_bid" -> {
-                        if (AuctionCache.getBidAuctions(this.player.getUniqueId()).size() >= AuctionHook.getLimit(this.player, "bid_limit")) {
+                        if (AuctionCache.getBidAuctions(this.player.getUniqueId()).size() >= AuctionHook.getPriceLimit(this.player, "bid_limit")) {
                             Utils.sendMessage(this.player, "reached_bid_limit");
                             return;
                         }

@@ -242,7 +242,7 @@ public class AuctionCommand implements CommandExecutor, TabCompleter {
                         return false;
                     }
 
-                    int priceLimit = AuctionHook.getLimit(player, "price_limit");
+                    double priceLimit = AuctionHook.getPriceLimit(player, "price_limit");
                     if (price > priceLimit) {
                         Utils.sendMessage(player, "reached_price_limit", new PlaceholderUtil()
                                 .addPlaceholder("%price_limit%", DeluxeAuctions.getInstance().numberFormat.format((double) priceLimit)));

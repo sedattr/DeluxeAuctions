@@ -215,7 +215,7 @@ public class CreateMenu implements MenuManager {
         if (number <= 0)
             Utils.sendMessage(this.player, "wrong_price");
         else {
-            int limit = AuctionHook.getLimit(player, "price_limit");
+            double limit = AuctionHook.getPriceLimit(player, "price_limit");
             if (number > limit)
                 Utils.sendMessage(player, "reached_price_limit", new PlaceholderUtil()
                         .addPlaceholder("%price_limit%", DeluxeAuctions.getInstance().numberFormat.format((double) limit)));

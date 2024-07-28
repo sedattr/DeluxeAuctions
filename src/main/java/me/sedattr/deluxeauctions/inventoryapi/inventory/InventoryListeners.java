@@ -20,17 +20,13 @@ public class InventoryListeners implements Listener {
     public void onInventoryClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player))
             return;
-        HInventory gui = InventoryAPI.getInventory(player);
-        if (gui == null)
-            return;
-        event.setCancelled(true);
 
         Inventory inventory = event.getClickedInventory();
         if (inventory == null || event.getSlot() < 0)
             return;
-
-        if (!inventory.equals(gui.getInventory()))
+        if (!(inventory.getHolder() instanceof HInventory))
             return;
+        event.setCancelled(true);
 
         long cooldown = InventoryVariables.getCooldown(player);
         if (cooldown > 0) {
@@ -40,6 +36,13 @@ public class InventoryListeners implements Listener {
                 return;
             }
         }
+
+        HInventory gui = InventoryAPI.getInventory(player);
+        if (gui == null)
+            return;
+
+        if (!inventory.equals(gui.getInventory()))
+            return;
 
         ClickableItem clickableItem = gui.getItem(event.getSlot());
         if (clickableItem == null)

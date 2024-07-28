@@ -28,11 +28,6 @@ public class MySQLDatabase implements DatabaseManager {
     private String items;
     private String stats;
 
-    Set<UUID> loadedAuctions = new HashSet<>();
-    public boolean isAuctionLoading(UUID uuid) {
-        return this.loadedAuctions.contains(uuid);
-    }
-
     private void load(ResultSet set) throws SQLException {
         long endTime = set.getLong(7);
         String auctionUUID = set.getString(1);
@@ -43,7 +38,7 @@ public class MySQLDatabase implements DatabaseManager {
             daysTime += endTime;
             if (ZonedDateTime.now().toInstant().getEpochSecond() > daysTime) {
                 deleteAuction(auctionUUID);
-                this.loadedAuctions.remove(uuid);
+                AuctionCache.removeUpdatingAuction(uuid);
                 return;
             }
         }
@@ -58,7 +53,7 @@ public class MySQLDatabase implements DatabaseManager {
 
         Auction auction = new Auction(uuid, owner, displayName, item, price, type, endTime, isClaimed);
         if (auction.getAuctionCategory().isEmpty()) {
-            this.loadedAuctions.remove(uuid);
+            AuctionCache.removeUpdatingAuction(uuid);
             return;
         }
 
@@ -68,13 +63,11 @@ public class MySQLDatabase implements DatabaseManager {
             if (oldAuction == null) {
                     AuctionCreateEvent event = new AuctionCreateEvent(Bukkit.getPlayer(owner), auction);
                     Bukkit.getPluginManager().callEvent(event);
-                    if (event.isCancelled()) {
-                        this.loadedAuctions.remove(uuid);
+                    if (event.isCancelled())
                         return;
-                    }
             }
         }
-         */
+        */
 
         String bids = set.getString(5);
         if (bids != null) {
@@ -101,7 +94,7 @@ public class MySQLDatabase implements DatabaseManager {
         }
 
         AuctionCache.addAuction(auction);
-        this.loadedAuctions.remove(uuid);
+        AuctionCache.removeUpdatingAuction(auction.getAuctionUUID());
     }
 
     public void shutdown() {
@@ -209,9 +202,6 @@ public class MySQLDatabase implements DatabaseManager {
             try (PreparedStatement statement = getConnection().prepareStatement(sql)) {
                 statement.setString(1, uuid);
                 statement.execute();
-
-                if (DeluxeAuctions.getInstance().multiServerManager != null)
-                    DeluxeAuctions.getInstance().multiServerManager.deleteAuction(uuid);
             } catch (SQLException x) {
                 handleSQLException(x, () -> deleteAuction(uuid));
             }
@@ -268,8 +258,6 @@ public class MySQLDatabase implements DatabaseManager {
     }
 
     public void loadAuction(UUID uuid) {
-        this.loadedAuctions.add(uuid);
-
         String sql = "SELECT * FROM " + this.auctions + " WHERE uuid = ?";
         runTask(() -> {
             try (PreparedStatement statement = getConnection().prepareStatement(sql)) {
@@ -279,7 +267,6 @@ public class MySQLDatabase implements DatabaseManager {
                 if (set.next())
                     load(set);
             } catch (SQLException x) {
-                this.loadedAuctions.remove(uuid);
                 handleSQLException(x, () -> loadAuction(uuid));
             }
         });
@@ -423,10 +410,15 @@ public class MySQLDatabase implements DatabaseManager {
 
                 statement.execute();
 
+                AuctionCache.removeUpdatingAuction(auction.getAuctionUUID());
+
                 if (DeluxeAuctions.getInstance().multiServerManager != null)
-                    DeluxeAuctions.getInstance().multiServerManager.updateAuction(auction.getAuctionUUID().toString());
+                    DeluxeAuctions.getInstance().multiServerManager.loadAuction(auction.getAuctionUUID());
             } catch (SQLException x) {
-                handleSQLException(x, () -> saveAuction(auction));
+                handleSQLException(x, () -> {
+                    AuctionCache.addUpdatingAuction(auction.getAuctionUUID());
+                    saveAuction(auction);
+                });
             }
         });
     }
@@ -451,13 +443,14 @@ public class MySQLDatabase implements DatabaseManager {
     }
 
     public void saveStats(PlayerStats stats) {
-        String uuid = stats.getPlayer().toString();
+        UUID uuid = stats.getPlayer();
+
         String sql = "REPLACE INTO " + this.stats + " (uuid, won_auctions, lost_auctions, total_bids, highest_bid, spent_money, created_auctions, expired_auctions, sold_auctions, earned_money, total_fees) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         runTask(() -> {
             try (
                     PreparedStatement statement = getConnection().prepareStatement(sql)
             ) {
-                statement.setString(1, uuid);
+                statement.setString(1, uuid.toString());
                 statement.setInt(2, stats.getWonAuctions());
                 statement.setInt(3, stats.getLostAuctions());
                 statement.setInt(4, stats.getTotalBids());
@@ -472,7 +465,7 @@ public class MySQLDatabase implements DatabaseManager {
                 statement.execute();
 
                 if (DeluxeAuctions.getInstance().multiServerManager != null)
-                    DeluxeAuctions.getInstance().multiServerManager.updateStat(uuid);
+                    DeluxeAuctions.getInstance().multiServerManager.updateStats(uuid);
             } catch (SQLException x) {
                 handleSQLException(x, () -> saveStats(stats));
             }

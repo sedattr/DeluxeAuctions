@@ -6,13 +6,18 @@ import me.sedattr.deluxeauctions.others.Logger;
 import java.util.UUID;
 
 public interface MultiServerManager {
-    void publish(String text);
-    void reload();
-    void updateStat(String uuid);
-    void updateAuction(String uuid);
-    void deleteAuction(String uuid);
-    boolean checkAuction(String uuid);
-    void removeAuction(String uuid);
+    // Methods
+    void reload(); // Reload the plugin
+    void updateStats(UUID playerUUID); // Update player's all stats
+    boolean loadAuction(UUID auctionUUID); // Load new created auction
+    boolean deleteAuction(UUID auctionUUID); // Delete auction
+    boolean sellerCollectedAuction(UUID auctionUUID); // Seller claimed auction (NORMAL AUCTION)
+    boolean buyerCollectedAuction(UUID auctionUUID, UUID playerUUID); // Buyer collected auction (NORMAL AUCTION)
+    boolean playerBoughtAuction(UUID auctionUUID, UUID playerUUID); // Player bought auction (BIN AUCTION)
+    boolean playerPlaceBidAuction(UUID auctionUUID, UUID playerUUID, double bidPrice); // Player bid auction (NORMAL AUCTION)
+
+    boolean isAuctionUpdating(UUID uuid);
+    void removeUpdatingAuction(String uuid, String text);
 
     default void handleMessage(String text) {
         if (text == null || text.isEmpty())
@@ -23,9 +28,6 @@ public interface MultiServerManager {
             return;
 
         String type = args[0];
-        if (type.equals("CHECK_AUCTION"))
-            return;
-
         MessageType messageType = MessageType.valueOf(type);
 
         DeluxeAuctions.getInstance().dataHandler.debug("Handling Message: &f" + text + " &8(%level_color%Multi Server&8)", Logger.LogLevel.WARN);

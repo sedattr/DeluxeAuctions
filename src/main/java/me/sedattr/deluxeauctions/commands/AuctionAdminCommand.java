@@ -134,6 +134,7 @@ public class AuctionAdminCommand implements CommandExecutor, TabCompleter {
 
                     long start2 = System.currentTimeMillis();
                     DeluxeAuctions.getInstance().reload();
+
                     if (DeluxeAuctions.getInstance().multiServerManager != null)
                         DeluxeAuctions.getInstance().multiServerManager.reload();
 
