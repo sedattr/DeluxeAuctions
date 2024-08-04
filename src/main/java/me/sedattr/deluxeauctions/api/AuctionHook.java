@@ -102,6 +102,10 @@ public class AuctionHook {
         return current;
     }
 
+    public static Category getCategory(String name) {
+        return CategoryCache.getCategories().get(name);
+    }
+
     public static int getLimit(Player player, String type) {
         if (player.isOp())
             return type.equals("duration_limit") ? MAX_DURATION : MAX_AUCTION;

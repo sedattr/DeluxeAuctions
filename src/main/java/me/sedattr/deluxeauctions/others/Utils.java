@@ -15,7 +15,6 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.util.io.BukkitObjectInputStream;
 import org.bukkit.util.io.BukkitObjectOutputStream;
@@ -71,6 +70,21 @@ public class Utils {
 
         text = Utils.colorize(text);
         return ChatColor.stripColor(text);
+    }
+
+    public static void changeName(ItemStack item, String name, PlaceholderUtil placeholderUtil) {
+        if (item == null)
+            return;
+        if (name.isEmpty())
+            return;
+
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null)
+            return;
+
+        meta.setDisplayName(colorize(replacePlaceholders(name, placeholderUtil)));
+
+        item.setItemMeta(meta);
     }
 
     public static void changeLore(ItemStack item, List<String> lore, PlaceholderUtil placeholderUtil) {
@@ -407,7 +421,6 @@ public class Utils {
             if (itemStack != null)
                 return itemStack;
         }
-
 
         String materialName = section.getString("material");
         if (materialName == null)

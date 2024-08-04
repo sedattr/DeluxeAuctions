@@ -1,8 +1,6 @@
 package me.sedattr.deluxeauctions.menus;
 
 import me.sedattr.deluxeauctions.api.AuctionHook;
-import me.sedattr.deluxeauctions.api.events.AuctionCancelEvent;
-import me.sedattr.deluxeauctions.api.events.AuctionCollectEvent;
 import me.sedattr.deluxeauctions.cache.PlayerCache;
 import me.sedattr.deluxeauctions.inventoryapi.HInventory;
 import me.sedattr.deluxeauctions.inventoryapi.inventory.InventoryAPI;
@@ -28,6 +26,7 @@ public class BinViewMenu {
     private final ConfigurationSection section;
     private HInventory gui;
     private BukkitTask itemUpdater;
+    private String back;
 
     public BinViewMenu(Player player, Auction auction) {
         this.player = player;
@@ -55,26 +54,12 @@ public class BinViewMenu {
         this.gui = DeluxeAuctions.getInstance().menuHandler.createInventory(this.player, this.section, "view", new PlaceholderUtil()
                 .addPlaceholder("%auction_type%", auction.getAuctionType().name()));
 
-        if (!back.equals("command")) {
+        this.back = back;
+        if (!this.back.equals("command")) {
             int goBackSlot = this.section.getInt("back");
             ItemStack goBackItem = DeluxeAuctions.getInstance().normalItems.get("go_back");
             if (goBackSlot > 0 && goBackItem != null)
-                gui.setItem(goBackSlot-1, ClickableItem.of(goBackItem, (event) -> {
-                    PlayerPreferences playerAuction = PlayerCache.getPreferences(this.player.getUniqueId());
-                    switch (back) {
-                        case "bids" -> new BidsMenu(this.player).open(1);
-                        case "manage" -> new ManageMenu(this.player).open(1);
-                        case "auctions" -> new AuctionsMenu(this.player).open(auction.getAuctionCategory(), playerAuction.getPage());
-                        default -> {
-                            if (!back.isEmpty()) {
-                                UUID uuid = UUID.fromString(back);
-                                new ViewAuctionsMenu(this.player, Bukkit.getOfflinePlayer(uuid)).open(1);
-                            } else {
-                                new AuctionsMenu(this.player).open(auction.getAuctionCategory(), playerAuction.getPage());
-                            }
-                        }
-                    }
-                }));
+                gui.setItem(goBackSlot-1, ClickableItem.of(goBackItem, (event) -> goBack()));
         }
 
         loadExampleItem();
@@ -85,6 +70,26 @@ public class BinViewMenu {
 
         this.gui.open(this.player);
         updateExampleItem();
+    }
+
+    private void goBack() {
+        if (this.back.equalsIgnoreCase("command"))
+            return;
+
+        PlayerPreferences playerAuction = PlayerCache.getPreferences(this.player.getUniqueId());
+        switch (this.back) {
+            case "bids" -> new BidsMenu(this.player).open(1);
+            case "manage" -> new ManageMenu(this.player).open(1);
+            case "auctions" -> new AuctionsMenu(this.player).open(auction.getAuctionCategory(), playerAuction.getPage());
+            default -> {
+                if (!this.back.isEmpty()) {
+                    UUID uuid = UUID.fromString(this.back);
+                    new ViewAuctionsMenu(this.player, Bukkit.getOfflinePlayer(uuid)).open(1);
+                } else {
+                    new AuctionsMenu(this.player).open(auction.getAuctionCategory(), playerAuction.getPage());
+                }
+            }
+        }
     }
 
     private void loadSellerItem() {
@@ -129,6 +134,8 @@ public class BinViewMenu {
                     Utils.sendMessage(this.player, "seller_collected_item", placeholderUtil);
                 else if (type.equals("money"))
                     Utils.sendMessage(this.player, "seller_collected_money", placeholderUtil);
+
+                goBack();
             }));
         } else {
             ConfigurationSection cancelSection = this.section.getConfigurationSection("cancel_auction");
@@ -154,6 +161,8 @@ public class BinViewMenu {
                     if (DeluxeAuctions.getInstance().discordWebhook != null)
                         DeluxeAuctions.getInstance().discordWebhook.sendMessage("cancel_auction", placeholderUtil);
                 }
+
+                goBack();
             }));
         }
     }

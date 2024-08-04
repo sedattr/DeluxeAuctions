@@ -101,7 +101,7 @@ public class DurationMenu implements MenuManager {
             ClickType clickType = event.getClick();
             this.isHours = clickType != ClickType.RIGHT && clickType != ClickType.SHIFT_RIGHT;
 
-            new InputMenu().open(this.player, this);
+            DeluxeAuctions.getInstance().inputMenu.open(this.player, this);
         }));
     }
 

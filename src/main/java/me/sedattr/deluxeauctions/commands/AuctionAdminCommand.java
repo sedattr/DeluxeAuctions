@@ -1,11 +1,14 @@
 package me.sedattr.deluxeauctions.commands;
 
 import me.sedattr.deluxeauctions.DeluxeAuctions;
+import me.sedattr.deluxeauctions.api.AuctionHook;
 import me.sedattr.deluxeauctions.cache.AuctionCache;
 import me.sedattr.deluxeauctions.converters.AuctionMasterConverter;
 import me.sedattr.deluxeauctions.converters.ZAuctionHouseConverter;
 import me.sedattr.deluxeauctions.inventoryapi.inventory.InventoryAPI;
 import me.sedattr.deluxeauctions.managers.Auction;
+import me.sedattr.deluxeauctions.managers.Category;
+import me.sedattr.deluxeauctions.menus.AuctionsMenu;
 import me.sedattr.deluxeauctions.menus.MainMenu;
 import me.sedattr.deluxeauctions.others.PlaceholderUtil;
 import me.sedattr.deluxeauctions.others.Utils;
@@ -158,6 +161,14 @@ public class AuctionAdminCommand implements CommandExecutor, TabCompleter {
                         Utils.sendMessage(commandSender, "wrong_player", placeholderUtil
                                 .addPlaceholder("%player_name%", args[1]));
                         return false;
+                    }
+
+                    if (args.length > 2) {
+                        Category category = AuctionHook.getCategory(args[2]);
+                        if (category != null) {
+                            new AuctionsMenu(b).open(category.getName(), 1);
+                            return true;
+                        }
                     }
 
                     new MainMenu(b).open();

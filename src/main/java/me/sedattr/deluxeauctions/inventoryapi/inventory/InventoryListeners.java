@@ -18,24 +18,17 @@ import java.time.ZonedDateTime;
 public class InventoryListeners implements Listener {
     @EventHandler(priority = EventPriority.LOW)
     public void onInventoryClick(InventoryClickEvent event) {
-        if (!(event.getWhoClicked() instanceof Player player))
-            return;
-
         Inventory inventory = event.getClickedInventory();
-        if (inventory == null || event.getSlot() < 0)
+        if (inventory == null)
             return;
         if (!(inventory.getHolder() instanceof HInventory))
             return;
         event.setCancelled(true);
 
-        long cooldown = InventoryVariables.getCooldown(player);
-        if (cooldown > 0) {
-            long time = ZonedDateTime.now().toInstant().toEpochMilli() - cooldown;
-            if (time < 400) {
-                Utils.sendMessage(player, "click_cooldown");
-                return;
-            }
-        }
+        if (!(event.getWhoClicked() instanceof Player player))
+            return;
+        if (event.getSlot() < 0)
+            return;
 
         HInventory gui = InventoryAPI.getInventory(player);
         if (gui == null)
@@ -51,6 +44,15 @@ public class InventoryListeners implements Listener {
         ClickInterface click = clickableItem.getClick();
         if (click == null)
             return;
+
+        long cooldown = InventoryVariables.getCooldown(player);
+        if (cooldown > 0) {
+            long time = ZonedDateTime.now().toInstant().toEpochMilli() - cooldown;
+            if (time < 400) {
+                Utils.sendMessage(player, "click_cooldown");
+                return;
+            }
+        }
 
         click.click(event);
         InventoryVariables.addCooldown(player, ZonedDateTime.now().toInstant().toEpochMilli());

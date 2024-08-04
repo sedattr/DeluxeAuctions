@@ -31,6 +31,7 @@ public class InventoryClickListener implements Listener {
         HInventory gui = InventoryAPI.getInventory(player);
         if (gui == null)
             return;
+        e.setCancelled(true);
 
         if (e.getAction() == InventoryAction.DROP_ALL_SLOT || e.getAction() == InventoryAction.DROP_ONE_SLOT)
             return;
@@ -50,6 +51,10 @@ public class InventoryClickListener implements Listener {
 
         ItemStack item = e.getCurrentItem();
         if (item == null || item.getType().equals(Material.AIR))
+            return;
+
+        ItemStack createItem = PlayerCache.getItem(player.getUniqueId());
+        if (type.equals("main") && createItem != null)
             return;
 
         long cooldown = InventoryVariables.getCooldown(player);
@@ -72,20 +77,19 @@ public class InventoryClickListener implements Listener {
         if (event.isCancelled())
             return;
 
-        ItemStack clone = item.clone();
-        ItemStack createItem = PlayerCache.getItem(player.getUniqueId());
-        PlayerPreferences preferences = PlayerCache.getPreferences(player.getUniqueId());
-        if (type.equals("main") && createItem != null)
-            return;
 
+        ItemStack clone = item.clone();
         player.getInventory().removeItem(item);
+
         if (type.equals("create") && createItem != null)
             player.getInventory().addItem(createItem);
 
         Utils.playSound(player, "inventory_item_click");
-        preferences.updateCreate(clone);
-        new CreateMenu(player).open("main");
 
+        PlayerPreferences preferences = PlayerCache.getPreferences(player.getUniqueId());
+        preferences.updateCreate(clone);
+
+        new CreateMenu(player).open("main");
         InventoryVariables.addCooldown(player, ZonedDateTime.now().toInstant().toEpochMilli());
     }
 }

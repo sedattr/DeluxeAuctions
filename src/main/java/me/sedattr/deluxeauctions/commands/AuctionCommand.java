@@ -27,11 +27,19 @@ public class AuctionCommand implements CommandExecutor, TabCompleter {
         if (!Utils.hasPermission(commandSender, "player_commands", "command"))
             return Collections.emptyList();
 
+        if (args.length > 0 && args[0].equalsIgnoreCase("view")) {
+            List<String> set = new ArrayList<>();
+            Bukkit.getOnlinePlayers().forEach(a -> set.add(a.getName()));
+
+            return set;
+        }
+
         ArrayList<String> complete = new ArrayList<>(Arrays.asList("info", "menu", "sell", "auctions", "view", "manage", "bids"));
         complete.removeIf(type -> !Utils.hasPermission(commandSender, "player_commands", type));
 
         if (args.length == 1)
             return complete;
+
         return Collections.emptyList();
     }
 
@@ -179,42 +187,33 @@ public class AuctionCommand implements CommandExecutor, TabCompleter {
                         return false;
                     }
 
-                    if (args.length < 3) {
+                    if (args.length < 2) {
                         Utils.sendMessage(player, "sell_usage", placeholderUtil);
                         return false;
                     }
 
-                    if (AuctionHook.isAuctionTypeDisabled(args[1])) {
-                        Utils.sendMessage(player, "disabled_auction_type", new PlaceholderUtil()
-                                .addPlaceholder("%auction_type%", args[1].toUpperCase()));
-                        return false;
-                    }
-
+                    // Check if item is wrong
                     ItemStack item = DeluxeAuctions.getInstance().version < 9 ? player.getItemInHand() : player.getInventory().getItemInMainHand();
                     if (item == null || item.getType() == Material.AIR) {
                         Utils.sendMessage(player, "wrong_item", placeholderUtil);
                         return false;
                     }
 
+                    // Check if item is sellable
                     String sellable = AuctionHook.isSellable(player, item);
                     if (!sellable.isEmpty()) {
                         Utils.sendMessage(player, sellable);
                         return false;
                     }
 
-                    item = item.clone();
-                    if (!args[1].equalsIgnoreCase("normal") && !args[1].equalsIgnoreCase("bin")) {
-                        Utils.sendMessage(player, "wrong_type", placeholderUtil);
-                        return false;
-                    }
-
+                    // Price Check
                     double price;
-                    double reversedPrice = DeluxeAuctions.getInstance().numberFormat.reverseFormat(args[2]);
+                    double reversedPrice = DeluxeAuctions.getInstance().numberFormat.reverseFormat(args[0]);
                     if (reversedPrice > 0)
                         price = reversedPrice;
                     else {
                         try {
-                            price = Double.parseDouble(args[2]);
+                            price = Double.parseDouble(args[1]);
                         } catch (Exception e) {
                             Utils.sendMessage(player, "wrong_price", placeholderUtil);
                             return false;
@@ -226,42 +225,69 @@ public class AuctionCommand implements CommandExecutor, TabCompleter {
                         return false;
                     }
 
-                    StringBuilder time = new StringBuilder();
-                    for (int i = 3; i < args.length ; i++)
-                        time.append(args[i]).append(" ");
-
-                    int newTime;
-                    try {
-                        newTime = DeluxeAuctions.getInstance().timeFormat.convertTime(time.toString());
-                    } catch (Exception e) {
-                        Utils.sendMessage(player, "wrong_duration", placeholderUtil);
-                        return false;
-                    }
-                    if (newTime <= 0) {
-                        Utils.sendMessage(player, "wrong_duration", placeholderUtil);
-                        return false;
-                    }
-
+                    // Price Limit Check
                     double priceLimit = AuctionHook.getPriceLimit(player, "price_limit");
                     if (price > priceLimit) {
                         Utils.sendMessage(player, "reached_price_limit", new PlaceholderUtil()
-                                .addPlaceholder("%price_limit%", DeluxeAuctions.getInstance().numberFormat.format((double) priceLimit)));
+                                .addPlaceholder("%price_limit%", DeluxeAuctions.getInstance().numberFormat.format(priceLimit)));
                         return false;
                     }
 
+                    // Time Check
+                    int time = DeluxeAuctions.getInstance().createTime;
+                    if (args.length > 2) {
+                        StringBuilder times = new StringBuilder();
+                        for (int i = 2; i < args.length; i++)
+                            times.append(args[i]).append(" ");
+
+                        try {
+                            time = DeluxeAuctions.getInstance().timeFormat.convertTime(times.toString());
+                        } catch (Exception e) {
+                            Utils.sendMessage(player, "wrong_duration", placeholderUtil);
+                            return false;
+                        }
+                    }
+
+                    if (time <= 0) {
+                        Utils.sendMessage(player, "wrong_duration", placeholderUtil);
+                        return false;
+                    }
+
+                    // Time Limit Check
                     int limit = AuctionHook.getLimit(player, "duration_limit");
-                    if (newTime > limit) {
+                    if (time > limit) {
                         Utils.sendMessage(player, "reached_duration_limit", new PlaceholderUtil()
                                 .addPlaceholder("%duration_limit%", String.valueOf(limit)));
                         return false;
                     }
 
+                    // Auction Type Check
+                    String type = args[args.length - 1];
+                    if (!type.equalsIgnoreCase("bin") && !type.equalsIgnoreCase("normal"))
+                        type = DeluxeAuctions.getInstance().configFile.getString("settings.default_type", "bin");
+
+                    // 2. Type Check
+                    if (!type.equalsIgnoreCase("bin") && !type.equalsIgnoreCase("normal")) {
+                        Utils.sendMessage(player, "wrong_type", placeholderUtil);
+                        return false;
+                    }
+
+                    // Check if auction type is disabled
+                    if (AuctionHook.isAuctionTypeDisabled(type)) {
+                        Utils.sendMessage(player, "disabled_auction_type", new PlaceholderUtil()
+                                .addPlaceholder("%auction_type%", args[1].toUpperCase()));
+                        return false;
+                    }
+
+                    // Preview Item Event
                     ItemPreviewEvent event = new ItemPreviewEvent(player, item);
                     Bukkit.getPluginManager().callEvent(event);
                     if (event.isCancelled())
                         return false;
 
+                    item = item.clone();
                     player.getInventory().removeItem(item);
+
                     ItemStack itemStack = PlayerCache.getItem(player.getUniqueId());
                     if (itemStack != null)
                         player.getInventory().addItem(itemStack);
@@ -269,9 +295,9 @@ public class AuctionCommand implements CommandExecutor, TabCompleter {
                     PlayerCache.setItem(player.getUniqueId(), item);
 
                     PlayerPreferences playerAuction = PlayerCache.getPreferences(player.getUniqueId());
-                    playerAuction.setCreateType(AuctionType.valueOf(args[1].toUpperCase()));
+                    playerAuction.setCreateType(AuctionType.valueOf(type.toUpperCase()));
                     playerAuction.setCreatePrice(price);
-                    playerAuction.setCreateTime(newTime);
+                    playerAuction.setCreateTime(time);
 
                     new CreateMenu(player).open("command");
                     return true;

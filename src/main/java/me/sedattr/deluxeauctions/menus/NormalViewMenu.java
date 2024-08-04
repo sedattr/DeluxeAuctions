@@ -1,8 +1,6 @@
 package me.sedattr.deluxeauctions.menus;
 
 import me.sedattr.deluxeauctions.api.AuctionHook;
-import me.sedattr.deluxeauctions.api.events.AuctionCancelEvent;
-import me.sedattr.deluxeauctions.api.events.AuctionCollectEvent;
 import me.sedattr.deluxeauctions.cache.PlayerCache;
 import me.sedattr.deluxeauctions.inventoryapi.HInventory;
 import me.sedattr.deluxeauctions.inventoryapi.inventory.InventoryAPI;
@@ -59,7 +57,7 @@ public class NormalViewMenu implements MenuManager {
                 }
         }
 
-        this.back=back;
+        this.back = back;
         this.gui = DeluxeAuctions.getInstance().menuHandler.createInventory(this.player, this.section, "view", new PlaceholderUtil()
                 .addPlaceholder("%auction_type%", auction.getAuctionType().name()));
 
@@ -67,23 +65,7 @@ public class NormalViewMenu implements MenuManager {
             int goBackSlot = this.section.getInt("back");
             ItemStack goBackItem = DeluxeAuctions.getInstance().normalItems.get("go_back");
             if (goBackSlot > 0 && goBackItem != null)
-                gui.setItem(goBackSlot-1, ClickableItem.of(goBackItem, (event) -> {
-                    PlayerPreferences playerAuction = PlayerCache.getPreferences(player.getUniqueId());
-
-                    switch (back) {
-                        case "bids" -> new BidsMenu(this.player).open(1);
-                        case "manage" -> new ManageMenu(this.player).open(1);
-                        case "auctions" -> new AuctionsMenu(this.player).open(auction.getAuctionCategory(), playerAuction.getPage());
-                        default -> {
-                            if (!back.isEmpty()) {
-                                UUID uuid = UUID.fromString(back);
-                                new ViewAuctionsMenu(this.player, Bukkit.getOfflinePlayer(uuid)).open(1);
-                            } else {
-                                new AuctionsMenu(this.player).open(auction.getAuctionCategory(), playerAuction.getPage());
-                            }
-                        }
-                    }
-                }));
+                gui.setItem(goBackSlot-1, ClickableItem.of(goBackItem, (event) -> goBack()));
         }
 
         if (this.player.getUniqueId().equals(this.auction.getAuctionOwner()))
@@ -101,6 +83,26 @@ public class NormalViewMenu implements MenuManager {
         this.gui.open(this.player);
 
         updateExampleItem();
+    }
+
+    private void goBack() {
+        if (this.back.equalsIgnoreCase("command"))
+            return;
+
+        PlayerPreferences playerAuction = PlayerCache.getPreferences(player.getUniqueId());
+        switch (back) {
+            case "bids" -> new BidsMenu(this.player).open(1);
+            case "manage" -> new ManageMenu(this.player).open(1);
+            case "auctions" -> new AuctionsMenu(this.player).open(auction.getAuctionCategory(), playerAuction.getPage());
+            default -> {
+                if (!back.isEmpty()) {
+                    UUID uuid = UUID.fromString(back);
+                    new ViewAuctionsMenu(this.player, Bukkit.getOfflinePlayer(uuid)).open(1);
+                } else {
+                    new AuctionsMenu(this.player).open(auction.getAuctionCategory(), playerAuction.getPage());
+                }
+            }
+        }
     }
 
     private void loadCollectItem() {
@@ -149,6 +151,8 @@ public class NormalViewMenu implements MenuManager {
                 Utils.sendMessage(this.player, "buyer_collected_item", placeholderUtil);
             else if (type.equals("money"))
                 Utils.sendMessage(this.player, "buyer_collected_money", placeholderUtil);
+
+            goBack();
         }));
     }
 
@@ -191,6 +195,8 @@ public class NormalViewMenu implements MenuManager {
                     Utils.sendMessage(this.player, "seller_collected_item", placeholderUtil);
                 else if (type.equals("money"))
                     Utils.sendMessage(this.player, "seller_collected_money", placeholderUtil);
+
+                goBack();
             }));
         } else {
             ConfigurationSection cancelSection = this.section.getConfigurationSection("cancel_auction");
@@ -208,7 +214,7 @@ public class NormalViewMenu implements MenuManager {
 
             if (playerBid == null)
                 this.gui.setItem(cancelSection.getInt("slot")-1, ClickableItem.of(itemStack, (event) -> {
-                    this.player.closeInventory();
+                     this.player.closeInventory();
 
                     if (this.auction.cancel(this.player)) {
                         Utils.playSound(player, "cancel_auction");
@@ -222,6 +228,8 @@ public class NormalViewMenu implements MenuManager {
                         if (DeluxeAuctions.getInstance().discordWebhook != null)
                             DeluxeAuctions.getInstance().discordWebhook.sendMessage("cancel_auction", placeholderUtil);
                     }
+
+                    goBack();
                 }));
             else
                 this.gui.setItem(cancelSection.getInt("slot")-1, ClickableItem.empty(itemStack));
@@ -270,7 +278,7 @@ public class NormalViewMenu implements MenuManager {
             return;
 
         if (itemSection.getName().equals("enough_money"))
-            gui.setItem(itemSection.getInt("slot")-1, ClickableItem.of(itemStack, (event) -> new InputMenu().open(this.player, this)));
+            gui.setItem(itemSection.getInt("slot")-1, ClickableItem.of(itemStack, (event) -> DeluxeAuctions.getInstance().inputMenu.open(this.player, this)));
         else
             gui.setItem(itemSection.getInt("slot")-1, ClickableItem.empty(itemStack));
     }

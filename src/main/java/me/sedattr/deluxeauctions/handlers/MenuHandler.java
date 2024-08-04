@@ -133,6 +133,7 @@ public class MenuHandler {
 
         if (!section.getName().equalsIgnoreCase("auctions_menu"))
             addNormalItems(player, gui, section);
+
         addCustomItems(player, gui, section);
         return gui;
     }
