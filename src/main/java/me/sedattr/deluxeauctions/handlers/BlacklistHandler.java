@@ -6,15 +6,15 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 public class BlacklistHandler {
-    public List<String> blacklistedNames = List.of();
-    public List<String> blacklistedMaterials = List.of();
-    public List<Integer> blacklistedModels = List.of();
-    public List<List<String>> blacklistedLores = List.of();
+    public Set<String> blacklistedNames = new HashSet<>();
+    public Set<String> blacklistedMaterials = new HashSet<>();
+    public Set<Integer> blacklistedModels = new HashSet<>();
+    public Set<Set<String>> blacklistedLores = new HashSet<>();
 
     public BlacklistHandler() {
         loadLores();
@@ -41,14 +41,16 @@ public class BlacklistHandler {
             return true;
 
         String name = Utils.getDisplayName(item);
-        if (name != null && !name.isEmpty() && this.blacklistedNames.contains(name))
-            return true;
+        if (name != null && !name.isEmpty()) {
+            if (this.blacklistedNames.contains(name) || this.blacklistedNames.contains(Utils.strip(name)))
+                return true;
+        }
 
         List<String> lore = itemMeta.getLore();
         if (lore == null || lore.isEmpty())
             return false;
 
-        List<String> newLore = new ArrayList<>(lore.size());
+        Set<String> newLore = new HashSet<>(lore.size());
         for (String line : lore)
             newLore.add(Utils.colorize(line));
 
@@ -73,7 +75,7 @@ public class BlacklistHandler {
             if (lines.isEmpty())
                 continue;
 
-            List<String> newLines = new ArrayList<>(lines.size());
+            Set<String> newLines = new HashSet<>(lines.size());
             for (String line : lines)
                 newLines.add(Utils.colorize(line));
 
@@ -94,7 +96,7 @@ public class BlacklistHandler {
     }
 
     public void loadMaterials() {
-        ConfigurationSection section = DeluxeAuctions.getInstance().itemsFile.getConfigurationSection("blacklisted_items.material");
+        ConfigurationSection section = DeluxeAuctions.getInstance().itemsFile.getConfigurationSection("blacklisted_items.materials");
         if (section == null || !section.getBoolean("enabled"))
             return;
 
@@ -106,7 +108,7 @@ public class BlacklistHandler {
     }
 
     public void loadNames() {
-        ConfigurationSection section = DeluxeAuctions.getInstance().itemsFile.getConfigurationSection("blacklisted_items.name");
+        ConfigurationSection section = DeluxeAuctions.getInstance().itemsFile.getConfigurationSection("blacklisted_items.names");
         if (section == null || !section.getBoolean("enabled"))
             return;
 

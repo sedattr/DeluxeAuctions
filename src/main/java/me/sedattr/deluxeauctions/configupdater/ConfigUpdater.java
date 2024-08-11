@@ -2,7 +2,6 @@ package me.sedattr.deluxeauctions.configupdater;
 
 import com.google.common.base.Preconditions;
 import me.sedattr.deluxeauctions.DeluxeAuctions;
-import me.sedattr.deluxeauctions.cache.CategoryCache;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;

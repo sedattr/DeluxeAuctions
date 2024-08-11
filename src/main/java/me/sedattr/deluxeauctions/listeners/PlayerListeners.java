@@ -1,7 +1,7 @@
 package me.sedattr.deluxeauctions.listeners;
 
 import me.sedattr.deluxeauctions.DeluxeAuctions;
-import me.sedattr.deluxeauctions.cache.PlayerCache;
+import me.sedattr.auctionsapi.cache.PlayerCache;
 import me.sedattr.deluxeauctions.inventoryapi.inventory.InventoryVariables;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;

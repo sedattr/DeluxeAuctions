@@ -9,7 +9,7 @@ public interface MultiServerManager {
     // Methods
     void reload(); // Reload the plugin
     void updateStats(UUID playerUUID); // Update player's all stats
-    boolean loadAuction(UUID auctionUUID); // Load new created auction
+    void loadAuction(UUID auctionUUID); // Load new created auction
     boolean deleteAuction(UUID auctionUUID); // Delete auction
     boolean sellerCollectedAuction(UUID auctionUUID); // Seller claimed auction (NORMAL AUCTION)
     boolean buyerCollectedAuction(UUID auctionUUID, UUID playerUUID); // Buyer collected auction (NORMAL AUCTION)

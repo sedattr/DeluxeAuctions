@@ -1,7 +1,7 @@
 package me.sedattr.deluxeauctions.handlers;
 
+import me.sedattr.auctionsapi.cache.EnchantCache;
 import me.sedattr.deluxeauctions.DeluxeAuctions;
-import me.sedattr.deluxeauctions.cache.EnchantCache;
 import me.sedattr.deluxeauctions.configupdater.ConfigUpdater;
 import me.sedattr.deluxeauctions.database.MySQLDatabase;
 import me.sedattr.deluxeauctions.database.SQLiteDatabase;
@@ -247,6 +247,12 @@ public class DataHandler {
 
                 DeluxeAuctions.getInstance().economy = rsp.getProvider();
                 DeluxeAuctions.getInstance().economyManager = new VaultEconomy();
+                return true;
+            case "edprison":
+                if (!Bukkit.getServer().getPluginManager().isPluginEnabled("EdPrison"))
+                    return false;
+
+                DeluxeAuctions.getInstance().economyManager = new EdPrisonEconomy();
                 return true;
             case "royaleeconomy_balance":
                 if (!Bukkit.getServer().getPluginManager().isPluginEnabled("RoyaleEconomy"))

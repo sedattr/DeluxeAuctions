@@ -2,7 +2,7 @@ name: DeluxeAuctions
 main: me.sedattr.deluxeauctions.DeluxeAuctions
 
 author: SedatTR
-version: 1.6
+version: 1.7
 api-version: 1.13
 
 description: The best, cheap, advanced, fully customizable auction plugin; like popular server!
@@ -23,6 +23,7 @@ softdepend:
   - zAuctionHouseV3
   - DeluxeAuctionsRedis
   - DeluxeAuctionsDisplay
+  - EdPrison
 loadbefore:
   - DeluxeAuctionsDisplay
   - DeluxeAuctionsRedis

@@ -3,10 +3,10 @@ package me.sedattr.deluxeauctions.managers;
 import lombok.Getter;
 import lombok.Setter;
 import me.sedattr.deluxeauctions.DeluxeAuctions;
-import me.sedattr.deluxeauctions.api.events.*;
-import me.sedattr.deluxeauctions.cache.AuctionCache;
-import me.sedattr.deluxeauctions.cache.CategoryCache;
-import me.sedattr.deluxeauctions.cache.PlayerCache;
+import me.sedattr.auctionsapi.events.*;
+import me.sedattr.auctionsapi.cache.AuctionCache;
+import me.sedattr.auctionsapi.cache.CategoryCache;
+import me.sedattr.auctionsapi.cache.PlayerCache;
 import me.sedattr.deluxeauctions.others.PlaceholderUtil;
 import me.sedattr.deluxeauctions.others.Utils;
 import org.bukkit.Bukkit;
@@ -337,7 +337,7 @@ public class Auction {
         return true;
     }
 
-    public String sellerCollect(Player player) {
+    public String sellerCollect(Player player, boolean isAll) {
         if (AuctionCache.getAuction(this.auctionUUID) == null)
             return "";
 
@@ -349,30 +349,36 @@ public class Auction {
 
         PlayerBid highestBid = this.auctionBids.getHighestBid();
         if (highestBid == null && !Utils.hasEmptySlot(player)) {
-            Utils.sendMessage(player, "no_empty_slot");
+            if (!isAll)
+                Utils.sendMessage(player, "no_empty_slot");
             return "";
         }
 
         if (Utils.isLaggy(player)) {
-            Utils.sendMessage(player, "laggy");
+            if (!isAll)
+                Utils.sendMessage(player, "laggy");
             return "";
         }
 
         if (AuctionCache.isAuctionUpdating(this.auctionUUID)) {
-            Utils.sendMessage(player, "refreshing");
+            if (!isAll)
+                Utils.sendMessage(player, "refreshing");
             return "";
         }
 
         // Check if auction is updating in multi-server system
         if (DeluxeAuctions.getInstance().multiServerManager != null && DeluxeAuctions.getInstance().multiServerManager.isAuctionUpdating(this.auctionUUID)) {
-            Utils.sendMessage(player, "refreshing");
+            if (!isAll)
+                Utils.sendMessage(player, "refreshing");
             return "";
         }
 
-        AuctionCollectEvent event = new AuctionCollectEvent(player, this, highestBid == null);
-        Bukkit.getPluginManager().callEvent(event);
-        if (event.isCancelled())
-            return "";
+        if (!isAll) {
+            AuctionCollectEvent event = new AuctionCollectEvent(player, this, highestBid == null);
+            Bukkit.getPluginManager().callEvent(event);
+            if (event.isCancelled())
+                return "";
+        }
 
         boolean isAllClaimed = this.getAuctionBids().isAllCollected();
         if (DeluxeAuctions.getInstance().multiServerManager != null) {
@@ -383,7 +389,8 @@ public class Auction {
                 status = DeluxeAuctions.getInstance().multiServerManager.sellerCollectedAuction(this.auctionUUID);
 
             if (!status) {
-                Utils.sendMessage(player, "refreshing");
+                if (!isAll)
+                    Utils.sendMessage(player, "refreshing");
                 return "";
             }
         }
@@ -417,10 +424,11 @@ public class Auction {
             DeluxeAuctions.getInstance().databaseManager.deleteAuction(this.auctionUUID.toString());
         } else
             DeluxeAuctions.getInstance().databaseManager.saveAuction(this);
+
         return type;
     }
 
-    public String buyerCollect(Player player) {
+    public String buyerCollect(Player player, boolean isAll) {
         if (AuctionCache.getAuction(this.auctionUUID) == null)
             return "";
 
@@ -436,37 +444,41 @@ public class Auction {
             return "";
 
         if (playerBid == highestBid && !Utils.hasEmptySlot(player)) {
-            Utils.sendMessage(player, "no_empty_slot");
+            if (!isAll)
+                Utils.sendMessage(player, "no_empty_slot");
             return "";
         }
 
         if (Utils.isLaggy(player)) {
-            Utils.sendMessage(player, "laggy");
+            if (!isAll)
+                Utils.sendMessage(player, "laggy");
             return "";
         }
 
         if (AuctionCache.isAuctionUpdating(this.auctionUUID)) {
-            Utils.sendMessage(player, "refreshing");
+            if (!isAll)
+                Utils.sendMessage(player, "refreshing");
             return "";
         }
 
         // Check if auction is updating in multi-server system
         if (DeluxeAuctions.getInstance().multiServerManager != null && DeluxeAuctions.getInstance().multiServerManager.isAuctionUpdating(this.auctionUUID)) {
-            Utils.sendMessage(player, "refreshing");
+            if (!isAll)
+                Utils.sendMessage(player, "refreshing");
             return "";
         }
 
-        AuctionCollectEvent event = new AuctionCollectEvent(player, this, false);
-        Bukkit.getPluginManager().callEvent(event);
-        if (event.isCancelled())
-            return "";
-
+        if (!isAll) {
+            AuctionCollectEvent event = new AuctionCollectEvent(player, this, false);
+            Bukkit.getPluginManager().callEvent(event);
+            if (event.isCancelled())
+                return "";
+        }
 
         boolean isClaimed = playerBid.isCollected();
         playerBid.setCollected(true);
 
         boolean isAllClaimed = this.sellerClaimed && this.getAuctionBids().isAllCollected();
-
         if (DeluxeAuctions.getInstance().multiServerManager != null) {
             boolean status;
 
@@ -477,10 +489,13 @@ public class Auction {
 
             if (!status) {
                 playerBid.setCollected(false);
-                Utils.sendMessage(player, "refreshing");
+
+                if (!isAll)
+                    Utils.sendMessage(player, "refreshing");
                 return "";
             }
         }
+
         AuctionCache.addUpdatingAuction(this.auctionUUID);
 
         String type;
@@ -511,6 +526,7 @@ public class Auction {
             DeluxeAuctions.getInstance().databaseManager.deleteAuction(this.auctionUUID.toString());
         } else
             DeluxeAuctions.getInstance().databaseManager.saveAuction(this);
+
         return type;
     }
 }

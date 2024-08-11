@@ -152,6 +152,8 @@ economy:
     node_text: "balance.total"
   ultraeconomy_settings:
     currency_name: "gold"
+  edprison_settings:
+    currency_name: "tokens"
 
 # PLUGIN DATABASE
 database:

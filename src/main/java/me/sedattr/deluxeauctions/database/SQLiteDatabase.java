@@ -1,8 +1,8 @@
 package me.sedattr.deluxeauctions.database;
 
 import me.sedattr.deluxeauctions.DeluxeAuctions;
-import me.sedattr.deluxeauctions.cache.AuctionCache;
-import me.sedattr.deluxeauctions.cache.PlayerCache;
+import me.sedattr.auctionsapi.cache.AuctionCache;
+import me.sedattr.auctionsapi.cache.PlayerCache;
 import me.sedattr.deluxeauctions.managers.*;
 import me.sedattr.deluxeauctions.others.Logger;
 import me.sedattr.deluxeauctions.others.Utils;

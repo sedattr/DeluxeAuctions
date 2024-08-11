@@ -4,8 +4,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
+import me.sedattr.auctionsapi.cache.AuctionCache;
 import me.sedattr.deluxeauctions.DeluxeAuctions;
-import me.sedattr.deluxeauctions.cache.AuctionCache;
 import me.sedattr.deluxeauctions.others.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -70,8 +70,8 @@ public class BungeeAddon implements MultiServerManager, PluginMessageListener {
     }
 
     @Override
-    public boolean loadAuction(UUID auctionUUID) {
-        return publish(auctionUUID, "AUCTION_LOAD:" + auctionUUID);
+    public void loadAuction(UUID auctionUUID) {
+        publish("AUCTION_LOAD:" + auctionUUID);
     }
 
     @Override

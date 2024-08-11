@@ -3,11 +3,11 @@ package me.sedattr.deluxeauctions.managers;
 import com.google.common.util.concurrent.AtomicDouble;
 import lombok.Getter;
 import lombok.Setter;
+import me.sedattr.auctionsapi.events.AuctionPreCollectAllEvent;
 import me.sedattr.deluxeauctions.DeluxeAuctions;
-import me.sedattr.deluxeauctions.api.events.AuctionCollectEvent;
-import me.sedattr.deluxeauctions.cache.AuctionCache;
-import me.sedattr.deluxeauctions.cache.CategoryCache;
-import me.sedattr.deluxeauctions.cache.PlayerCache;
+import me.sedattr.auctionsapi.cache.AuctionCache;
+import me.sedattr.auctionsapi.cache.CategoryCache;
+import me.sedattr.auctionsapi.cache.PlayerCache;
 import me.sedattr.deluxeauctions.others.PlaceholderUtil;
 import me.sedattr.deluxeauctions.others.Utils;
 import org.bukkit.Bukkit;
@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 @Getter
 @Setter
@@ -52,74 +51,78 @@ public class PlayerPreferences {
     }
 
     public void collectAuctions(Player player) {
-        if (Utils.isLaggy(player)) {
-            Utils.sendMessage(player, "laggy");
+        List<Auction> auctions = new ArrayList<>(AuctionCache.getOwnedAuctions(this.player));
+
+        AuctionPreCollectAllEvent event = new AuctionPreCollectAllEvent(player, auctions, true);
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled())
             return;
-        }
 
-        AtomicDouble money = new AtomicDouble();
-        AtomicInteger item = new AtomicInteger();
+        Bukkit.getScheduler().runTaskAsynchronously(DeluxeAuctions.getInstance(), () -> {
+            AtomicDouble money = new AtomicDouble();
+            AtomicInteger item = new AtomicInteger();
 
-        List<Auction> playerAuctions = AuctionCache.getOwnedAuctions(this.player);
-        List<Auction> auctions = new ArrayList<>(playerAuctions);
-        for (Auction auction : auctions) {
-            if (auction == null)
-                continue;
+            for (Auction auction : auctions) {
+                if (auction == null)
+                    continue;
 
-            String result = auction.sellerCollect(player);
-            if (result.isEmpty())
-                return;
+                String result = auction.sellerCollect(player, true);
+                if (result.isEmpty())
+                    continue;
 
-            PlayerBid playerBid = auction.getAuctionBids().getHighestBid();
-            if (playerBid == null)
-                item.getAndIncrement();
-            else
-                money.updateAndGet(v -> v + playerBid.getBidPrice());
-        }
+                PlayerBid playerBid = auction.getAuctionBids().getHighestBid();
+                if (playerBid == null)
+                    item.getAndIncrement();
+                else
+                    money.updateAndGet(v -> v + playerBid.getBidPrice());
+            }
 
-        DeluxeAuctions.getInstance().dataHandler.writeToLog("[SELLER COLLECTED ALL AUCTIONS] " + player.getName() + " (" + player.getUniqueId() + ") collected " + money + " COINS and " + item + " ITEMS from auction!");
-        if (money.get() > 0.0)
-            Utils.sendMessage(player, "seller_collected_moneys", new PlaceholderUtil()
-                    .addPlaceholder("%total_money_amount%", DeluxeAuctions.getInstance().numberFormat.format(money.get())));
+            DeluxeAuctions.getInstance().dataHandler.writeToLog("[SELLER COLLECTED ALL AUCTIONS] " + player.getName() + " (" + player.getUniqueId() + ") collected " + money + " COINS and " + item + " ITEMS from auction!");
+            if (money.get() > 0.0)
+                Utils.sendMessage(player, "seller_collected_moneys", new PlaceholderUtil()
+                        .addPlaceholder("%total_money_amount%", DeluxeAuctions.getInstance().numberFormat.format(money.get())));
 
-        if (item.get() > 0)
-            Utils.sendMessage(player, "seller_collected_items", new PlaceholderUtil()
-                    .addPlaceholder("%total_item_amount%", String.valueOf(item.get())));
+            if (item.get() > 0)
+                Utils.sendMessage(player, "seller_collected_items", new PlaceholderUtil()
+                        .addPlaceholder("%total_item_amount%", String.valueOf(item.get())));
+        });
     }
 
     public void collectBids(Player player) {
-        if (Utils.isLaggy(player)) {
-            Utils.sendMessage(player, "laggy");
+        List<Auction> auctions = new ArrayList<>(AuctionCache.getBidAuctions(this.player));
+
+        AuctionPreCollectAllEvent event = new AuctionPreCollectAllEvent(player, auctions, false);
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled())
             return;
-        }
 
-        AtomicDouble money = new AtomicDouble();
-        AtomicInteger item = new AtomicInteger();
+        Bukkit.getScheduler().runTaskAsynchronously(DeluxeAuctions.getInstance(), () -> {
+            AtomicDouble money = new AtomicDouble();
+            AtomicInteger item = new AtomicInteger();
 
-        List<Auction> playerAuctions = AuctionCache.getBidAuctions(this.player);
-        List<Auction> auctions = new ArrayList<>(playerAuctions);
-        for (Auction auction : auctions) {
-            if (auction == null)
-                continue;
+            for (Auction auction : auctions) {
+                if (auction == null)
+                    continue;
 
-            String result = auction.buyerCollect(player);
-            if (result.isEmpty())
-                return;
+                String result = auction.buyerCollect(player, true);
+                if (result.isEmpty())
+                    continue;
 
-            PlayerBid playerBid = auction.getAuctionBids().getPlayerBid(player.getUniqueId());
-            if (auction.getAuctionBids().getHighestBid() == playerBid)
-                item.getAndIncrement();
-            else
-                money.updateAndGet(v -> v + playerBid.getBidPrice());
-        }
+                PlayerBid playerBid = auction.getAuctionBids().getPlayerBid(player.getUniqueId());
+                if (auction.getAuctionBids().getHighestBid() == playerBid)
+                    item.getAndIncrement();
+                else
+                    money.updateAndGet(v -> v + playerBid.getBidPrice());
+            }
 
-        DeluxeAuctions.getInstance().dataHandler.writeToLog("[BUYER COLLECTED ALL BIDS] " + player.getName() + " (" + player.getUniqueId() + ") collected " + money + " COINS and " + item + " ITEMS from auction!");
-        if (money.get() > 0.0)
-            Utils.sendMessage(player, "buyer_collected_moneys", new PlaceholderUtil()
-                    .addPlaceholder("%total_money_amount%", DeluxeAuctions.getInstance().numberFormat.format(money.get())));
+            DeluxeAuctions.getInstance().dataHandler.writeToLog("[BUYER COLLECTED ALL BIDS] " + player.getName() + " (" + player.getUniqueId() + ") collected " + money + " COINS and " + item + " ITEMS from auction!");
+            if (money.get() > 0.0)
+                Utils.sendMessage(player, "buyer_collected_moneys", new PlaceholderUtil()
+                        .addPlaceholder("%total_money_amount%", DeluxeAuctions.getInstance().numberFormat.format(money.get())));
 
-        if (item.get() > 0)
-            Utils.sendMessage(player, "buyer_collected_items", new PlaceholderUtil()
-                    .addPlaceholder("%total_item_amount%", String.valueOf(item.get())));
+            if (item.get() > 0)
+                Utils.sendMessage(player, "buyer_collected_items", new PlaceholderUtil()
+                        .addPlaceholder("%total_item_amount%", String.valueOf(item.get())));
+        });
     }
 }

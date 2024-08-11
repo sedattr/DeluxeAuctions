@@ -3,7 +3,6 @@ package me.sedattr.deluxeauctions.managers;
 import lombok.Getter;
 import lombok.Setter;
 import me.sedattr.deluxeauctions.DeluxeAuctions;
-import me.sedattr.deluxeauctions.cache.AuctionCache;
 import me.sedattr.deluxeauctions.others.Logger;
 import me.sedattr.deluxeauctions.others.MaterialHelper;
 import org.bukkit.Material;

@@ -1,7 +1,7 @@
 package me.sedattr.deluxeauctions.menus;
 
-import me.sedattr.deluxeauctions.api.AuctionHook;
-import me.sedattr.deluxeauctions.cache.PlayerCache;
+import me.sedattr.auctionsapi.AuctionHook;
+import me.sedattr.auctionsapi.cache.PlayerCache;
 import me.sedattr.deluxeauctions.inventoryapi.HInventory;
 import me.sedattr.deluxeauctions.inventoryapi.inventory.InventoryAPI;
 import me.sedattr.deluxeauctions.inventoryapi.item.ClickableItem;
@@ -124,7 +124,7 @@ public class BinViewMenu {
             this.gui.setItem(collectSection.getInt("slot")-1, ClickableItem.of(itemStack, (event) -> {
                 this.player.closeInventory();
 
-                String type = this.auction.sellerCollect(this.player);
+                String type = this.auction.sellerCollect(this.player, false);
                 if (type.isEmpty())
                     return;
 

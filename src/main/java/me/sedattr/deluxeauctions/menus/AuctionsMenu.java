@@ -1,9 +1,9 @@
 package me.sedattr.deluxeauctions.menus;
 
-import me.sedattr.deluxeauctions.api.AuctionHook;
-import me.sedattr.deluxeauctions.cache.AuctionCache;
-import me.sedattr.deluxeauctions.cache.CategoryCache;
-import me.sedattr.deluxeauctions.cache.PlayerCache;
+import me.sedattr.auctionsapi.AuctionHook;
+import me.sedattr.auctionsapi.cache.AuctionCache;
+import me.sedattr.auctionsapi.cache.CategoryCache;
+import me.sedattr.auctionsapi.cache.PlayerCache;
 import me.sedattr.deluxeauctions.inventoryapi.inventory.InventoryAPI;
 import me.sedattr.deluxeauctions.inventoryapi.HInventory;
 import me.sedattr.deluxeauctions.inventoryapi.item.ClickableItem;

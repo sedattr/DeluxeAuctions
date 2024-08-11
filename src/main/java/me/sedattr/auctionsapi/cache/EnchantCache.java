@@ -1,4 +1,4 @@
-package me.sedattr.deluxeauctions.cache;
+package me.sedattr.auctionsapi.cache;
 
 import me.sedattr.deluxeauctions.DeluxeAuctions;
 import org.bukkit.Registry;

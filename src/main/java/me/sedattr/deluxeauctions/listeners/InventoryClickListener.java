@@ -1,8 +1,8 @@
 package me.sedattr.deluxeauctions.listeners;
 
-import me.sedattr.deluxeauctions.api.AuctionHook;
-import me.sedattr.deluxeauctions.api.events.ItemPreviewEvent;
-import me.sedattr.deluxeauctions.cache.PlayerCache;
+import me.sedattr.auctionsapi.AuctionHook;
+import me.sedattr.auctionsapi.events.ItemPreviewEvent;
+import me.sedattr.auctionsapi.cache.PlayerCache;
 import me.sedattr.deluxeauctions.inventoryapi.HInventory;
 import me.sedattr.deluxeauctions.inventoryapi.inventory.InventoryAPI;
 import me.sedattr.deluxeauctions.inventoryapi.inventory.InventoryVariables;

@@ -7,19 +7,26 @@ import me.sedattr.deluxeauctionsredis.RedisManager;
 import java.util.UUID;
 
 public class RedisAddon implements MultiServerManager {
-
     public RedisAddon() {
-        RedisManager.getInstance().initialize();
+        new RedisManager();
     }
 
     private void publish(String text) {
         DeluxeAuctions.getInstance().dataHandler.debug("SENT Redis Message: &f" + text + " &8(%level_color%Multi Server&8)", Logger.LogLevel.INFO);
-        RedisManager.getInstance().publish(text);
+        try {
+            RedisManager.getInstance().publish(text);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private boolean publish(UUID uuid, String text) {
         DeluxeAuctions.getInstance().dataHandler.debug("SENT Redis Message: &f" + text + " &8(%level_color%Multi Server&8)", Logger.LogLevel.INFO);
-        return RedisManager.getInstance().publish(String.valueOf(uuid), text);
+        try {
+            return RedisManager.getInstance().publish(String.valueOf(uuid), text);
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     @Override
@@ -33,8 +40,8 @@ public class RedisAddon implements MultiServerManager {
     }
 
     @Override
-    public boolean loadAuction(UUID auctionUUID) {
-        return publish(auctionUUID, "AUCTION_LOAD:" + auctionUUID);
+    public void loadAuction(UUID auctionUUID) {
+       publish("AUCTION_LOAD:" + auctionUUID);
     }
 
     @Override
@@ -64,11 +71,19 @@ public class RedisAddon implements MultiServerManager {
 
     @Override
     public boolean isAuctionUpdating(UUID uuid) {
-        return RedisManager.getInstance().isAuctionMessagePublished(String.valueOf(uuid));
+        try {
+            return RedisManager.getInstance().isAuctionMessagePublished(String.valueOf(uuid));
+        } catch (Exception e) {
+            return true;
+        }
     }
 
     @Override
     public void removeUpdatingAuction(String uuid, String text) {
-        RedisManager.getInstance().removeAuctionMessage(uuid, text);
+        try {
+            RedisManager.getInstance().removeAuctionMessage(uuid, text);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

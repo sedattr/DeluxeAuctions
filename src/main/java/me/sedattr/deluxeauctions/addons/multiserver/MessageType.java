@@ -1,7 +1,7 @@
 package me.sedattr.deluxeauctions.addons.multiserver;
 
 import me.sedattr.deluxeauctions.DeluxeAuctions;
-import me.sedattr.deluxeauctions.cache.AuctionCache;
+import me.sedattr.auctionsapi.cache.AuctionCache;
 import me.sedattr.deluxeauctions.managers.Auction;
 import me.sedattr.deluxeauctions.managers.PlayerBid;
 import me.sedattr.deluxeauctions.others.Logger;

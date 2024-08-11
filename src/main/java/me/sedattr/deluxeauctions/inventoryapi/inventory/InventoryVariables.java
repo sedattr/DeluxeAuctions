@@ -8,7 +8,7 @@ import me.sedattr.deluxeauctions.inventoryapi.HInventory;
 import org.bukkit.entity.Player;
 
 public class InventoryVariables {
-    @Getter private static Map<Player, HInventory> playerInventory = new HashMap<>();
+    @Getter private static final Map<Player, HInventory> playerInventory = new HashMap<>();
     private static final Map<Player, Long> cooldown = new HashMap<>();
 
     public static Long getCooldown(Player player) {

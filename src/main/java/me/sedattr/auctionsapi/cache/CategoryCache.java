@@ -1,4 +1,4 @@
-package me.sedattr.deluxeauctions.cache;
+package me.sedattr.auctionsapi.cache;
 
 import com.google.common.collect.Maps;
 import lombok.Getter;

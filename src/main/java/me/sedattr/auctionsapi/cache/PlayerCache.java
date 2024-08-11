@@ -1,4 +1,4 @@
-package me.sedattr.deluxeauctions.cache;
+package me.sedattr.auctionsapi.cache;
 
 import lombok.Getter;
 import me.sedattr.deluxeauctions.managers.PlayerPreferences;
@@ -9,10 +9,10 @@ import java.util.HashMap;
 import java.util.UUID;
 
 public class PlayerCache {
-    @Getter private static HashMap<UUID, PlayerStats> stats = new HashMap<>();
-    @Getter private static HashMap<UUID, PlayerPreferences> players = new HashMap<>();
-    @Getter private static HashMap<UUID, ItemStack> items = new HashMap<>();
-    
+    @Getter private static final HashMap<UUID, PlayerStats> stats = new HashMap<>();
+    @Getter private static final HashMap<UUID, PlayerPreferences> players = new HashMap<>();
+    @Getter private static final HashMap<UUID, ItemStack> items = new HashMap<>();
+
     public static PlayerStats getStats(UUID player) {
         PlayerStats playerStats = stats.get(player);
         if (playerStats == null) {

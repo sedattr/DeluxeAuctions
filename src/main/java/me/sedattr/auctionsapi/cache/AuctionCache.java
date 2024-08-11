@@ -1,4 +1,4 @@
-package me.sedattr.deluxeauctions.cache;
+package me.sedattr.auctionsapi.cache;
 
 import com.google.common.collect.Maps;
 import lombok.Getter;
@@ -11,7 +11,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-
 
 public class AuctionCache {
     @Getter private static final HashMap<UUID, Auction> auctions = Maps.newHashMap();
@@ -135,47 +134,6 @@ public class AuctionCache {
 
         return new ArrayList<>(result);
     }
-
-    /*
-    public static List<Auction> getFilteredAuctions(AuctionType type, Category category, String search) {
-        if (auctions.isEmpty())
-            return Collections.emptyList();
-
-        return new ArrayList<>(auctions.values().stream().filter(auction -> {
-            if (type != AuctionType.ALL && auction.getAuctionType() != type)
-                return false;
-            if (auction.isEnded())
-                return false;
-            ItemStack itemStack = auction.getAuctionItem();
-            if (itemStack == null)
-                return false;
-            if (category != null && !category.isGlobal())
-                if (!auction.getAuctionCategory().equals(category.getName()))
-                    return false;
-
-            if (search != null && !search.isEmpty()) {
-                String lowerCaseSearch = search.toLowerCase();
-
-                ItemMeta meta = itemStack.getItemMeta();
-                if (meta instanceof EnchantmentStorageMeta) {
-                    if (EnchantCache.isEnchantmentAdded(((EnchantmentStorageMeta) meta).getStoredEnchants(), lowerCaseSearch))
-                        return true;
-                } else {
-                    if (EnchantCache.isEnchantmentAdded(itemStack.getEnchantments(), lowerCaseSearch))
-                        return true;
-                }
-
-                if (meta != null && meta.getDisplayName() != null && Utils.strip(meta.getDisplayName().toLowerCase()).contains(lowerCaseSearch))
-                    return true;
-
-                return itemStack.getType().name().toLowerCase().contains(lowerCaseSearch);
-            } else if (category != null && category.isGlobal())
-                return true;
-
-            return true;
-        }).toList());
-    }
-     */
 
     public static List<Auction> getOnGoingAuctions(List<Auction> filteredAuctions, SortType sort, int page, int slot) {
         if (auctions.isEmpty())

@@ -1,8 +1,11 @@
-package me.sedattr.deluxeauctions.api;
+package me.sedattr.auctionsapi;
 
+import me.sedattr.auctionsapi.cache.CategoryCache;
 import me.sedattr.deluxeauctions.DeluxeAuctions;
-import me.sedattr.deluxeauctions.cache.CategoryCache;
-import me.sedattr.deluxeauctions.managers.*;
+import me.sedattr.deluxeauctions.managers.Auction;
+import me.sedattr.deluxeauctions.managers.AuctionType;
+import me.sedattr.deluxeauctions.managers.Category;
+import me.sedattr.deluxeauctions.managers.PlayerBid;
 import me.sedattr.deluxeauctions.others.Utils;
 import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
@@ -24,6 +27,8 @@ public class AuctionHook {
     private static final int MAX_AUCTION = 100;
 
     public static boolean isAuctionTypeDisabled(String type) {
+        if (type == null || type.isEmpty())
+            return false;
         if (!type.equalsIgnoreCase("bin") && !type.equalsIgnoreCase("normal"))
             return false;
 

@@ -1,22 +1,22 @@
-package me.sedattr.deluxeauctions.api.events;
+package me.sedattr.auctionsapi.events;
 
 import lombok.Getter;
+import me.sedattr.deluxeauctions.managers.Auction;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
-import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-public class ItemPreviewEvent extends Event implements Cancellable {
+public class AuctionCreateEvent extends Event implements Cancellable {
     @Getter private final Player player;
-    @Getter private final ItemStack item;
+    @Getter private final Auction auction;
     private boolean cancelled = false;
     private static final HandlerList handlers = new HandlerList();
 
-    public ItemPreviewEvent(Player player, ItemStack item) {
+    public AuctionCreateEvent(Player player, Auction auction) {
         this.player = player;
-        this.item = item;
+        this.auction = auction;
     }
 
     @Override

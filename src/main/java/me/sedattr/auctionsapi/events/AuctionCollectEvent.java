@@ -1,4 +1,4 @@
-package me.sedattr.deluxeauctions.api.events;
+package me.sedattr.auctionsapi.events;
 
 import lombok.Getter;
 import me.sedattr.deluxeauctions.managers.Auction;
@@ -8,15 +8,19 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
-public class PlayerBidEvent extends Event implements Cancellable {
+public class AuctionCollectEvent extends Event implements Cancellable {
     @Getter private final Player player;
     @Getter private final Auction auction;
+    @Getter private final boolean isSeller;
+    @Getter private final boolean isExpired;
     private boolean cancelled = false;
     private static final HandlerList handlers = new HandlerList();
 
-    public PlayerBidEvent(Player player, Auction auction) {
+    public AuctionCollectEvent(Player player, Auction auction, boolean expired) {
         this.player = player;
         this.auction = auction;
+        this.isSeller = auction.getAuctionOwner().equals(player.getUniqueId());
+        this.isExpired = expired;
     }
 
     @Override
