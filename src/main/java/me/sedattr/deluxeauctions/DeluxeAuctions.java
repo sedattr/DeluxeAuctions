@@ -110,7 +110,6 @@ public class DeluxeAuctions extends JavaPlugin {
 
         this.dataHandler = new DataHandler();
         if (!this.dataHandler.load()) {
-            Logger.sendConsoleMessage("There is a problem in economy setup! Plugin is disabling...", Logger.LogLevel.ERROR);
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }

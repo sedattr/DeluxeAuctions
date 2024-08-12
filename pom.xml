@@ -197,7 +197,7 @@
             <version>3.2.7</version>
             <scope>provided</scope>
         </dependency>
-
+        
         <dependency>
             <groupId>me.realized</groupId>
             <artifactId>tokenmanager</artifactId>

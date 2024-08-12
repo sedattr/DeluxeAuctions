@@ -93,14 +93,13 @@ public class NormalViewMenu implements MenuManager {
         switch (back) {
             case "bids" -> new BidsMenu(this.player).open(1);
             case "manage" -> new ManageMenu(this.player).open(1);
-            case "auctions" -> new AuctionsMenu(this.player).open(auction.getAuctionCategory(), playerAuction.getPage());
+            case "auctions" -> new AuctionsMenu(this.player).open(playerAuction.getCategory().getName(), playerAuction.getPage());
             default -> {
                 if (!back.isEmpty()) {
                     UUID uuid = UUID.fromString(back);
                     new ViewAuctionsMenu(this.player, Bukkit.getOfflinePlayer(uuid)).open(1);
-                } else {
-                    new AuctionsMenu(this.player).open(auction.getAuctionCategory(), playerAuction.getPage());
-                }
+                } else
+                    new AuctionsMenu(this.player).open(playerAuction.getCategory().getName(), playerAuction.getPage());
             }
         }
     }

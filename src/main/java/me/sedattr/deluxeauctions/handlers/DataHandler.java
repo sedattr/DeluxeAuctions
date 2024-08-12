@@ -58,20 +58,27 @@ public class DataHandler {
         });
     }
 
-    public void loadDefaultSettings() {
+    public boolean loadDefaultSettings() {
         DeluxeAuctions.getInstance().auctionType = AuctionType.valueOf(DeluxeAuctions.getInstance().configFile.getString("settings.default_filter_type", "ALL").toUpperCase());
         DeluxeAuctions.getInstance().sortType = SortType.valueOf(DeluxeAuctions.getInstance().configFile.getString("settings.default_sort_type", "HIGHEST_PRICE").toUpperCase());
         DeluxeAuctions.getInstance().category = DeluxeAuctions.getInstance().configFile.getString("settings.default_category", "weapons");
         DeluxeAuctions.getInstance().createType = AuctionType.valueOf(DeluxeAuctions.getInstance().configFile.getString("settings.default_type", "BIN").toUpperCase());
         DeluxeAuctions.getInstance().createPrice = DeluxeAuctions.getInstance().configFile.getDouble("settings.default_price", 500);
         DeluxeAuctions.getInstance().createTime = DeluxeAuctions.getInstance().configFile.getInt("settings.default_duration", 21600);
+
+        return DeluxeAuctions.getInstance().category != null;
     }
 
     public boolean load() {
         DeluxeAuctions.getInstance().configFile = DeluxeAuctions.getInstance().getConfig();
-        if (!setupEconomy())
+        if (!setupEconomy()) {
+            Logger.sendConsoleMessage("There is a problem in economy setup! Plugin is disabling...", Logger.LogLevel.ERROR);
             return false;
-        loadDefaultSettings();
+        }
+        if (!loadDefaultSettings()) {
+            Logger.sendConsoleMessage("There is a problem in default category setting (config.yml -> default_category)! Plugin is disabling...", Logger.LogLevel.ERROR);
+            return false;
+        }
 
         ConfigurationSection returnSection = DeluxeAuctions.getInstance().configFile.getConfigurationSection("settings.return_category");
         if (returnSection != null && returnSection.getBoolean("enabled"))

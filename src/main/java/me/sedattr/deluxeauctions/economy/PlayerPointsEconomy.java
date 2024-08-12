@@ -16,12 +16,12 @@ public class PlayerPointsEconomy implements EconomyManager {
 
     @Override
     public boolean addBalance(OfflinePlayer player, Double count) {
-        return this.api.give(player.getUniqueId(), Integer.parseInt(String.valueOf(count)));
+        return this.api.give(player.getUniqueId(), (int) Math.round(count));
     }
 
     @Override
     public boolean removeBalance(OfflinePlayer player, Double count) {
-        return this.api.take(player.getUniqueId(), Integer.parseInt(String.valueOf(count)));
+        return this.api.take(player.getUniqueId(), (int) Math.round(count));
     }
 
     @Override
