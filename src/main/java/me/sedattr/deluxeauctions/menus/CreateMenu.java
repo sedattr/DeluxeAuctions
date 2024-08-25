@@ -128,6 +128,7 @@ public class CreateMenu implements MenuManager {
             gui.setItem(itemSection.getInt("slot")-1, ClickableItem.of(itemStack, (event) -> {
                 double balance = DeluxeAuctions.getInstance().economyManager.getBalance(this.player);
                 if (balance < totalFee) {
+                    Utils.playSound(this.player, "not_enough_money");
                     Utils.sendMessage(this.player, "not_enough_money", placeholderUtil.addPlaceholder("%required_money%", DeluxeAuctions.getInstance().numberFormat.format(totalFee-balance)));
                     return;
                 }

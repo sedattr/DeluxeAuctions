@@ -11,6 +11,7 @@ import me.sedattr.deluxeauctions.managers.AuctionBids;
 import me.sedattr.deluxeauctions.managers.PlayerPreferences;
 import me.sedattr.deluxeauctions.managers.PlayerBid;
 import me.sedattr.deluxeauctions.others.PlaceholderUtil;
+import me.sedattr.deluxeauctions.others.TaskUtils;
 import me.sedattr.deluxeauctions.others.Utils;
 import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
@@ -18,7 +19,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -31,7 +31,7 @@ public class NormalViewMenu implements MenuManager {
     private final Auction auction;
     private final ConfigurationSection section;
     private HInventory gui;
-    private BukkitTask itemUpdater;
+    private boolean itemUpdater = false;
     private String back;
 
     public NormalViewMenu(Player player, Auction auction) {
@@ -290,10 +290,11 @@ public class NormalViewMenu implements MenuManager {
         if (itemSection==null)
             return;
 
+        double balance = DeluxeAuctions.getInstance().economyManager.getBalance(player);
         if (bids.getHighestBid() != null && bids.getHighestBid().getBidOwner().equals(this.player.getUniqueId()))
             itemSection = itemSection.getConfigurationSection("top_bid");
         else {
-            if (DeluxeAuctions.getInstance().economyManager.getBalance(player) >= price)
+            if (balance >= price)
                 itemSection = itemSection.getConfigurationSection("enough_money");
             else
                 itemSection = itemSection.getConfigurationSection("not_enough_money");
@@ -307,17 +308,12 @@ public class NormalViewMenu implements MenuManager {
             return;
 
         if (itemSection.getName().equals("enough_money"))
-            gui.setItem(itemSection.getInt("slot")-1, ClickableItem.of(itemStack, (event) -> {
-                double balance = DeluxeAuctions.getInstance().economyManager.getBalance(this.player);
-                if (balance < price) {
-                    Utils.sendMessage(this.player, "not_enough_money", placeholderUtil.addPlaceholder("%required_money%", DeluxeAuctions.getInstance().numberFormat.format(price-balance)));
-                    return;
-                }
-
-                new ConfirmMenu(this.player, "confirm_bid").setAuction(this.auction).setPrice(price).open();
-            }));
+            gui.setItem(itemSection.getInt("slot")-1, ClickableItem.of(itemStack, (event) -> new ConfirmMenu(this.player, "confirm_bid").setAuction(this.auction).setPrice(price).open()));
         else
-            gui.setItem(itemSection.getInt("slot")-1, ClickableItem.empty(itemStack));
+            gui.setItem(itemSection.getInt("slot")-1, ClickableItem.of(itemStack, (event) -> {
+                Utils.playSound(this.player, "not_enough_money");
+                Utils.sendMessage(this.player, "not_enough_money", placeholderUtil.addPlaceholder("%required_money%", DeluxeAuctions.getInstance().numberFormat.format(price-balance)));
+            }));
     }
 
     private void loadBidHistoryItem() {
@@ -379,19 +375,16 @@ public class NormalViewMenu implements MenuManager {
     }
 
     private void updateExampleItem() {
-        if (this.itemUpdater != null)
-            this.itemUpdater.cancel();
+        if (this.itemUpdater)
+            return;
 
-        this.itemUpdater = Bukkit.getScheduler().runTaskTimerAsynchronously(DeluxeAuctions.getInstance(), () -> {
-            HInventory inventory = InventoryAPI.getInventory(this.player);
-            if (inventory == null || !inventory.getId().equalsIgnoreCase("view")) {
-                this.itemUpdater.cancel();
-                return;
-            }
-
+        this.itemUpdater = true;
+        Runnable runnable = () -> {
             loadExampleItem();
             loadBidHistoryItem();
-        }, 0, 20);
+        };
+
+        TaskUtils.runTimerAsync(this.player, "view", runnable, 20, 20);
     }
 
     @Override
@@ -414,7 +407,9 @@ public class NormalViewMenu implements MenuManager {
         PlayerBid oldBid = this.auction.getAuctionBids().getPlayerBid(this.player.getUniqueId());
         double money = oldBid != null ? number-oldBid.getBidPrice() : number;
         if (balance < money) {
+            Utils.playSound(this.player, "not_enough_money");
             Utils.sendMessage(this.player, "not_enough_money", new PlaceholderUtil().addPlaceholder("%required_money%", DeluxeAuctions.getInstance().numberFormat.format(money-balance)));
+
             open(this.back);
             return;
         }

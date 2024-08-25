@@ -2,8 +2,9 @@ name: DeluxeAuctions
 main: me.sedattr.deluxeauctions.DeluxeAuctions
 
 author: SedatTR
-version: 1.8
+version: 2.0
 api-version: 1.13
+folia-supported: true
 
 description: The best, cheap, advanced, fully customizable auction plugin; like popular server!
 website: https://discord.gg/nchk86TKMT

@@ -44,7 +44,7 @@ public class DataHandler {
         if (!logEnabled)
             return;
 
-        Bukkit.getScheduler().runTaskAsynchronously(DeluxeAuctions.getInstance(), () -> {
+        TaskUtils.runAsync(() -> {
             DateFormat simple = new SimpleDateFormat("[MM/dd/yyyy kk:mm:ss] ");
             try {
                 FileWriter fileWriter = new FileWriter(this.log, true);
@@ -248,12 +248,8 @@ public class DataHandler {
                 if (!Bukkit.getServer().getPluginManager().isPluginEnabled("Vault"))
                     return false;
 
-                RegisteredServiceProvider<Economy> rsp = Bukkit.getServer().getServicesManager().getRegistration(Economy.class);
-                if (rsp == null)
-                    return false;
-
-                DeluxeAuctions.getInstance().economy = rsp.getProvider();
                 DeluxeAuctions.getInstance().economyManager = new VaultEconomy();
+
                 return true;
             case "edprison":
                 if (!Bukkit.getServer().getPluginManager().isPluginEnabled("EdPrison"))

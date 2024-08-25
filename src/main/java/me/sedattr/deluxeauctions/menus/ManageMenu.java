@@ -9,13 +9,13 @@ import me.sedattr.deluxeauctions.inventoryapi.inventory.InventoryAPI;
 import me.sedattr.deluxeauctions.inventoryapi.item.ClickableItem;
 import me.sedattr.deluxeauctions.managers.*;
 import me.sedattr.deluxeauctions.others.PlaceholderUtil;
+import me.sedattr.deluxeauctions.others.TaskUtils;
 import me.sedattr.deluxeauctions.others.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,7 +26,7 @@ public class ManageMenu {
     private final Player player;
     private final ConfigurationSection section;
     private HInventory gui;
-    private BukkitTask itemUpdater;
+    private boolean itemUpdater = false;
     private final PlayerPreferences playerAuction;
     private final List<Auction> auctions;
     private int page;
@@ -239,17 +239,11 @@ public class ManageMenu {
     }
 
     private void updateItems() {
-        if (this.itemUpdater != null)
-            this.itemUpdater.cancel();
+        if (this.itemUpdater)
+            return;
 
-        this.itemUpdater = Bukkit.getScheduler().runTaskTimerAsynchronously(DeluxeAuctions.getInstance(), () -> {
-            HInventory inventory = InventoryAPI.getInventory(this.player);
-            if (inventory == null || !inventory.getId().equalsIgnoreCase("manage")) {
-                this.itemUpdater.cancel();
-                return;
-            }
-
-            loadAuctions();
-        }, 0, 20);
+        this.itemUpdater = true;
+        Runnable runnable = this::loadAuctions;
+        TaskUtils.runTimerAsync(this.player, "manage", runnable, 20, 20);
     }
 }

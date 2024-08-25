@@ -22,7 +22,7 @@ public class ChatInput {
         this.listening = true;
         this.handler = handler;
 
-        Bukkit.getScheduler().runTaskLater(DeluxeAuctions.getInstance(), () -> {
+        TaskUtils.runLater(() -> {
             if (this.listening) {
                 HandlerList.unregisterAll(this.listener);
                 this.handler = null;
@@ -42,7 +42,7 @@ public class ChatInput {
             HandlerList.unregisterAll(listener);
             ChatInput.this.listening = false;
 
-            Bukkit.getScheduler().runTask(DeluxeAuctions.getInstance(), () -> {
+            TaskUtils.run(() -> {
                 handler.onChat(e.getMessage());
                 handler = null;
             });

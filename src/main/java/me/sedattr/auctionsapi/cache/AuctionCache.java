@@ -2,7 +2,6 @@ package me.sedattr.auctionsapi.cache;
 
 import com.google.common.collect.Maps;
 import lombok.Getter;
-import me.sedattr.deluxeauctions.DeluxeAuctions;
 import me.sedattr.deluxeauctions.managers.*;
 import me.sedattr.deluxeauctions.others.Utils;
 import org.bukkit.inventory.ItemStack;
@@ -72,7 +71,6 @@ public class AuctionCache {
 
         ConcurrentHashMap.KeySetView<Auction, Boolean> result = ConcurrentHashMap.newKeySet();
 
-
         auctions.values().parallelStream().forEach(auction -> {
             if (type != AuctionType.ALL && auction.getAuctionType() != type)
                 return;
@@ -109,6 +107,7 @@ public class AuctionCache {
                         }
                     }
 
+                    /*
                     if (DeluxeAuctions.getInstance().version >= 21) {
                         String itemName = meta.getItemName();
                         if (itemName != null && !itemName.isEmpty()) {
@@ -118,6 +117,7 @@ public class AuctionCache {
                             }
                         }
                     }
+                    */
                 }
 
                 if (itemStack.getType().name().replace("_", " ").toLowerCase().contains(lowerCaseSearch))

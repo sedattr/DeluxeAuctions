@@ -91,6 +91,9 @@ disabled_world: "&8[&cAuctions&8] &7You can't use auctions in this world!"
 laggy: "&8[&cAuctions&8] &7You can't use auctions while it is laggy!"
 disabled_auction_type: "&8[&cAuctions&8] &f%auction_type% &7auctions are disabled!"
 auction_view_info: "&8[&aAuctions&8] &7UUID: &e%auction_uuid%"
+
+purchase_cooldown: "&8[&cAuctions&8] &7Please wait &f%seconds_left% seconds &7to buy this item."
+bid_cooldown: "&8[&cAuctions&8] &7Please wait &f%seconds_left% seconds &7to bid on this item."
 click_cooldown: "&8[&cAuctions&8] &7Please wait a moment while clicking between items."
 command_cooldown: "&8[&cAuctions&8] &7Please wait a moment while using auction command."
 

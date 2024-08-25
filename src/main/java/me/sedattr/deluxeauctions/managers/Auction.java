@@ -30,12 +30,15 @@ public class Auction {
     private String auctionOwnerDisplayName;
     @Setter private boolean sellerClaimed = false;
 
+    private long auctionStartTime = 0;
+
     public Auction(ItemStack item, Double price, AuctionType type, long time) {
         this.auctionUUID = UUID.randomUUID();
         this.auctionPrice = price;
         this.auctionItem = item;
         this.auctionType = type;
-        this.auctionEndTime = ZonedDateTime.now().toInstant().getEpochSecond() + time;
+        this.auctionStartTime = ZonedDateTime.now().toInstant().getEpochSecond();
+        this.auctionEndTime = this.auctionStartTime + time;
         this.auctionCategory = CategoryCache.getItemCategory(item);
     }
 
@@ -57,6 +60,7 @@ public class Auction {
 
         double balance = DeluxeAuctions.getInstance().economyManager.getBalance(player);
         if (balance < totalFee) {
+            Utils.playSound(player, "not_enough_money");
             Utils.sendMessage(player, "not_enough_money", new PlaceholderUtil()
                     .addPlaceholder("%required_money%", DeluxeAuctions.getInstance().numberFormat.format(totalFee-balance)));
             return false;
@@ -77,6 +81,8 @@ public class Auction {
 
         PlayerPreferences playerPreferences = PlayerCache.getPreferences(this.auctionOwner);
         playerPreferences.updateCreate(null);
+        playerPreferences.setCreatePrice(DeluxeAuctions.getInstance().createPrice);
+        playerPreferences.setCreateTime(DeluxeAuctions.getInstance().createTime);
 
         PlayerStats stats = PlayerCache.getStats(this.auctionOwner);
         stats.addCreatedAuction();
@@ -100,6 +106,7 @@ public class Auction {
     }
 
     public boolean cancel(Player player) {
+        // Check if auction is already deleted
         if (AuctionCache.getAuction(this.auctionUUID) == null)
             return false;
 
@@ -193,6 +200,16 @@ public class Auction {
         if (DeluxeAuctions.getInstance().economyManager.getBalance(player) < price)
             return false;
 
+        // Check if auction is new
+        if (this.auctionStartTime > 0) {
+            long difference = ZonedDateTime.now().toInstant().getEpochSecond() - this.auctionStartTime;
+            if (difference < DeluxeAuctions.getInstance().configFile.getLong("settings.bid_cooldown", 60)) {
+                Utils.sendMessage(player, "bid_cooldown", new PlaceholderUtil()
+                        .addPlaceholder("%seconds_left%", String.valueOf(difference)));
+                return false;
+            }
+        }
+
         // Check if player is laggy
         if (Utils.isLaggy(player)) {
             Utils.sendMessage(player, "laggy");
@@ -282,6 +299,16 @@ public class Auction {
         if (!Utils.hasEmptySlot(player)) {
             Utils.sendMessage(player, "no_empty_slot");
             return false;
+        }
+
+        // Check if auction is new
+        if (this.auctionStartTime > 0) {
+            long difference = ZonedDateTime.now().toInstant().getEpochSecond() - this.auctionStartTime;
+            if (difference < DeluxeAuctions.getInstance().configFile.getLong("settings.purchase_cooldown", 60)) {
+                Utils.sendMessage(player, "purchase_cooldown", new PlaceholderUtil()
+                        .addPlaceholder("%seconds_left%", String.valueOf(difference)));
+                return false;
+            }
         }
 
         // Lag check

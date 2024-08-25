@@ -9,6 +9,7 @@ import me.sedattr.auctionsapi.cache.AuctionCache;
 import me.sedattr.auctionsapi.cache.CategoryCache;
 import me.sedattr.auctionsapi.cache.PlayerCache;
 import me.sedattr.deluxeauctions.others.PlaceholderUtil;
+import me.sedattr.deluxeauctions.others.TaskUtils;
 import me.sedattr.deluxeauctions.others.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -43,10 +44,6 @@ public class PlayerPreferences {
 
     public void updateCreate(ItemStack item) {
         PlayerCache.setItem(this.player, item);
-
-        this.createPrice = DeluxeAuctions.getInstance().createPrice;
-        this.createTime = DeluxeAuctions.getInstance().createTime;
-
         DeluxeAuctions.getInstance().databaseManager.saveItem(this.player, item);
     }
 
@@ -58,7 +55,7 @@ public class PlayerPreferences {
         if (event.isCancelled())
             return;
 
-        Bukkit.getScheduler().runTaskAsynchronously(DeluxeAuctions.getInstance(), () -> {
+        TaskUtils.runAsync(() -> {
             AtomicDouble money = new AtomicDouble();
             AtomicInteger item = new AtomicInteger();
 
@@ -96,7 +93,7 @@ public class PlayerPreferences {
         if (event.isCancelled())
             return;
 
-        Bukkit.getScheduler().runTaskAsynchronously(DeluxeAuctions.getInstance(), () -> {
+        TaskUtils.runAsync(() -> {
             AtomicDouble money = new AtomicDouble();
             AtomicInteger item = new AtomicInteger();
 

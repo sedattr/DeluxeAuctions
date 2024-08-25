@@ -1,5 +1,6 @@
 package me.sedattr.auctionsapi;
 
+import com.google.common.collect.ImmutableMultimap;
 import me.sedattr.auctionsapi.cache.CategoryCache;
 import me.sedattr.deluxeauctions.DeluxeAuctions;
 import me.sedattr.deluxeauctions.managers.Auction;
@@ -18,7 +19,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 public class AuctionHook {
     private static final double MAX_PRICE = 1000000000000.0;
@@ -82,26 +82,32 @@ public class AuctionHook {
     }
 
     public static double getPriceLimit(Player player, String type) {
+        double max = type.equals("price_limit") ? MAX_PRICE : MAX_BID;
         if (player.isOp())
-            return type.equals("price_limit") ? MAX_PRICE : MAX_BID;
+            return max;
 
         ConfigurationSection section = DeluxeAuctions.getInstance().configFile.getConfigurationSection("player_limits." + type);
         if (section == null)
-            return type.equals("price_limit") ? MAX_PRICE : MAX_BID;
+            return max;
 
-        int current = section.getInt("default");
-        ConfigurationSection permissions = section.getConfigurationSection("permissions");
-        if (permissions != null) {
-            Set<String> keys = permissions.getKeys(false);
-            if (!keys.isEmpty())
-                for (String key : keys) {
-                    if (!player.hasPermission(key))
-                        continue;
+        double current = section.getDouble("default");
+        List<String> permissions = section.getStringList("permissions");
+        if (permissions.isEmpty())
+            return current > 0 ? current : max;
 
-                    int amount = permissions.getInt(key);
-                    if (amount > current)
-                        current = amount;
-                }
+        for (String entry : permissions) {
+            String[] args = entry.split("[:]", 2);
+            if (args.length < 2)
+                continue;
+
+            String permission = args[0];
+            double amount = Integer.parseInt(args[1]);
+
+            if (!player.hasPermission(permission))
+                continue;
+
+            if (amount > current)
+                current = amount;
         }
 
         return current;
@@ -112,26 +118,32 @@ public class AuctionHook {
     }
 
     public static int getLimit(Player player, String type) {
+        int max = type.equals("duration_limit") ? MAX_DURATION : MAX_AUCTION;
         if (player.isOp())
-            return type.equals("duration_limit") ? MAX_DURATION : MAX_AUCTION;
+            return max;
 
         ConfigurationSection section = DeluxeAuctions.getInstance().configFile.getConfigurationSection("player_limits." + type);
         if (section == null)
-            return type.equals("duration_limit") ? MAX_DURATION : MAX_AUCTION;
+            return max;
 
         int current = section.getInt("default");
-        ConfigurationSection permissions = section.getConfigurationSection("permissions");
-        if (permissions != null) {
-            Set<String> keys = permissions.getKeys(false);
-            if (!keys.isEmpty())
-                for (String key : keys) {
-                    if (!player.hasPermission(key))
-                        continue;
+        List<String> permissions = section.getStringList("permissions");
+        if (permissions.isEmpty())
+            return current > 0 ? current : max;
 
-                    int amount = permissions.getInt(key);
-                    if (amount > current)
-                        current = amount;
-                }
+        for (String entry : permissions) {
+            String[] args = entry.split(":", 2);
+            if (args.length < 2)
+                continue;
+
+            String permission = args[0];
+            int amount = Integer.parseInt(args[1]);
+
+            if (!player.hasPermission(permission))
+                continue;
+
+            if (amount > current)
+                current = amount;
         }
 
         return current;
@@ -215,8 +227,17 @@ public class AuctionHook {
         meta.setLore(newLore);
 
         List<String> flags = DeluxeAuctions.getInstance().configFile.getStringList("settings.auction_flags");
-        if (!flags.isEmpty())
-            flags.forEach(a -> meta.addItemFlags(ItemFlag.valueOf(a)));
+        if (!flags.isEmpty()) {
+            if (flags.contains("ALL")) {
+                if (DeluxeAuctions.getInstance().version > 13)
+                    meta.setAttributeModifiers(ImmutableMultimap.of());
+
+                meta.addItemFlags(ItemFlag.values());
+            }
+            else
+                for (String flag : flags)
+                    meta.addItemFlags(ItemFlag.valueOf(flag));
+        }
 
         itemStack.setItemMeta(meta);
         return itemStack;

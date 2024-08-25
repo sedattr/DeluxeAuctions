@@ -14,6 +14,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.*;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -23,18 +24,50 @@ import java.util.*;
 public class AuctionCommand implements CommandExecutor, TabCompleter {
     private final HashMap<Player, Long> commandCooldown = new HashMap<>();
 
+    private final HashMap<String, List<String>> args = new HashMap<>();
+    public AuctionCommand() {
+        ConfigurationSection section = DeluxeAuctions.getInstance().configFile.getConfigurationSection("commands");
+        if (section == null) {
+            this.args.put("info", Collections.singletonList("info"));
+            this.args.put("menu", Arrays.asList("menu", "open"));
+            this.args.put("sell", Collections.singletonList("sell"));
+            this.args.put("auctions", Collections.singletonList("auctions"));
+            this.args.put("view", Collections.singletonList("view"));
+            this.args.put("manage", Collections.singletonList("manage"));
+            this.args.put("bids", Collections.singletonList("bids"));
+        } else {
+            this.args.put("info", section.getStringList("info"));
+            this.args.put("menu", section.getStringList("menu"));
+            this.args.put("sell", section.getStringList("sell"));
+            this.args.put("auctions", section.getStringList("auctions"));
+            this.args.put("view", section.getStringList("view"));
+            this.args.put("manage", section.getStringList("manage"));
+            this.args.put("bids", section.getStringList("bids"));
+        }
+
+        Set<String> keys = section.getKeys(false);
+        for (String key : keys) {
+            if (key.equals("reload") || key.equals("cancel") || key.equals("lock") || key.equals("convert"))
+                continue;
+
+            this.args.put(key, section.getStringList(key));
+        }
+    }
+
     public List<String> onTabComplete(CommandSender commandSender, Command command, String s, String[] args) {
         if (!Utils.hasPermission(commandSender, "player_commands", "command"))
             return Collections.emptyList();
 
-        if (args.length > 0 && args[0].equalsIgnoreCase("view")) {
+        if (args.length > 0 && this.args.get("view").contains(args[0].toLowerCase())) {
             List<String> set = new ArrayList<>();
             Bukkit.getOnlinePlayers().forEach(a -> set.add(a.getName()));
 
             return set;
         }
 
-        ArrayList<String> complete = new ArrayList<>(Arrays.asList("info", "menu", "sell", "auctions", "view", "manage", "bids"));
+        ArrayList<String> complete = new ArrayList<>();
+        this.args.values().forEach(complete::addAll);
+
         complete.removeIf(type -> !Utils.hasPermission(commandSender, "player_commands", type));
 
         if (args.length == 1)
@@ -88,219 +121,231 @@ public class AuctionCommand implements CommandExecutor, TabCompleter {
                 return false;
             }
 
-            switch (args[0].toLowerCase()) {
-                case "info":
-                    List<String> lines = new ArrayList<>(
-                            Arrays.asList("&8[&6DeluxeAuctions&8] &6Plugin Information",
-                                    "&8- &fDeluxeAuctions &eis made by &fSedatTR&e.",
-                                    "&8- &eDiscord Support Server: &fdiscord.gg/nchk86TKMT",
-                                    "&8- &eCurrent Plugin Version: &fv" + DeluxeAuctions.getInstance().getDescription().getVersion()));
+            String lowerCaseArg = args[0].toLowerCase();
 
-                    for (String line : lines)
-                        player.sendMessage(Utils.colorize(line));
-                    return true;
+            if (lowerCaseArg.equals("info") || this.args.get("info").contains(lowerCaseArg)) {
+                List<String> lines = new ArrayList<>(
+                        Arrays.asList("&8[&6DeluxeAuctions&8] &6Plugin Information",
+                                "&8- &fDeluxeAuctions &eis made by &fSedatTR&e.",
+                                "&8- &eDiscord Support Server: &fdiscord.gg/nchk86TKMT",
+                                "&8- &eCurrent Plugin Version: &fv" + DeluxeAuctions.getInstance().getDescription().getVersion()));
 
-                case "open":
-                case "menu":
-                    if (!Utils.hasPermission(commandSender, "player_commands", "menu")) {
-                        Utils.sendMessage(commandSender, "no_permission");
-                        return false;
+                for (String line : lines)
+                    player.sendMessage(Utils.colorize(line));
+
+                return true;
+            }
+
+            if (this.args.get("bids").contains(lowerCaseArg)) {
+                if (!Utils.hasPermission(commandSender, "player_commands", "bids")) {
+                    Utils.sendMessage(commandSender, "no_permission");
+                    return false;
+                }
+
+                new BidsMenu(player).open(1);
+                return true;
+            }
+
+            if (this.args.get("menu").contains(lowerCaseArg)) {
+                if (!Utils.hasPermission(commandSender, "player_commands", "menu")) {
+                    Utils.sendMessage(commandSender, "no_permission");
+                    return false;
+                }
+
+                new MainMenu(player).open();
+                return true;
+            }
+
+            if (this.args.get("manage").contains(lowerCaseArg)) {
+                if (!Utils.hasPermission(commandSender, "player_commands", "manage")) {
+                    Utils.sendMessage(commandSender, "no_permission");
+                    return false;
+                }
+
+                new ManageMenu(player).open(1);
+                return true;
+            }
+
+            if (this.args.get("auctions").contains(lowerCaseArg)) {
+                if (!Utils.hasPermission(commandSender, "player_commands", "auctions")) {
+                    Utils.sendMessage(commandSender, "no_permission");
+                    return false;
+                }
+
+                String category;
+                if (args.length > 1 && CategoryCache.getCategories().containsKey(args[1]))
+                    category = args[1];
+                else
+                    category = PlayerCache.getPlayers().containsKey(player.getUniqueId()) ? PlayerCache.getPreferences(player.getUniqueId()).getCategory().getName() : DeluxeAuctions.getInstance().category;
+
+                new AuctionsMenu(player).open(category, 1);
+                return true;
+            }
+
+            if (this.args.get("view").contains(lowerCaseArg)) {
+                if (!Utils.hasPermission(commandSender, "player_commands", "view")) {
+                    Utils.sendMessage(commandSender, "no_permission");
+                    return false;
+                }
+
+                if (args.length < 2) {
+                    Utils.sendMessage(player, "view_usage", placeholderUtil);
+                    return false;
+                }
+
+                try {
+                    UUID uuid = UUID.fromString(args[1]);
+                    Auction auction = AuctionCache.getAuction(uuid);
+                    if (auction != null) {
+                        if (auction.getAuctionType() == AuctionType.BIN)
+                            new BinViewMenu(player, auction).open("command");
+                        else
+                            new NormalViewMenu(player, auction).open("command");
+                        return true;
                     }
 
-                    new MainMenu(player).open();
-                    return true;
-                case "bids":
-                    if (!Utils.hasPermission(commandSender, "player_commands", "bids")) {
-                        Utils.sendMessage(commandSender, "no_permission");
-                        return false;
-                    }
-
-                    new BidsMenu(player).open(1);
-                    return true;
-                case "manage":
-                    if (!Utils.hasPermission(commandSender, "player_commands", "manage")) {
-                        Utils.sendMessage(commandSender, "no_permission");
-                        return false;
-                    }
-
-                    new ManageMenu(player).open(1);
-                    return true;
-                case "auctions":
-                    if (!Utils.hasPermission(commandSender, "player_commands", "auctions")) {
-                        Utils.sendMessage(commandSender, "no_permission");
-                        return false;
-                    }
-
-                    String category;
-                    if (args.length > 1 && CategoryCache.getCategories().containsKey(args[1]))
-                        category = args[1];
-                    else
-                        category = PlayerCache.getPlayers().containsKey(player.getUniqueId()) ? PlayerCache.getPreferences(player.getUniqueId()).getCategory().getName() : DeluxeAuctions.getInstance().category;
-
-                    new AuctionsMenu(player).open(category, 1);
-                    return true;
-                case "view":
-                    if (!Utils.hasPermission(commandSender, "player_commands", "view")) {
-                        Utils.sendMessage(commandSender, "no_permission");
-                        return false;
-                    }
-
-                    if (args.length < 2) {
+                    Player target = Bukkit.getPlayer(uuid);
+                    if (target == null) {
                         Utils.sendMessage(player, "view_usage", placeholderUtil);
                         return false;
                     }
 
+                    new ViewAuctionsMenu(player, target).open(1);
+                    return true;
+                } catch(Exception e) {
                     try {
-                        UUID uuid = UUID.fromString(args[1]);
-                        Auction auction = AuctionCache.getAuction(uuid);
-                        if (auction != null) {
-                            if (auction.getAuctionType() == AuctionType.BIN)
-                                new BinViewMenu(player, auction).open("command");
-                            else
-                                new NormalViewMenu(player, auction).open("command");
-                            return true;
-                        }
-
-                        Player target = Bukkit.getPlayer(uuid);
-                        if (target == null) {
-                            Utils.sendMessage(player, "view_usage", placeholderUtil);
-                            return false;
-                        }
+                        OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
 
                         new ViewAuctionsMenu(player, target).open(1);
-                        return true;
-                    } catch(Exception e) {
-                        try {
-                            OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
-
-                            new ViewAuctionsMenu(player, target).open(1);
-                        } catch (Exception ee) {
-                            Utils.sendMessage(player, "view_usage", placeholderUtil);
-                            return false;
-                        }
+                    } catch (Exception ee) {
+                        Utils.sendMessage(player, "view_usage", placeholderUtil);
+                        return false;
                     }
+                }
 
+                return false;
+            }
+
+            if (this.args.get("sell").contains(lowerCaseArg)) {
+                if (!Utils.hasPermission(player, "player_commands", "sell")) {
+                    Utils.sendMessage(player, "no_permission");
                     return false;
-                case "sell":
-                    if (!Utils.hasPermission(player, "player_commands", "sell")) {
-                        Utils.sendMessage(player, "no_permission");
-                        return false;
-                    }
+                }
 
-                    if (args.length < 2) {
-                        Utils.sendMessage(player, "sell_usage", placeholderUtil);
-                        return false;
-                    }
+                if (args.length < 2) {
+                    Utils.sendMessage(player, "sell_usage", placeholderUtil);
+                    return false;
+                }
 
-                    // Check if item is wrong
-                    ItemStack item = DeluxeAuctions.getInstance().version < 9 ? player.getItemInHand() : player.getInventory().getItemInMainHand();
-                    if (item == null || item.getType() == Material.AIR) {
-                        Utils.sendMessage(player, "wrong_item", placeholderUtil);
-                        return false;
-                    }
+                // Check if item is wrong
+                ItemStack item = DeluxeAuctions.getInstance().version < 9 ? player.getItemInHand() : player.getInventory().getItemInMainHand();
+                if (item == null || item.getType() == Material.AIR) {
+                    Utils.sendMessage(player, "wrong_item", placeholderUtil);
+                    return false;
+                }
 
-                    // Check if item is sellable
-                    String sellable = AuctionHook.isSellable(player, item);
-                    if (!sellable.isEmpty()) {
-                        Utils.sendMessage(player, sellable);
-                        return false;
-                    }
+                // Check if item is sellable
+                String sellable = AuctionHook.isSellable(player, item);
+                if (!sellable.isEmpty()) {
+                    Utils.sendMessage(player, sellable);
+                    return false;
+                }
 
-                    // Price Check
-                    double price;
-                    double reversedPrice = DeluxeAuctions.getInstance().numberFormat.reverseFormat(args[0]);
-                    if (reversedPrice > 0)
-                        price = reversedPrice;
-                    else {
-                        try {
-                            price = Double.parseDouble(args[1]);
-                        } catch (Exception e) {
-                            Utils.sendMessage(player, "wrong_price", placeholderUtil);
-                            return false;
-                        }
-                    }
-
-                    if (price <= 0) {
+                // Price Check
+                double price;
+                double reversedPrice = DeluxeAuctions.getInstance().numberFormat.reverseFormat(args[0]);
+                if (reversedPrice > 0)
+                    price = reversedPrice;
+                else {
+                    try {
+                        price = Double.parseDouble(args[1]);
+                    } catch (Exception e) {
                         Utils.sendMessage(player, "wrong_price", placeholderUtil);
                         return false;
                     }
+                }
 
-                    // Price Limit Check
-                    double priceLimit = AuctionHook.getPriceLimit(player, "price_limit");
-                    if (price > priceLimit) {
-                        Utils.sendMessage(player, "reached_price_limit", new PlaceholderUtil()
-                                .addPlaceholder("%price_limit%", DeluxeAuctions.getInstance().numberFormat.format(priceLimit)));
-                        return false;
-                    }
+                if (price <= 0) {
+                    Utils.sendMessage(player, "wrong_price", placeholderUtil);
+                    return false;
+                }
 
-                    // Time Check
-                    int time = DeluxeAuctions.getInstance().createTime;
-                    if (args.length > 2) {
-                        StringBuilder times = new StringBuilder();
-                        for (int i = 2; i < args.length; i++)
-                            times.append(args[i]).append(" ");
+                // Price Limit Check
+                double priceLimit = AuctionHook.getPriceLimit(player, "price_limit");
+                if (price > priceLimit) {
+                    Utils.sendMessage(player, "reached_price_limit", new PlaceholderUtil()
+                            .addPlaceholder("%price_limit%", DeluxeAuctions.getInstance().numberFormat.format(priceLimit)));
+                    return false;
+                }
 
-                        try {
-                            time = DeluxeAuctions.getInstance().timeFormat.convertTime(times.toString());
-                        } catch (Exception e) {
-                            Utils.sendMessage(player, "wrong_duration", placeholderUtil);
-                            return false;
-                        }
-                    }
+                // Time Check
+                int time = DeluxeAuctions.getInstance().createTime;
+                if (args.length > 2) {
+                    StringBuilder times = new StringBuilder();
+                    for (int i = 2; i < args.length; i++)
+                        times.append(args[i]).append(" ");
 
-                    if (time <= 0) {
+                    try {
+                        time = DeluxeAuctions.getInstance().timeFormat.convertTime(times.toString());
+                    } catch (Exception e) {
                         Utils.sendMessage(player, "wrong_duration", placeholderUtil);
                         return false;
                     }
+                }
 
-                    // Time Limit Check
-                    int limit = AuctionHook.getLimit(player, "duration_limit");
-                    if (time > limit) {
-                        Utils.sendMessage(player, "reached_duration_limit", new PlaceholderUtil()
-                                .addPlaceholder("%duration_limit%", String.valueOf(limit)));
-                        return false;
-                    }
+                if (time <= 0) {
+                    Utils.sendMessage(player, "wrong_duration", placeholderUtil);
+                    return false;
+                }
 
-                    // Auction Type Check
-                    String type = args[args.length - 1];
-                    if (!type.equalsIgnoreCase("bin") && !type.equalsIgnoreCase("normal"))
-                        type = DeluxeAuctions.getInstance().configFile.getString("settings.default_type", "bin");
+                // Time Limit Check
+                int limit = AuctionHook.getLimit(player, "duration_limit");
+                if (time > limit) {
+                    Utils.sendMessage(player, "reached_duration_limit", new PlaceholderUtil()
+                            .addPlaceholder("%duration_limit%", String.valueOf(limit)));
+                    return false;
+                }
 
-                    // 2. Type Check
-                    if (!type.equalsIgnoreCase("bin") && !type.equalsIgnoreCase("normal")) {
-                        Utils.sendMessage(player, "wrong_type", placeholderUtil);
-                        return false;
-                    }
+                // Auction Type Check
+                String type = args[args.length - 1];
+                if (!type.equalsIgnoreCase("bin") && !type.equalsIgnoreCase("normal"))
+                    type = DeluxeAuctions.getInstance().configFile.getString("settings.default_type", "bin");
 
-                    // Check if auction type is disabled
-                    if (AuctionHook.isAuctionTypeDisabled(type)) {
-                        Utils.sendMessage(player, "disabled_auction_type", new PlaceholderUtil()
-                                .addPlaceholder("%auction_type%", args[1].toUpperCase()));
-                        return false;
-                    }
+                // 2. Type Check
+                if (!type.equalsIgnoreCase("bin") && !type.equalsIgnoreCase("normal")) {
+                    Utils.sendMessage(player, "wrong_type", placeholderUtil);
+                    return false;
+                }
 
-                    // Preview Item Event
-                    ItemPreviewEvent event = new ItemPreviewEvent(player, item);
-                    Bukkit.getPluginManager().callEvent(event);
-                    if (event.isCancelled())
-                        return false;
+                // Check if auction type is disabled
+                if (AuctionHook.isAuctionTypeDisabled(type)) {
+                    Utils.sendMessage(player, "disabled_auction_type", new PlaceholderUtil()
+                            .addPlaceholder("%auction_type%", args[1].toUpperCase()));
+                    return false;
+                }
 
-                    item = item.clone();
-                    player.getInventory().removeItem(item);
+                // Preview Item Event
+                ItemPreviewEvent event = new ItemPreviewEvent(player, item);
+                Bukkit.getPluginManager().callEvent(event);
+                if (event.isCancelled())
+                    return false;
 
-                    ItemStack itemStack = PlayerCache.getItem(player.getUniqueId());
-                    if (itemStack != null)
-                        player.getInventory().addItem(itemStack);
+                item = item.clone();
+                player.getInventory().removeItem(item);
 
-                    PlayerCache.setItem(player.getUniqueId(), item);
+                ItemStack itemStack = PlayerCache.getItem(player.getUniqueId());
+                if (itemStack != null)
+                    player.getInventory().addItem(itemStack);
 
-                    PlayerPreferences playerAuction = PlayerCache.getPreferences(player.getUniqueId());
-                    playerAuction.setCreateType(AuctionType.valueOf(type.toUpperCase()));
-                    playerAuction.setCreatePrice(price);
-                    playerAuction.setCreateTime(time);
+                PlayerCache.setItem(player.getUniqueId(), item);
 
-                    new CreateMenu(player).open("command");
-                    return true;
+                PlayerPreferences playerAuction = PlayerCache.getPreferences(player.getUniqueId());
+                playerAuction.setCreateType(AuctionType.valueOf(type.toUpperCase()));
+                playerAuction.setCreatePrice(price);
+                playerAuction.setCreateTime(time);
+
+                new CreateMenu(player).open("command");
+                return true;
             }
         }
 

@@ -1,5 +1,6 @@
 package me.sedattr.deluxeauctions.others;
 
+import com.google.common.collect.ImmutableMultimap;
 import me.sedattr.deluxeauctions.DeluxeAuctions;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -254,7 +255,7 @@ public class Utils {
     }
 
     public static void broadcastMessage(Player player, String type, PlaceholderUtil placeholderUtil) {
-        Bukkit.getScheduler().runTaskAsynchronously(DeluxeAuctions.getInstance(), () -> {
+        TaskUtils.runAsync(() -> {
             ConfigurationSection section = DeluxeAuctions.getInstance().configFile.getConfigurationSection("broadcast_messages");
             if (section == null || !section.getBoolean("enabled")) {
                 if (!type.endsWith("broadcast"))
@@ -466,12 +467,17 @@ public class Utils {
         }
 
         List<String> flags = section.getStringList("flags");
-        if (!flags.isEmpty())
-            for (String flag : flags) {
-                ItemFlag itemFlag = ItemFlag.valueOf(flag);
+        if (!flags.isEmpty()) {
+            if (flags.contains("ALL")) {
+                if (DeluxeAuctions.getInstance().version > 13)
+                    meta.setAttributeModifiers(ImmutableMultimap.of());
 
-                meta.addItemFlags(itemFlag);
+                meta.addItemFlags(ItemFlag.values());
             }
+            else
+                for (String flag : flags)
+                    meta.addItemFlags(ItemFlag.valueOf(flag));
+        }
 
         if (DeluxeAuctions.getInstance().version > 13 && section.getInt("model", 0) != 0)
             meta.setCustomModelData(section.getInt("model"));

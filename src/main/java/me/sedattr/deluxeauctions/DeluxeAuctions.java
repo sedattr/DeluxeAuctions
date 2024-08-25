@@ -4,6 +4,7 @@ import lombok.Getter;
 import me.sedattr.deluxeauctions.addons.*;
 import me.sedattr.deluxeauctions.addons.multiserver.MultiServerManager;
 import me.sedattr.deluxeauctions.addons.mute.AdvancedBan;
+import me.sedattr.deluxeauctions.addons.mute.BanManager;
 import me.sedattr.deluxeauctions.addons.mute.LiteBans;
 import me.sedattr.deluxeauctions.addons.mute.MuteManager;
 import me.sedattr.auctionsapi.cache.AuctionCache;
@@ -17,14 +18,12 @@ import me.sedattr.deluxeauctions.handlers.DataHandler;
 import me.sedattr.deluxeauctions.handlers.MenuHandler;
 import me.sedattr.deluxeauctions.inventoryapi.HInventory;
 import me.sedattr.deluxeauctions.inventoryapi.inventory.InventoryAPI;
-import me.sedattr.deluxeauctions.listeners.InventoryClickListener;
 import me.sedattr.deluxeauctions.listeners.PlayerListeners;
 import me.sedattr.deluxeauctions.managers.AuctionType;
 import me.sedattr.deluxeauctions.managers.CustomItem;
 import me.sedattr.deluxeauctions.managers.SortType;
 import me.sedattr.deluxeauctions.menus.InputMenu;
 import me.sedattr.deluxeauctions.others.*;
-import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.ConfigurationSection;
@@ -62,7 +61,6 @@ public class DeluxeAuctions extends JavaPlugin {
     public InputMenu inputMenu;
 
     public EcoItemsAddon ecoItemsAddon;
-    public Economy economy;
     public MultiServerManager multiServerManager;
     public HeadDatabase headDatabase;
     public DiscordWebhook discordWebhook;
@@ -84,7 +82,6 @@ public class DeluxeAuctions extends JavaPlugin {
     public int createTime;
 
     public void registerCommandsListeners() {
-        Bukkit.getPluginManager().registerEvents(new InventoryClickListener(), DeluxeAuctions.getInstance());
         Bukkit.getPluginManager().registerEvents(new PlayerListeners(), DeluxeAuctions.getInstance());
 
         PluginCommand auction = getCommand("auction");
@@ -134,7 +131,7 @@ public class DeluxeAuctions extends JavaPlugin {
         InventoryAPI.setup(DeluxeAuctions.this);
 
         if (this.configFile.getBoolean("settings.anti_lag.server.enabled"))
-            Bukkit.getScheduler().scheduleSyncRepeatingTask(DeluxeAuctions.getInstance(), new ServerTps(), 100L, 1L);
+            TaskUtils.runTimerAsync(new ServerTps(), 100L, 1L);
 
         this.metrics = new Metrics(this, 22020);
         this.metrics.addCustomChart(new Metrics.SingleLineChart("total_auctions", () -> AuctionCache.getAuctions().size()));
@@ -177,6 +174,11 @@ public class DeluxeAuctions extends JavaPlugin {
         if (addons.getBoolean("placeholder_api") && Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
             new Placeholders().register();
             Logger.sendConsoleMessage("Enabled &fPlaceholderAPI %level_color%support!", Logger.LogLevel.INFO);
+        }
+
+        if (addons.getBoolean("ban_manager") && Bukkit.getPluginManager().isPluginEnabled("BanManager")) {
+            this.muteManager = new BanManager();
+            Logger.sendConsoleMessage("Enabled &fBanManager %level_color%support!", Logger.LogLevel.INFO);
         }
 
         if (addons.getBoolean("advanced_ban") && Bukkit.getPluginManager().isPluginEnabled("AdvancedBan")) {

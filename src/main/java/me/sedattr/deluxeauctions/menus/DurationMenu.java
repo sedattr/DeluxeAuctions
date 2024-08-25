@@ -69,7 +69,7 @@ public class DurationMenu implements MenuManager {
                 if (meta == null)
                     return;
 
-                meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+                meta.addItemFlags(ItemFlag.values());
                 itemStack.setItemMeta(meta);
 
                 this.gui.setItem(slot, ClickableItem.empty(itemStack));

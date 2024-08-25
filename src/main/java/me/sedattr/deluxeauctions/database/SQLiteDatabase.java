@@ -5,6 +5,7 @@ import me.sedattr.auctionsapi.cache.AuctionCache;
 import me.sedattr.auctionsapi.cache.PlayerCache;
 import me.sedattr.deluxeauctions.managers.*;
 import me.sedattr.deluxeauctions.others.Logger;
+import me.sedattr.deluxeauctions.others.TaskUtils;
 import me.sedattr.deluxeauctions.others.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
@@ -447,7 +448,7 @@ public class SQLiteDatabase implements DatabaseManager {
         if (DeluxeAuctions.getInstance().disabled)
             task.run();
         else
-            Bukkit.getScheduler().runTaskAsynchronously(DeluxeAuctions.getInstance(), task);
+            TaskUtils.runAsync(task);
     }
 
     private void handleSQLException(SQLException x, Runnable retryTask) {
@@ -458,9 +459,9 @@ public class SQLiteDatabase implements DatabaseManager {
 
         if (x.getMessage().startsWith("[SQLITE_BUSY]"))
             try {
-                Bukkit.getScheduler().runTaskLaterAsynchronously(DeluxeAuctions.getInstance(), retryTask, 10);
+                TaskUtils.runLaterAsync(retryTask, 10);
             } catch (Exception e) {
-                Bukkit.getScheduler().runTaskLater(DeluxeAuctions.getInstance(), retryTask, 10);
+                TaskUtils.runLater(retryTask, 10);
                 e.printStackTrace();
             }
         else

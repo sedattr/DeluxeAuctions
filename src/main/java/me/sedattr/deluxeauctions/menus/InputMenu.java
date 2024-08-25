@@ -3,6 +3,7 @@ package me.sedattr.deluxeauctions.menus;
 import de.rapha149.signgui.SignGUI;
 import me.sedattr.deluxeauctions.DeluxeAuctions;
 import me.sedattr.deluxeauctions.others.ChatInput;
+import me.sedattr.deluxeauctions.others.TaskUtils;
 import me.sedattr.deluxeauctions.others.Utils;
 import net.wesjd.anvilgui.AnvilGUI;
 import org.bukkit.entity.Player;
@@ -38,12 +39,7 @@ public class InputMenu {
                 SignGUI gui = SignGUI.builder()
                         .setLines(lines.get(0), lines.get(1), lines.get(2), lines.get(3))
                         .setHandler((p, entry) -> {
-                            new BukkitRunnable() {
-                                @Override
-                                public void run() {
-                                    menuManager.inputResult(entry.getLineWithoutColor(0));
-                                }
-                            }.runTask(DeluxeAuctions.getInstance());
+                            TaskUtils.run(() -> menuManager.inputResult(entry.getLineWithoutColor(0)));
 
                             return Collections.emptyList();
                         }).build();

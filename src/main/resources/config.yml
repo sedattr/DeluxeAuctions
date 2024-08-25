@@ -29,9 +29,11 @@ settings:
     category: "miscellaneous"
   open_menu_directly: false # Auction menu will be opened when the /ah command used with this setting.
   add_time_when_bid: 10 # SECONDS. When new bid is created, time is automatically added to the auction.
+  purchase_cooldown: 60 # SECONDS. Once the auction is created, people will be able to purchase it after this period.
+  bid_cooldown: 60 # SECONDS. Once the auction is created, people will be able to bid it after this period.
   default_type: "BIN"
   default_price: 1000 # Default auction creation price.
-  default_duration: 21600 # SECONDS.3 Default auction creation duration.
+  default_duration: 21600 # Default auction creation duration.
   default_category: "weapons" # Default category that is selected when opening /ah menu
   default_sort_type: "HIGHEST_PRICE" # Default sort that is selected when opening /ah menu
   default_filter_type: "ALL" # Default filter that is selected when opening /ah menu
@@ -118,26 +120,26 @@ normal_auction:
 
 # AUCTION LIMITS
 player_limits:
-  bid_limit:
-    default: 9
-    permissions:
-      deluxeauctions.vip: 18
-      deluxeauctions.mvip: 27
   auction_limit:
     default: 9
     permissions:
-      deluxeauctions.vip: 18
-      deluxeauctions.mvip: 27
-  price_limit:
-    default: 250000000
-    permissions:
-      deluxeauctions.vip: 500000000
-      deluxeauctions.mvip: 100000000
+      - deluxeauctions.vip:18
+      - deluxeauctions.mvip:27
   duration_limit:
     default: 604800
     permissions:
-      deluxeauctions.vip: 907200
-      deluxeauctions.mvip: 1209600
+      - deluxeauctions.vip:907200
+      - deluxeauctions.mvip:1209600
+  price_limit:
+    default: 250000000
+    permissions:
+      - deluxeauctions.vip:500000000
+      - deluxeauctions.mvip:100000000
+  bid_limit:
+    default: 9
+    permissions:
+      - deluxeauctions.vip:500000000
+      - deluxeauctions.mvip:100000000
 
 # PLUGIN ECONOMY
 economy:
@@ -170,6 +172,7 @@ addons:
   head_database: false # Set to true if some of your items in the auctions use the HeadDatabase plugin
   placeholder_api: false # Set to true if you want to integrate/use placeholders for the Auctions
   eco_items: false # Set to true if you want to use EcoItems items in the auction items
+  ban_manager: false # Set to true if you want to check for player mute while broadcasting auctions
   lite_bans: false # Set to true if you want to check for player mute while broadcasting auctions
   advanced_ban: false # Set to true if you want to check for player mute while broadcasting auctions
   bungeecord: false # Set to true if you want to use bungeecord. You need DeluxeAuctionsBungee plugin.
@@ -274,6 +277,32 @@ permissions:
     menu: "auctionadmin.menu"
     reload: "auctionadmin.reload"
 
+# PLUGIN COMMAND ARGS
+commands:
+  convert:
+    - convert
+  cancel:
+    - cancel
+  lock:
+    - lock
+  reload:
+    - reload
+  info:
+    - info
+  menu:
+    - open
+    - menu
+  sell:
+    - sell
+  auctions:
+    - auctions
+  view:
+    - view
+  manage:
+    - manage
+  bids:
+    - bids
+
 # MENU SOUNDS
 sounds:
   inventory_item_click: # When player clicks an item in his own inventory to select for the auctions, the plugin will play this sound.
@@ -327,6 +356,11 @@ sounds:
     volume: 1
     pitch: 0.6
   sold_auction:
+    enabled: false
+    name: "ORB_PICKUP"
+    volume: 1
+    pitch: 0.6
+  not_enough_money:
     enabled: false
     name: "ORB_PICKUP"
     volume: 1

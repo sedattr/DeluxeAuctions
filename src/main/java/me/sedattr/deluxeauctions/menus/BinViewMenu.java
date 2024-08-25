@@ -10,6 +10,7 @@ import me.sedattr.deluxeauctions.managers.Auction;
 import me.sedattr.deluxeauctions.managers.PlayerPreferences;
 import me.sedattr.deluxeauctions.managers.PlayerBid;
 import me.sedattr.deluxeauctions.others.PlaceholderUtil;
+import me.sedattr.deluxeauctions.others.TaskUtils;
 import me.sedattr.deluxeauctions.others.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -25,7 +26,7 @@ public class BinViewMenu {
     private final Auction auction;
     private final ConfigurationSection section;
     private HInventory gui;
-    private BukkitTask itemUpdater;
+    private boolean itemUpdater = false;
     private String back;
 
     public BinViewMenu(Player player, Auction auction) {
@@ -178,7 +179,10 @@ public class BinViewMenu {
         if (DeluxeAuctions.getInstance().economyManager.getBalance(this.player) >= this.auction.getAuctionPrice())
             this.gui.setItem(itemSection.getInt("slot")-1, ClickableItem.of(itemStack, (event) -> new ConfirmMenu(this.player, "confirm_purchase").setAuction(this.auction).open()));
         else
-            gui.setItem(itemSection.getInt("slot")-1, ClickableItem.of(itemStack, (event) -> Utils.sendMessage(this.player, "not_enough_money", new PlaceholderUtil().addPlaceholder("%required_money%", DeluxeAuctions.getInstance().numberFormat.format(this.auction.getAuctionPrice()-DeluxeAuctions.getInstance().economyManager.getBalance(this.player))))));
+            gui.setItem(itemSection.getInt("slot")-1, ClickableItem.of(itemStack, (event) -> {
+                Utils.playSound(this.player, "not_enough_money");
+                Utils.sendMessage(this.player, "not_enough_money", new PlaceholderUtil().addPlaceholder("%required_money%", DeluxeAuctions.getInstance().numberFormat.format(this.auction.getAuctionPrice()-DeluxeAuctions.getInstance().economyManager.getBalance(this.player))));
+            }));
     }
 
     private void loadExampleItem() {
@@ -196,17 +200,11 @@ public class BinViewMenu {
     }
 
     private void updateExampleItem() {
-        if (this.itemUpdater != null)
-            this.itemUpdater.cancel();
+        if (this.itemUpdater)
+            return;
 
-        this.itemUpdater = Bukkit.getScheduler().runTaskTimerAsynchronously(DeluxeAuctions.getInstance(), () -> {
-            HInventory inventory = InventoryAPI.getInventory(this.player);
-            if (inventory == null || !inventory.getId().equalsIgnoreCase("view")) {
-                this.itemUpdater.cancel();
-                return;
-            }
-
-            loadExampleItem();
-        }, 20, 20);
+        this.itemUpdater = true;
+        Runnable runnable = this::loadExampleItem;
+        TaskUtils.runTimerAsync(this.player, "view", runnable, 20, 20);
     }
 }

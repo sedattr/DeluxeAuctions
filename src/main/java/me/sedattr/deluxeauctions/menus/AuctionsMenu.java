@@ -10,6 +10,7 @@ import me.sedattr.deluxeauctions.inventoryapi.item.ClickableItem;
 import me.sedattr.deluxeauctions.DeluxeAuctions;
 import me.sedattr.deluxeauctions.managers.*;
 import me.sedattr.deluxeauctions.others.PlaceholderUtil;
+import me.sedattr.deluxeauctions.others.TaskUtils;
 import me.sedattr.deluxeauctions.others.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -17,7 +18,6 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.*;
 
@@ -33,7 +33,7 @@ public class AuctionsMenu implements MenuManager {
 
     private int totalPage;
 
-    private BukkitTask itemUpdater;
+    private boolean itemUpdater = false;
     private List<Integer> slots;
 
     public AuctionsMenu(Player player) {
@@ -54,7 +54,7 @@ public class AuctionsMenu implements MenuManager {
 
         this.playerAuction.setPage(page);
 
-        Bukkit.getScheduler().runTaskAsynchronously(DeluxeAuctions.getInstance(), () -> {
+        TaskUtils.runAsync(() -> {
             updateTotalPage();
 
             this.currentAuctions = AuctionCache.getOnGoingAuctions(this.filteredAuctions, this.playerAuction.getSortType(), this.playerAuction.getPage(), this.slots.size());
@@ -68,7 +68,7 @@ public class AuctionsMenu implements MenuManager {
 
             loadInventoryItems();
 
-            Bukkit.getScheduler().runTask(DeluxeAuctions.getInstance(), () -> {
+            TaskUtils.run(() -> {
                 this.gui.open(this.player);
                 updateItems();
             });
@@ -337,18 +337,12 @@ public class AuctionsMenu implements MenuManager {
     }
 
     private void updateItems() {
-        if (this.itemUpdater != null)
+        if (this.itemUpdater)
             return;
 
-        this.itemUpdater = Bukkit.getScheduler().runTaskTimerAsynchronously(DeluxeAuctions.getInstance(), () -> {
-            HInventory inventory = InventoryAPI.getInventory(this.player);
-            if (inventory == null || (!inventory.getId().equalsIgnoreCase("auctions") && !inventory.getId().equalsIgnoreCase("search"))) {
-                this.itemUpdater.cancel();
-                return;
-            }
-
-            loadItems();
-        }, 0, 20);
+        this.itemUpdater = true;
+        Runnable runnable = this::loadItems;
+        TaskUtils.runTimerAsync(this.player, "auctions", runnable, 20, 20);
     }
 
     private void loadItems() {

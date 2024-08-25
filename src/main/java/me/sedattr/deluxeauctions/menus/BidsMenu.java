@@ -9,13 +9,13 @@ import me.sedattr.deluxeauctions.inventoryapi.item.ClickableItem;
 import me.sedattr.deluxeauctions.DeluxeAuctions;
 import me.sedattr.deluxeauctions.managers.*;
 import me.sedattr.deluxeauctions.others.PlaceholderUtil;
+import me.sedattr.deluxeauctions.others.TaskUtils;
 import me.sedattr.deluxeauctions.others.Utils;
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitTask;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,7 +23,7 @@ public class BidsMenu {
     private final Player player;
     private final ConfigurationSection section;
     private HInventory gui;
-    private BukkitTask itemUpdater;
+    private boolean itemUpdater = false;
     private final PlayerPreferences playerAuction;
     private final List<Auction> bids;
     private final int totalPage;
@@ -174,17 +174,11 @@ public class BidsMenu {
     }
 
     private void updateItems() {
-        if (this.itemUpdater != null)
-            this.itemUpdater.cancel();
+        if (this.itemUpdater)
+            return;
 
-        this.itemUpdater = Bukkit.getScheduler().runTaskTimerAsynchronously(DeluxeAuctions.getInstance(), () -> {
-            HInventory inventory = InventoryAPI.getInventory(this.player);
-            if (inventory == null || !inventory.getId().equalsIgnoreCase("bids")) {
-                this.itemUpdater.cancel();
-                return;
-            }
-
-            loadBids();
-        }, 0, 20);
+        this.itemUpdater = true;
+        Runnable runnable = this::loadBids;
+        TaskUtils.runTimerAsync(this.player, "bids", runnable, 20, 20);
     }
 }
