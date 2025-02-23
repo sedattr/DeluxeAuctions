@@ -2,11 +2,13 @@ package me.sedattr.deluxeauctions.inventoryapi;
 
 import lombok.Getter;
 import java.util.HashMap;
+import java.util.List;
 
 import me.sedattr.deluxeauctions.inventoryapi.inventory.InventoryVariables;
 import me.sedattr.deluxeauctions.inventoryapi.item.ClickableItem;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
@@ -51,10 +53,26 @@ public class HInventory implements InventoryHolder {
         return this.bukkitInventory;
     }
 
-    public void setItem(int slot, ClickableItem clickableItem) {
-        if (slot < 0 || slot >= this.bukkitInventory.getSize())
+    public void setItem(ConfigurationSection section, ClickableItem clickableItem) {
+        if (section == null)
             return;
 
+        setItem(section.getIntegerList("slots"), clickableItem);
+        setItem(section.getInt("slot", -1), clickableItem);
+    }
+
+    public void setItem(List<Integer> slots, ClickableItem clickableItem) {
+        if (slots == null || slots.isEmpty())
+            return;
+
+        slots.forEach(a -> setItem(a, clickableItem));
+    }
+
+    public void setItem(int slot, ClickableItem clickableItem) {
+        if (slot <= 0 || slot > this.bukkitInventory.getSize())
+            return;
+
+        slot = slot - 1;
         if (clickableItem != null && clickableItem.getItem() != null && !clickableItem.getItem().getType().equals(Material.AIR)) {
             this.clickableItems.put(slot, clickableItem);
             this.bukkitInventory.setItem(slot, clickableItem.getItem());

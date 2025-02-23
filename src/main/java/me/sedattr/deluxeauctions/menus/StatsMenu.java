@@ -29,7 +29,7 @@ public class StatsMenu {
         int goBackSlot = this.section.getInt("back");
         ItemStack goBackItem = DeluxeAuctions.getInstance().normalItems.get("go_back");
         if (goBackSlot > 0 && goBackItem != null)
-            gui.setItem(goBackSlot-1, ClickableItem.of(goBackItem, (event) -> new MainMenu(this.player).open()));
+            gui.setItem(goBackSlot, ClickableItem.of(goBackItem, (event) -> new MainMenu(this.player).open()));
 
         loadBuyerStatsItem();
         loadSellerStatsItem();
@@ -66,7 +66,7 @@ public class StatsMenu {
             return;
 
         int slot = itemSection.getInt("slot");
-        this.gui.setItem(slot-1, ClickableItem.empty(item));
+        this.gui.setItem(slot, ClickableItem.empty(item));
     }
 
     private void loadSellerStatsItem() {
@@ -98,6 +98,6 @@ public class StatsMenu {
             return;
 
         int slot = itemSection.getInt("slot");
-        this.gui.setItem(slot-1, ClickableItem.empty(item));
+        this.gui.setItem(slot, ClickableItem.empty(item));
     }
 }

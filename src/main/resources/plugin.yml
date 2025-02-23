@@ -2,7 +2,7 @@ name: DeluxeAuctions
 main: me.sedattr.deluxeauctions.DeluxeAuctions
 
 author: SedatTR
-version: 2.0
+version: 3.1
 api-version: 1.13
 folia-supported: true
 
@@ -20,14 +20,20 @@ softdepend:
   - LiteBans
   - AdvancedBan
   - EcoItems
+  - eco
+  - libreforge
   - AuctionMaster
   - zAuctionHouseV3
   - DeluxeAuctionsRedis
   - DeluxeAuctionsDisplay
   - EdPrison
+  - Skript
 loadbefore:
+  - AuctionMaster
+  - zAuctionHouseV3
   - DeluxeAuctionsDisplay
   - DeluxeAuctionsRedis
+  - CMI
 
 commands:
   auction:

@@ -3,9 +3,14 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>me.sedattr.deluxeauctions</groupId>
   <artifactId>DeluxeAuctions</artifactId>
-  <version>1</version>
+  <version>3</version>
   <build>
     <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>versions-maven-plugin</artifactId>
+        <version>2.14.2</version>
+      </plugin>
       <plugin>
         <artifactId>maven-shade-plugin</artifactId>
         <version>3.5.0</version>
@@ -21,10 +26,6 @@
         <configuration>
           <relocations>
             <relocation>
-              <pattern>de.tr7zw.changeme.nbtapi</pattern>
-              <shadedPattern>me.sedattr.deluxeauctions.nbtapi</shadedPattern>
-            </relocation>
-            <relocation>
               <pattern>net.wesjd.anvilgui</pattern>
               <shadedPattern>me.sedattr.deluxeauctions.anvilgui</shadedPattern>
             </relocation>
@@ -33,11 +34,24 @@
               <shadedPattern>me.sedattr.deluxeauctions.signgui</shadedPattern>
             </relocation>
           </relocations>
+          <filters>
+            <filter>
+              <artifact>*:*</artifact>
+              <excludeDefaults>false</excludeDefaults>
+              <includes>
+                <include>net/wesjd/anvilgui/**</include>
+              </includes>
+            </filter>
+          </filters>
         </configuration>
       </plugin>
     </plugins>
   </build>
   <repositories>
+    <repository>
+      <id>skript-releases</id>
+      <url>https://repo.skriptlang.org/releases</url>
+    </repository>
     <repository>
       <id>papermc</id>
       <url>https://repo.papermc.io/repository/maven-public/</url>
@@ -73,6 +87,12 @@
   </repositories>
   <dependencies>
     <dependency>
+      <groupId>com.github.SkriptLang</groupId>
+      <artifactId>Skript</artifactId>
+      <version>2.10.0-pre1</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>dev.folia</groupId>
       <artifactId>folia-api</artifactId>
       <version>1.20.1-R0.1-SNAPSHOT</version>
@@ -92,8 +112,14 @@
     </dependency>
     <dependency>
       <groupId>com.willfp</groupId>
+      <artifactId>EcoItems</artifactId>
+      <version>5.59.2</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.willfp</groupId>
       <artifactId>eco</artifactId>
-      <version>6.70.1</version>
+      <version>6.74.5</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -105,13 +131,13 @@
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
-      <version>1.18.32</version>
+      <version>1.18.36</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>com.github.angeschossen</groupId>
       <artifactId>LandsAPI</artifactId>
-      <version>7.1.12</version>
+      <version>7.10.13</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -129,20 +155,27 @@
     <dependency>
       <groupId>me.TechsCode</groupId>
       <artifactId>UltraEconomyAPI</artifactId>
-      <version>1.1.2-pre1</version>
+      <version>1.1.2</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>me.confuser.banmanager</groupId>
       <artifactId>BanManagerBukkit</artifactId>
-      <version>7.7.0-SNAPSHOT</version>
+      <version>7.9.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.black_ixx</groupId>
       <artifactId>playerpoints</artifactId>
-      <version>3.2.7</version>
+      <version>3.3.0</version>
       <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.willfp</groupId>
+      <artifactId>libreforge</artifactId>
+      <version>4.73.0</version>
+      <scope>system</scope>
+      <systemPath>${project.basedir}/libraries/libreforge.jar</systemPath>
     </dependency>
     <dependency>
       <groupId>fr.maxlego08.zauctionhouse</groupId>

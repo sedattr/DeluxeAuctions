@@ -12,7 +12,6 @@ import me.sedattr.auctionsapi.cache.CategoryCache;
 import me.sedattr.deluxeauctions.commands.AuctionAdminCommand;
 import me.sedattr.deluxeauctions.commands.AuctionCommand;
 import me.sedattr.deluxeauctions.database.DatabaseManager;
-import me.sedattr.deluxeauctions.economy.EconomyManager;
 import me.sedattr.deluxeauctions.handlers.BlacklistHandler;
 import me.sedattr.deluxeauctions.handlers.DataHandler;
 import me.sedattr.deluxeauctions.handlers.MenuHandler;
@@ -21,6 +20,7 @@ import me.sedattr.deluxeauctions.inventoryapi.inventory.InventoryAPI;
 import me.sedattr.deluxeauctions.listeners.PlayerListeners;
 import me.sedattr.deluxeauctions.managers.AuctionType;
 import me.sedattr.deluxeauctions.managers.CustomItem;
+import me.sedattr.deluxeauctions.managers.Economy;
 import me.sedattr.deluxeauctions.managers.SortType;
 import me.sedattr.deluxeauctions.menus.InputMenu;
 import me.sedattr.deluxeauctions.others.*;
@@ -33,12 +33,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("ConstantConditions")
 public class DeluxeAuctions extends JavaPlugin {
     @Getter private static DeluxeAuctions instance;
 
+    public YamlConfiguration economyFile;
     public YamlConfiguration menusFile;
     public YamlConfiguration messagesFile;
     public YamlConfiguration categoriesFile;
@@ -49,10 +51,10 @@ public class DeluxeAuctions extends JavaPlugin {
     public BlacklistHandler blacklistHandler;
     public MenuHandler menuHandler;
 
+    public Map<String, Economy> economies = new HashMap<>();
     public Map<String, ItemStack> normalItems = new HashMap<>();
     public Map<String, CustomItem> customItems = new HashMap<>();
 
-    public EconomyManager economyManager;
     public DatabaseManager databaseManager;
     public MuteManager muteManager;
 
@@ -76,10 +78,12 @@ public class DeluxeAuctions extends JavaPlugin {
 
     public AuctionType auctionType;
     public SortType sortType;
+    public String rarityType;
     public String category;
     public AuctionType createType;
     public double createPrice;
     public int createTime;
+    public Economy createEconomy;
 
     public void registerCommandsListeners() {
         Bukkit.getPluginManager().registerEvents(new PlayerListeners(), DeluxeAuctions.getInstance());
@@ -99,6 +103,7 @@ public class DeluxeAuctions extends JavaPlugin {
         instance = this;
 
         saveDefaultConfig();
+        this.metrics = new Metrics(this, 22020);
         if (!getConfig().getBoolean("settings.enable_plugin", true)) {
             Logger.sendConsoleMessage("Plugin is disabled because enable_plugin setting is false in config!", Logger.LogLevel.INFO);
             Bukkit.getPluginManager().disablePlugin(this);
@@ -133,7 +138,6 @@ public class DeluxeAuctions extends JavaPlugin {
         if (this.configFile.getBoolean("settings.anti_lag.server.enabled"))
             TaskUtils.runTimerAsync(new ServerTps(), 100L, 1L);
 
-        this.metrics = new Metrics(this, 22020);
         this.metrics.addCustomChart(new Metrics.SingleLineChart("total_auctions", () -> AuctionCache.getAuctions().size()));
 
         Logger.sendConsoleMessage("Your server is running on &f1." + this.version + "%level_color%.", Logger.LogLevel.INFO);
@@ -144,7 +148,8 @@ public class DeluxeAuctions extends JavaPlugin {
     public void onDisable() {
         this.disabled = true;
 
-        DeluxeAuctions.getInstance().databaseManager.shutdown();
+        if (this.loaded)
+            DeluxeAuctions.getInstance().databaseManager.shutdown();
         this.metrics.shutdown();
 
         for (Player player : Bukkit.getOnlinePlayers())
@@ -159,34 +164,34 @@ public class DeluxeAuctions extends JavaPlugin {
         if (addons == null)
             return;
 
-        if (addons.getBoolean("head_database") && Bukkit.getPluginManager().isPluginEnabled("HeadDatabase")) {
+        if (Bukkit.getPluginManager().isPluginEnabled("HeadDatabase")) {
             this.headDatabase = new HeadDatabase();
             Bukkit.getPluginManager().registerEvents(this.headDatabase, this);
 
             Logger.sendConsoleMessage("Enabled &fHeadDatabase %level_color%support!", Logger.LogLevel.INFO);
         }
 
-        if (addons.getBoolean("eco_items") && Bukkit.getPluginManager().isPluginEnabled("EcoItems")) {
+        if (Bukkit.getPluginManager().isPluginEnabled("EcoItems")) {
             this.ecoItemsAddon = new EcoItemsAddon();
             Logger.sendConsoleMessage("Enabled &fEcoItems %level_color%support!", Logger.LogLevel.INFO);
         }
 
-        if (addons.getBoolean("placeholder_api") && Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
             new Placeholders().register();
             Logger.sendConsoleMessage("Enabled &fPlaceholderAPI %level_color%support!", Logger.LogLevel.INFO);
         }
 
-        if (addons.getBoolean("ban_manager") && Bukkit.getPluginManager().isPluginEnabled("BanManager")) {
+        if (Bukkit.getPluginManager().isPluginEnabled("BanManager")) {
             this.muteManager = new BanManager();
             Logger.sendConsoleMessage("Enabled &fBanManager %level_color%support!", Logger.LogLevel.INFO);
         }
 
-        if (addons.getBoolean("advanced_ban") && Bukkit.getPluginManager().isPluginEnabled("AdvancedBan")) {
+        if (Bukkit.getPluginManager().isPluginEnabled("AdvancedBan")) {
             this.muteManager = new AdvancedBan();
             Logger.sendConsoleMessage("Enabled &fAdvancedBan %level_color%support!", Logger.LogLevel.INFO);
         }
 
-        if (addons.getBoolean("lite_bans") && Bukkit.getPluginManager().isPluginEnabled("LiteBans")) {
+        if (Bukkit.getPluginManager().isPluginEnabled("LiteBans")) {
             this.muteManager = new LiteBans();
             Logger.sendConsoleMessage("Enabled &fLiteBans %level_color%support!", Logger.LogLevel.INFO);
         }

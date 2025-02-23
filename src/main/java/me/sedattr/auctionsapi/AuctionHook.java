@@ -10,6 +10,8 @@ import me.sedattr.deluxeauctions.managers.PlayerBid;
 import me.sedattr.deluxeauctions.others.Utils;
 import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
@@ -19,11 +21,12 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class AuctionHook {
-    private static final double MAX_PRICE = 1000000000000.0;
-    private static final double MAX_BID = 1000000000000.0;
-    private static final int MAX_DURATION = 31556926;
+    private static final double MAX_PRICE = 1_000_000_000_000_000.0;
+    private static final double MAX_BID = 1_000_000_000_000_000.0;
+    private static final int MAX_DURATION = 31536000;
     private static final int MAX_AUCTION = 100;
 
     public static boolean isAuctionTypeDisabled(String type) {
@@ -32,7 +35,7 @@ public class AuctionHook {
         if (!type.equalsIgnoreCase("bin") && !type.equalsIgnoreCase("normal"))
             return false;
 
-        boolean setting = DeluxeAuctions.getInstance().configFile.getBoolean(type.toLowerCase() + "_auction.enabled", true);
+        boolean setting = DeluxeAuctions.getInstance().configFile.getBoolean(type.toLowerCase(Locale.ENGLISH) + "_auction.enabled", true);
         return !setting;
     }
 
@@ -83,8 +86,6 @@ public class AuctionHook {
 
     public static double getPriceLimit(Player player, String type) {
         double max = type.equals("price_limit") ? MAX_PRICE : MAX_BID;
-        if (player.isOp())
-            return max;
 
         ConfigurationSection section = DeluxeAuctions.getInstance().configFile.getConfigurationSection("player_limits." + type);
         if (section == null)
@@ -93,7 +94,7 @@ public class AuctionHook {
         double current = section.getDouble("default");
         List<String> permissions = section.getStringList("permissions");
         if (permissions.isEmpty())
-            return current > 0 ? current : max;
+            return Math.min(current, max);
 
         for (String entry : permissions) {
             String[] args = entry.split("[:]", 2);
@@ -110,6 +111,9 @@ public class AuctionHook {
                 current = amount;
         }
 
+        if (player.isOp())
+            return Math.max(max, current);
+
         return current;
     }
 
@@ -119,8 +123,6 @@ public class AuctionHook {
 
     public static int getLimit(Player player, String type) {
         int max = type.equals("duration_limit") ? MAX_DURATION : MAX_AUCTION;
-        if (player.isOp())
-            return max;
 
         ConfigurationSection section = DeluxeAuctions.getInstance().configFile.getConfigurationSection("player_limits." + type);
         if (section == null)
@@ -129,7 +131,7 @@ public class AuctionHook {
         int current = section.getInt("default");
         List<String> permissions = section.getStringList("permissions");
         if (permissions.isEmpty())
-            return current > 0 ? current : max;
+            return Math.min(current, max);
 
         for (String entry : permissions) {
             String[] args = entry.split(":", 2);
@@ -145,6 +147,9 @@ public class AuctionHook {
             if (amount > current)
                 current = amount;
         }
+
+        if (player.isOp())
+            return Math.max(max, current);
 
         return current;
     }
@@ -190,7 +195,7 @@ public class AuctionHook {
             }
         }
 
-        ConfigurationSection itemSection = DeluxeAuctions.getInstance().messagesFile.getConfigurationSection("lores.auction_items." + auction.getAuctionType().name().toLowerCase() + "." + type);
+        ConfigurationSection itemSection = DeluxeAuctions.getInstance().messagesFile.getConfigurationSection("lores.auction_items." + auction.getAuctionType().name().toLowerCase(Locale.ENGLISH) + "." + type);
         if (itemSection == null)
             return itemStack;
 
@@ -212,14 +217,19 @@ public class AuctionHook {
                     continue;
                 }
 
+                OfflinePlayer seller = Bukkit.getOfflinePlayer(auction.getAuctionOwner());
+                OfflinePlayer buyer = highestBid != null ? Bukkit.getOfflinePlayer(highestBid.getBidOwner()) : null;
+
                 newLore.add(Utils.colorize(line
                         .replace("%bid_amount%", String.valueOf(auction.getAuctionBids().getPlayerBids().size()))
-                        .replace("%bid_price%", highestBid != null ? DeluxeAuctions.getInstance().numberFormat.format(highestBid.getBidPrice()) : "")
+                        .replace("%bid_price%", auction.getEconomy().getText().replace("%price%", highestBid != null ? DeluxeAuctions.getInstance().numberFormat.format(highestBid.getBidPrice()) : ""))
                         .replace("%bidder_displayname%", highestBid != null ? highestBid.getBidOwnerDisplayName() : "")
                         .replace("%buyer_displayname%", highestBid != null ? highestBid.getBidOwnerDisplayName() : "")
                         .replace("%seller_displayname%", auction.getAuctionOwnerDisplayName())
+                        .replace("%seller_name%", seller.getName() != null ? seller.getName() : "")
+                        .replace("%buyer_name%", buyer != null ? (buyer.getName() != null ? buyer.getName() : "") : "")
                         .replace("%auction_type%", auction.getAuctionType().name())
-                        .replace("%auction_price%", DeluxeAuctions.getInstance().numberFormat.format(auction.getAuctionPrice()))
+                        .replace("%auction_price%", auction.getEconomy().getText().replace("%price%", DeluxeAuctions.getInstance().numberFormat.format(auction.getAuctionPrice())))
                         .replace("%auction_time%", DeluxeAuctions.getInstance().timeFormat.formatTime(auction.getAuctionEndTime() - ZonedDateTime.now().toInstant().getEpochSecond(), "auction_times"))
                 ));
             }

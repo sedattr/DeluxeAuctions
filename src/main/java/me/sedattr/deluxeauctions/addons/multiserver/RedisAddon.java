@@ -1,7 +1,6 @@
 package me.sedattr.deluxeauctions.addons.multiserver;
 
 import me.sedattr.deluxeauctions.DeluxeAuctions;
-import me.sedattr.deluxeauctions.others.Logger;
 import me.sedattr.deluxeauctionsredis.RedisPlugin;
 
 import java.util.UUID;
@@ -12,7 +11,7 @@ public class RedisAddon implements MultiServerManager {
     }
 
     private void publish(String text) {
-        DeluxeAuctions.getInstance().dataHandler.debug("SENT Redis Message: &f" + text + " &8(%level_color%Multi Server&8)", Logger.LogLevel.INFO);
+        DeluxeAuctions.getInstance().dataHandler.debug("SENT Redis Message: &f" + text + " &8(%level_color%Multi Server&8)");
         try {
             RedisPlugin.getInstance().getRedisManager().publish(text);
         } catch (Exception e) {
@@ -21,7 +20,7 @@ public class RedisAddon implements MultiServerManager {
     }
 
     private boolean publish(UUID uuid, String text) {
-        DeluxeAuctions.getInstance().dataHandler.debug("SENT Redis Message: &f" + text + " &8(%level_color%Multi Server&8)", Logger.LogLevel.INFO);
+        DeluxeAuctions.getInstance().dataHandler.debug("SENT Redis Message: &f" + text + " &8(%level_color%Multi Server&8)");
         try {
             return RedisPlugin.getInstance().getRedisManager().publish(String.valueOf(uuid), text);
         } catch (Exception e) {

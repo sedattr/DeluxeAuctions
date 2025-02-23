@@ -7,11 +7,12 @@ import me.sedattr.deluxeauctions.managers.*;
 import me.sedattr.deluxeauctions.others.Logger;
 import me.sedattr.deluxeauctions.others.TaskUtils;
 import me.sedattr.deluxeauctions.others.Utils;
-import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.*;
 import java.time.ZonedDateTime;
 import java.util.*;
@@ -46,8 +47,9 @@ public class SQLiteDatabase implements DatabaseManager {
         double price = set.getDouble(6);
         AuctionType type = AuctionType.valueOf(set.getString(8));
         boolean isClaimed = set.getBoolean(9);
+        String economy = set.getString(10);
 
-        Auction auction = new Auction(uuid, owner, displayName, item, price, type, endTime, isClaimed);
+        Auction auction = new Auction(uuid, owner, displayName, item, price, type, economy, endTime, isClaimed);
         if (auction.getAuctionCategory().isEmpty()) {
             AuctionCache.removeUpdatingAuction(uuid);
             return;
@@ -80,7 +82,7 @@ public class SQLiteDatabase implements DatabaseManager {
                 String ownerDisplayName = newArgs[2];
                 double bidPrice = Double.parseDouble(newArgs[3]);
                 long bidTime = Long.parseLong(newArgs[4]);
-                boolean collected = Boolean.parseBoolean(newArgs[5]);
+                boolean collected = !type.equals(AuctionType.NORMAL) || Boolean.parseBoolean(newArgs[5]);
 
                 PlayerBid playerBid = new PlayerBid(orderUUID, ownerUUID, ownerDisplayName, bidPrice, bidTime, collected);
                 playerBids.add(playerBid);
@@ -102,6 +104,22 @@ public class SQLiteDatabase implements DatabaseManager {
         }
     }
 
+    public void backupDatabase() {
+        File file = new File(DeluxeAuctions.getInstance().getDataFolder(), "database.db");
+        if (file.exists()) {
+            try {
+                File oldBackupFile = new File(DeluxeAuctions.getInstance().getDataFolder() + File.separator + "backups", "database_backup.db");
+                if (!oldBackupFile.exists()) {
+                    new File(DeluxeAuctions.getInstance().getDataFolder() + File.separator + "backups").mkdirs();
+
+                    Files.copy(Paths.get(file.getPath()), Paths.get(DeluxeAuctions.getInstance().getDataFolder() + File.separator + "backups" + File.separator + "database_backup.db"));
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
     public SQLiteDatabase() {
         this.file = new File(DeluxeAuctions.getInstance().getDataFolder(), "database.db");
 
@@ -113,9 +131,9 @@ public class SQLiteDatabase implements DatabaseManager {
             }
         }
 
-        DeluxeAuctions.getInstance().dataHandler.debug("SQLite is connecting...", Logger.LogLevel.INFO);
+        DeluxeAuctions.getInstance().dataHandler.debug("SQLite is connecting...");
         if (getConnection() == null) {
-            DeluxeAuctions.getInstance().dataHandler.debug("SQLite is not connected, plugin will not work correctly!", Logger.LogLevel.ERROR);
+            DeluxeAuctions.getInstance().dataHandler.debug("SQLite is not connected, plugin will not work correctly!");
             return;
         }
 
@@ -134,7 +152,8 @@ public class SQLiteDatabase implements DatabaseManager {
                         "price DOUBLE, " +
                         "end_time INT(11), " +
                         "type TEXT, " +
-                        "claimed BOOL);");
+                        "claimed BOOL, " +
+                        "economy TEXT);");
 
                 PreparedStatement statement2 = this.connection.prepareStatement("CREATE TABLE IF NOT EXISTS " + this.items + " (" +
                         "uuid VARCHAR(36) PRIMARY KEY, " +
@@ -159,6 +178,34 @@ public class SQLiteDatabase implements DatabaseManager {
         } catch (SQLException x) {
             x.printStackTrace();
         }
+
+        try (Connection connection = getConnection();
+             PreparedStatement checkColumn = connection.prepareStatement("PRAGMA table_info(" + this.auctions + ");");
+             ResultSet resultSet = checkColumn.executeQuery()) {
+
+            boolean columnExists = false;
+            while (resultSet.next()) {
+                String columnName = resultSet.getString("name"); // SQLite'de sütun adı "name" olarak geçiyor
+                if ("economy".equalsIgnoreCase(columnName)) {
+                    columnExists = true;
+                    break;
+                }
+            }
+
+            if (!columnExists) {
+                backupDatabase();
+
+                try (PreparedStatement addColumn = connection.prepareStatement("ALTER TABLE " + this.auctions + " ADD COLUMN economy TEXT;")) {
+                    addColumn.executeUpdate();
+                    DeluxeAuctions.getInstance().dataHandler.debug("Column 'economy' has been added to " + this.auctions + " table.");
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        DeluxeAuctions.getInstance().dataHandler.debug("SQLite is connected!");
     }
 
     public Connection getConnection() {
@@ -320,7 +367,7 @@ public class SQLiteDatabase implements DatabaseManager {
     }
 
     public void saveAuctions() {
-        String sql = "REPLACE INTO " + this.auctions + " (uuid, owner, display_name, item, bids, price, end_time, type, claimed) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);";
+        String sql = "REPLACE INTO " + this.auctions + " (uuid, owner, display_name, item, bids, price, end_time, type, claimed, economy) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
         runTask(() -> {
             try (PreparedStatement statement = getConnection().prepareStatement(sql)) {
                 int i = 0;
@@ -347,6 +394,7 @@ public class SQLiteDatabase implements DatabaseManager {
                     statement.setLong(7, auction.getAuctionEndTime());
                     statement.setString(8, auction.getAuctionType().name());
                     statement.setBoolean(9, auction.isSellerClaimed());
+                    statement.setString(10, auction.getEconomy().getKey());
 
                     statement.execute();
                     i++;
@@ -361,7 +409,7 @@ public class SQLiteDatabase implements DatabaseManager {
     }
 
     public void saveAuction(Auction auction) {
-        String sql = "REPLACE INTO " + this.auctions + " (uuid, owner, display_name, item, bids, price, end_time, type, claimed) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "REPLACE INTO " + this.auctions + " (uuid, owner, display_name, item, bids, price, end_time, type, claimed, economy) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
         runTask(() -> {
             StringBuilder playerBids = new StringBuilder();
             List<PlayerBid> bids = auction.getAuctionBids().getPlayerBids();
@@ -385,6 +433,7 @@ public class SQLiteDatabase implements DatabaseManager {
                 statement.setLong(7, auction.getAuctionEndTime());
                 statement.setString(8, auction.getAuctionType().name());
                 statement.setBoolean(9, auction.isSellerClaimed());
+                statement.setString(10, auction.getEconomy().getKey());
 
                 statement.execute();
 

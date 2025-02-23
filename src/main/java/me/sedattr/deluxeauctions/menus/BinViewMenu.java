@@ -3,7 +3,6 @@ package me.sedattr.deluxeauctions.menus;
 import me.sedattr.auctionsapi.AuctionHook;
 import me.sedattr.auctionsapi.cache.PlayerCache;
 import me.sedattr.deluxeauctions.inventoryapi.HInventory;
-import me.sedattr.deluxeauctions.inventoryapi.inventory.InventoryAPI;
 import me.sedattr.deluxeauctions.inventoryapi.item.ClickableItem;
 import me.sedattr.deluxeauctions.DeluxeAuctions;
 import me.sedattr.deluxeauctions.managers.Auction;
@@ -16,7 +15,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.List;
 import java.util.UUID;
@@ -41,13 +39,11 @@ public class BinViewMenu {
 
             PlaceholderUtil placeholderUtil = new PlaceholderUtil();
             if (auction.getAuctionOwner().equals(player.getUniqueId()) && auction.isSellerClaimed()) {
-                Utils.sendMessage(player, "ended_auction", placeholderUtil
-                        .addPlaceholder("%item_displayname%", Utils.getDisplayName(auction.getAuctionItem())));
+                Utils.sendMessage(player, "ended_auction", placeholderUtil.addPlaceholder("%item_displayname%", Utils.getDisplayName(auction.getAuctionItem())));
                 return;
             } else if (!auction.getAuctionOwner().equals(player.getUniqueId()))
                 if (playerBid == null || playerBid.isCollected()) {
-                    Utils.sendMessage(player, "ended_auction", placeholderUtil
-                            .addPlaceholder("%item_displayname%", Utils.getDisplayName(auction.getAuctionItem())));
+                    Utils.sendMessage(player, "ended_auction", placeholderUtil.addPlaceholder("%item_displayname%", Utils.getDisplayName(auction.getAuctionItem())));
                     return;
                 }
         }
@@ -60,7 +56,7 @@ public class BinViewMenu {
             int goBackSlot = this.section.getInt("back");
             ItemStack goBackItem = DeluxeAuctions.getInstance().normalItems.get("go_back");
             if (goBackSlot > 0 && goBackItem != null)
-                gui.setItem(goBackSlot-1, ClickableItem.of(goBackItem, (event) -> goBack()));
+                gui.setItem(goBackSlot, ClickableItem.of(goBackItem, (event) -> goBack()));
         }
 
         loadExampleItem();
@@ -95,7 +91,7 @@ public class BinViewMenu {
     private void loadSellerItem() {
         PlaceholderUtil placeholderUtil = new PlaceholderUtil()
                 .addPlaceholder("%item_displayname%", Utils.getDisplayName(this.auction.getAuctionItem()))
-                .addPlaceholder("%auction_price%", DeluxeAuctions.getInstance().numberFormat.format(this.auction.getAuctionPrice()));
+                .addPlaceholder("%auction_price%", this.auction.getEconomy().getText().replace("%price%", DeluxeAuctions.getInstance().numberFormat.format(this.auction.getAuctionPrice())));
 
         List<PlayerBid> auctionBids = this.auction.getAuctionBids().getPlayerBids();
         if (this.auction.isEnded()) {
@@ -121,7 +117,7 @@ public class BinViewMenu {
             if (itemStack == null)
                 return;
 
-            this.gui.setItem(collectSection.getInt("slot")-1, ClickableItem.of(itemStack, (event) -> {
+            this.gui.setItem(collectSection.getInt("slot"), ClickableItem.of(itemStack, (event) -> {
                 this.player.closeInventory();
 
                 String type = this.auction.sellerCollect(this.player, false);
@@ -146,7 +142,7 @@ public class BinViewMenu {
             if (itemStack == null)
                 return;
 
-            this.gui.setItem(cancelSection.getInt("slot")-1, ClickableItem.of(itemStack, (event) -> {
+            this.gui.setItem(cancelSection.getInt("slot"), ClickableItem.of(itemStack, (event) -> {
                 this.player.closeInventory();
 
                 if (this.auction.cancel(this.player)) {
@@ -168,20 +164,23 @@ public class BinViewMenu {
     }
 
     private void loadPurchaseItem() {
-        ConfigurationSection itemSection = this.section.getConfigurationSection("purchase_item." + (DeluxeAuctions.getInstance().economyManager.getBalance(this.player) >= this.auction.getAuctionPrice() ? "enough_money" : "not_enough_money"));
+        ConfigurationSection itemSection = this.section.getConfigurationSection("purchase_item." + (this.auction.getEconomy().getManager().getBalance(this.player) >= this.auction.getAuctionPrice() ? "enough_money" : "not_enough_money"));
         if (itemSection == null)
             return;
 
         PlaceholderUtil placeholderUtil = new PlaceholderUtil()
-                .addPlaceholder("%auction_price%", DeluxeAuctions.getInstance().numberFormat.format(this.auction.getAuctionPrice()));
+                .addPlaceholder("%auction_price%", this.auction.getEconomy().getText().replace("%price%", DeluxeAuctions.getInstance().numberFormat.format(this.auction.getAuctionPrice())));
+
         ItemStack itemStack = Utils.createItemFromSection(itemSection, placeholderUtil);
 
-        if (DeluxeAuctions.getInstance().economyManager.getBalance(this.player) >= this.auction.getAuctionPrice())
-            this.gui.setItem(itemSection.getInt("slot")-1, ClickableItem.of(itemStack, (event) -> new ConfirmMenu(this.player, "confirm_purchase").setAuction(this.auction).open()));
+        if (this.auction.getEconomy().getManager().getBalance(this.player) >= this.auction.getAuctionPrice())
+            this.gui.setItem(itemSection.getInt("slot"), ClickableItem.of(itemStack, (event) -> new ConfirmMenu(this.player, "confirm_purchase").setAuction(this.auction).open()));
         else
-            gui.setItem(itemSection.getInt("slot")-1, ClickableItem.of(itemStack, (event) -> {
+            gui.setItem(itemSection.getInt("slot"), ClickableItem.of(itemStack, (event) -> {
                 Utils.playSound(this.player, "not_enough_money");
-                Utils.sendMessage(this.player, "not_enough_money", new PlaceholderUtil().addPlaceholder("%required_money%", DeluxeAuctions.getInstance().numberFormat.format(this.auction.getAuctionPrice()-DeluxeAuctions.getInstance().economyManager.getBalance(this.player))));
+                Utils.sendMessage(this.player, "not_enough_money", new PlaceholderUtil()
+                        .addPlaceholder("%auction_text%", this.auction.getEconomy().getText().replace("%price%", DeluxeAuctions.getInstance().numberFormat.format(this.auction.getAuctionPrice()-this.auction.getEconomy().getManager().getBalance(this.player))))
+                        .addPlaceholder("%required_money%", this.auction.getEconomy().getText().replace("%price%", DeluxeAuctions.getInstance().numberFormat.format(this.auction.getAuctionPrice()-this.auction.getEconomy().getManager().getBalance(this.player)))));
             }));
     }
 
@@ -190,7 +189,7 @@ public class BinViewMenu {
         if (itemStack == null)
             return;
 
-        gui.setItem(this.section.getInt("example_item")-1, ClickableItem.of(itemStack, (event) -> {
+        gui.setItem(this.section.getInt("example_item"), ClickableItem.of(itemStack, (event) -> {
             Utils.broadcastMessage(this.player, "auction_view_info", new PlaceholderUtil()
                     .addPlaceholder("%auction_uuid%", String.valueOf(this.auction.getAuctionUUID())));
 

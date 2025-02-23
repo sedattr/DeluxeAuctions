@@ -8,7 +8,7 @@ public class RoyaleEconomyBalance implements EconomyManager {
     private final Balance api;
 
     public RoyaleEconomyBalance() {
-        this.api = RoyaleEconomy.apiHandler.balance;
+        this.api = RoyaleEconomy.getApiHandler().getBalance();
     }
 
     @Override

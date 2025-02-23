@@ -12,10 +12,9 @@ public class UltraEconomy implements EconomyManager {
     UltraEconomyAPI api;
     Currency currency;
 
-    public UltraEconomy() {
+    public UltraEconomy(String currencyName) {
         this.api = me.TechsCode.UltraEconomy.UltraEconomy.getAPI();
 
-        String currencyName = DeluxeAuctions.getInstance().configFile.getString("economy.ultraeconomy_settings.currency_name");
         if (currencyName != null && !currencyName.isEmpty()) {
             Optional<Currency> currency1 = this.api.getCurrencies().name(currencyName);
             currency1.ifPresent(value -> this.currency = value);

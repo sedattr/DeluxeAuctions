@@ -99,7 +99,7 @@ public class EnchantCache {
             if (enchantmentName.isEmpty())
                 continue;
 
-            String name = enchants.get(enchantmentName.toLowerCase());
+            String name = enchants.get(enchantmentName.toLowerCase(Locale.ENGLISH));
             if (name == null || name.isEmpty())
                 continue;
 

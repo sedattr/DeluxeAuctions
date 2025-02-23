@@ -9,9 +9,9 @@ public class EdPrisonEconomy implements EconomyManager {
     private final String economy;
     private final EconomyModel economyAPI;
 
-    public EdPrisonEconomy() {
+    public EdPrisonEconomy(String currency) {
         this.economyAPI = EdPrison.getInstance().getApi().getEconomyApi();
-        this.economy = DeluxeAuctions.getInstance().configFile.getString("economy.edprison_settings.currency_name", "tokens");
+        this.economy = currency;
     }
 
     @Override

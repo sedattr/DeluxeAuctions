@@ -21,7 +21,8 @@ public class Logger {
     public enum LogLevel {
         INFO("&8(&2INFO&8)", "&a"),
         WARN("&8(&6WARN&8)", "&e"),
-        ERROR("&8(&4ERROR&8)", "&c");
+        ERROR("&8(&4ERROR&8)", "&c"),
+        DEBUG("&8(&4DEBUG&8)", "&c");
 
         private final String prefix;
         private final String color;

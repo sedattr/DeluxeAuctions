@@ -58,7 +58,7 @@ public class AuctionCommand implements CommandExecutor, TabCompleter {
         if (!Utils.hasPermission(commandSender, "player_commands", "command"))
             return Collections.emptyList();
 
-        if (args.length > 0 && this.args.get("view").contains(args[0].toLowerCase())) {
+        if (args.length > 0 && this.args.get("view").contains(args[0].toLowerCase(Locale.ENGLISH))) {
             List<String> set = new ArrayList<>();
             Bukkit.getOnlinePlayers().forEach(a -> set.add(a.getName()));
 
@@ -121,7 +121,7 @@ public class AuctionCommand implements CommandExecutor, TabCompleter {
                 return false;
             }
 
-            String lowerCaseArg = args[0].toLowerCase();
+            String lowerCaseArg = args[0].toLowerCase(Locale.ENGLISH);
 
             if (lowerCaseArg.equals("info") || this.args.get("info").contains(lowerCaseArg)) {
                 List<String> lines = new ArrayList<>(
@@ -253,8 +253,8 @@ public class AuctionCommand implements CommandExecutor, TabCompleter {
 
                 // Price Check
                 double price;
-                double reversedPrice = DeluxeAuctions.getInstance().numberFormat.reverseFormat(args[0]);
-                if (reversedPrice > 0)
+                double reversedPrice = DeluxeAuctions.getInstance().numberFormat.reverseFormat(args[1]);
+                if (reversedPrice > 1)
                     price = reversedPrice;
                 else {
                     try {
@@ -320,7 +320,7 @@ public class AuctionCommand implements CommandExecutor, TabCompleter {
                 // Check if auction type is disabled
                 if (AuctionHook.isAuctionTypeDisabled(type)) {
                     Utils.sendMessage(player, "disabled_auction_type", new PlaceholderUtil()
-                            .addPlaceholder("%auction_type%", args[1].toUpperCase()));
+                            .addPlaceholder("%auction_type%", args[1].toUpperCase(Locale.ENGLISH)));
                     return false;
                 }
 
@@ -337,10 +337,10 @@ public class AuctionCommand implements CommandExecutor, TabCompleter {
                 if (itemStack != null)
                     player.getInventory().addItem(itemStack);
 
-                PlayerCache.setItem(player.getUniqueId(), item);
-
                 PlayerPreferences playerAuction = PlayerCache.getPreferences(player.getUniqueId());
-                playerAuction.setCreateType(AuctionType.valueOf(type.toUpperCase()));
+                playerAuction.updateCreate(item);
+
+                playerAuction.setCreateType(AuctionType.valueOf(type.toUpperCase(Locale.ENGLISH)));
                 playerAuction.setCreatePrice(price);
                 playerAuction.setCreateTime(time);
 
@@ -349,8 +349,14 @@ public class AuctionCommand implements CommandExecutor, TabCompleter {
             }
         }
 
-        if (DeluxeAuctions.getInstance().configFile.getBoolean("settings.open_menu_directly", false)) {
-            new MainMenu(player).open();
+        String menuToOpen = DeluxeAuctions.getInstance().configFile.getString("settings.menu_to_open_directly");
+        if (menuToOpen != null && !menuToOpen.isEmpty()) {
+            if (menuToOpen.equalsIgnoreCase("auctions")) {
+                String category = PlayerCache.getPlayers().containsKey(player.getUniqueId()) ? PlayerCache.getPreferences(player.getUniqueId()).getCategory().getName() : DeluxeAuctions.getInstance().category;
+                new AuctionsMenu(player).open(category, 1);
+            } else {
+                new MainMenu(player).open();
+            }
             return true;
         }
 

@@ -5,22 +5,17 @@ import me.sedattr.auctionsapi.cache.AuctionCache;
 import me.sedattr.auctionsapi.cache.PlayerCache;
 import me.sedattr.deluxeauctions.DeluxeAuctions;
 import me.sedattr.deluxeauctions.inventoryapi.HInventory;
-import me.sedattr.deluxeauctions.inventoryapi.inventory.InventoryAPI;
 import me.sedattr.deluxeauctions.inventoryapi.item.ClickableItem;
 import me.sedattr.deluxeauctions.managers.*;
 import me.sedattr.deluxeauctions.others.PlaceholderUtil;
 import me.sedattr.deluxeauctions.others.TaskUtils;
 import me.sedattr.deluxeauctions.others.Utils;
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 public class ManageMenu {
     private final Player player;
@@ -51,7 +46,7 @@ public class ManageMenu {
         int goBackSlot = this.section.getInt("back");
         ItemStack goBackItem = DeluxeAuctions.getInstance().normalItems.get("go_back");
         if (goBackSlot > 0 && goBackItem != null)
-            gui.setItem(goBackSlot-1, ClickableItem.of(goBackItem, (event) -> new MainMenu(this.player).open()));
+            gui.setItem(goBackSlot, ClickableItem.of(goBackItem, (event) -> new MainMenu(this.player).open()));
 
         loadAuctions();
         loadCreateAuctionItem();
@@ -62,7 +57,7 @@ public class ManageMenu {
             if (getTotalPage() > page) {
                 ItemStack nextPage = Utils.createItemFromSection(this.section.getConfigurationSection("next_page"), placeholderUtil);
                 if (nextPage != null) {
-                    this.gui.setItem(this.section.getInt("next_page.slot")-1, ClickableItem.of(nextPage, (event -> {
+                    this.gui.setItem(this.section.getInt("next_page.slot"), ClickableItem.of(nextPage, (event -> {
                         ClickType clickType = event.getClick();
                         if (clickType.equals(ClickType.RIGHT) || clickType.equals(ClickType.SHIFT_RIGHT))
                             open(getTotalPage());
@@ -75,7 +70,7 @@ public class ManageMenu {
             if (page > 1) {
                 ItemStack previousPage = Utils.createItemFromSection(this.section.getConfigurationSection("previous_page"), placeholderUtil);
                 if (previousPage != null)
-                    this.gui.setItem(this.section.getInt("previous_page.slot")-1, ClickableItem.of(previousPage, (event -> {
+                    this.gui.setItem(this.section.getInt("previous_page.slot"), ClickableItem.of(previousPage, (event -> {
                         ClickType clickType = event.getClick();
                         if (clickType.equals(ClickType.RIGHT) || clickType.equals(ClickType.SHIFT_RIGHT))
                             open(1);
@@ -91,7 +86,7 @@ public class ManageMenu {
 
     private void loadSorterItem() {
         ItemStack sorterItem = Utils.createItemFromSection(this.section.getConfigurationSection("auction_sorter"), null);
-        List<String> lore = this.section.getStringList("auction_sorter.lore." + sortType.name().toLowerCase());
+        List<String> lore = this.section.getStringList("auction_sorter.lore." + sortType.name().toLowerCase(Locale.ENGLISH));
         List<String> newLore = new ArrayList<>();
         if (!lore.isEmpty())
             for (String line : lore)
@@ -100,7 +95,7 @@ public class ManageMenu {
         Utils.changeLore(sorterItem, newLore, null);
 
         int slot = this.section.getInt("auction_sorter.slot");
-        this.gui.setItem(slot-1, ClickableItem.of(sorterItem, event -> {
+        this.gui.setItem(slot, ClickableItem.of(sorterItem, event -> {
             ClickType clickType = event.getClick();
             Utils.playSound(player, "sorter_item_click");
 
@@ -122,7 +117,7 @@ public class ManageMenu {
             }
 
             String newType = types.get(currentType);
-            this.sortType = SortType.valueOf(newType.toUpperCase());
+            this.sortType = SortType.valueOf(newType.toUpperCase(Locale.ENGLISH));
 
             loadAuctions();
             loadSorterItem();
@@ -166,7 +161,7 @@ public class ManageMenu {
             if (itemStack == null)
                 return;
 
-            this.gui.setItem(claimSection.getInt("slot")-1, ClickableItem.empty(itemStack));
+            this.gui.setItem(claimSection.getInt("slot"), ClickableItem.empty(itemStack));
         } else {
             ConfigurationSection claimSection = itemSection.getConfigurationSection("with_claimable");
             PlaceholderUtil placeholderUtil = new PlaceholderUtil()
@@ -177,7 +172,7 @@ public class ManageMenu {
             if (itemStack == null)
                 return;
 
-            this.gui.setItem(claimSection.getInt("slot")-1, ClickableItem.of(itemStack, (event) -> {
+            this.gui.setItem(claimSection.getInt("slot"), ClickableItem.of(itemStack, (event) -> {
                 this.player.closeInventory();
                 playerAuction.collectAuctions(this.player);
             }));
@@ -212,7 +207,7 @@ public class ManageMenu {
             ItemStack itemStack = AuctionHook.getUpdatedAuctionItem(auction);
 
             int slot = i >= slots.size() ? 0 : slots.get(i);
-            this.gui.setItem(slot-1, ClickableItem.of(itemStack, (event) -> {
+            this.gui.setItem(slot, ClickableItem.of(itemStack, (event) -> {
                 if (auction.getAuctionType() == AuctionType.BIN)
                     new BinViewMenu(this.player, auction).open("manage");
                 else
@@ -233,7 +228,7 @@ public class ManageMenu {
             return;
 
         int slot = itemSection.getInt("slot");
-        this.gui.setItem(slot-1, ClickableItem.of(item, (event) -> {
+        this.gui.setItem(slot, ClickableItem.of(item, (event) -> {
             new CreateMenu(this.player).open("manage");
         }));
     }

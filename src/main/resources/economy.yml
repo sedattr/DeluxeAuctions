@@ -1,0 +1,88 @@
+# _ ________________ ________________ ________________ _
+#|_|________________|________________|________________|_|
+#| |   _____  ______  _       _    _ __   __ ______   | |
+#| |  |  __ \|  ___ \| |     | |  | |\ \ / /|  ___ \  | |
+#|_|  | |  | | |__ \/| |     | |  | | \ V / | |__ \/  |_|
+#| |  | |  | |  __|  | |     | |  | |  > <  |  __     | |
+#| |  | |__| | |___/\| |___/\| |__| | / . \ | |___/\  | |
+#|_|  |_____/|______/|______/\______//_/ \_\\______/  |_|
+#| |                                                  | |
+#| |          DeluxeAuctions - SedatTR#8666           | |
+#|_|________________ ________________ ________________|_|
+#|_|________________|________________|________________|_|
+# If you have any question or suggestion please contact to me.
+# If you are using this plugin, you are accepting Terms of Use.
+#
+# Discord Account: SedatTR#8666
+# Discord Server: https://discord.gg/nchk86TKMT
+# Plugin Wiki: https://sedattr.gitbook.io/deluxeauctions
+
+# You need to change default economy name in the config.yml
+# config.yml -> settings -> default_economy
+# If there isn't a setting like that, just add this:
+# default_economy: vault_economy (or which economy type you want to set for default)
+
+# If you want to disable multi economy system, do these steps:
+# 1- Delete or disable all other economies.
+# 2- Delete auction_economy item section from the create menus in menus.yml
+
+# ALL ECONOMY TYPES:
+# vault
+# ed_prison: you need to add edprison_currency line for the currency name
+# item (Vanilla Minecraft Items): you need to add item_currency line for the currency name
+# xp
+# lands
+# player_points
+# royaleeconomy_balance
+# royaleeconomy_bank
+# skript: you need to add skript_currency line for the currency name
+# token_manager
+# ultra_economy: you need to add ultraeconomy_currency line for the currency name
+# yaml: you need to add yaml_folder_name, yaml_file_name and yaml_node_text lines for the currency
+vault_economy:
+  enabled: true
+  type: vault
+  name: "Vault"
+  text: "&6%price% coins"
+  permission: ""
+  item:
+    material: IRON_INGOT
+    name: "&6Vault Economy"
+    slot: 12
+    lore:
+      - "&7You can use vault for this auction!"
+      - ""
+      - "&eClick to select!"
+
+diamond_economy:
+  enabled: false
+  type: item
+  item_economy: DIAMOND
+  name: "Diamond"
+  text: "&b%price% diamonds"
+  permission: ""
+  item:
+    material: DIAMOND
+    name: "&bDiamond Economy"
+    slot: 16
+    lore:
+      - "&7You can use diamonds for this auction!"
+      - ""
+      - "&eClick to select!"
+
+gold_economy:
+  enabled: false
+  type: item
+  item_economy: GOLD_INGOT
+  name: "Gold"
+  text: "&e%price% golds"
+  permission: "deluxeauctions.vip"
+  item:
+    material: GOLD_INGOT
+    name: "&eGold Economy"
+    slot: 14
+    lore:
+      - "&7You can use golds for this auction!"
+      - "&7You need &dVIP &7to select this economy!"
+      - ""
+      - "&eClick to select!"

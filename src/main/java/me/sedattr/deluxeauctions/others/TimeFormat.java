@@ -32,6 +32,8 @@ public class TimeFormat {
                 continue;
 
             for (String unit : units) {
+                if (key.equalsIgnoreCase("months"))
+                    newUnits.put(unit, 2592000);
                 if (key.equalsIgnoreCase("weeks"))
                     newUnits.put(unit, 604800);
                 else if (key.equalsIgnoreCase("days"))
@@ -64,6 +66,8 @@ public class TimeFormat {
     }
 
     public String formatTime(Long time, String type) {
+        long months = time / 2592000;
+        time %= 2592000;
         long weeks = time / 604800;
         time %= 604800;
         long days = time / 86400;
@@ -82,20 +86,22 @@ public class TimeFormat {
             return "";
 
         String text = "";
+
+        if (months > 0)
+            text = text.concat(months + timeSection.getString("months", "mo") + " ");
         if (weeks > 0)
             text = text.concat(weeks + timeSection.getString("weeks", "w") + " ");
         if (days > 0)
             text = text.concat(days + timeSection.getString("days", "d") + " ");
         if (hours > 0)
             text = text.concat(hours + timeSection.getString("hours", "h") + " ");
-        if(minutes > 0)
+        if (minutes > 0)
             text = text .concat(minutes + timeSection.getString("minutes", "m") + " ");
+        if (seconds > 0)
+            text = text.concat(seconds + timeSection.getString("seconds", "s"));
 
-        if (seconds > 0) {
-            text = text.concat(seconds + timeSection.getString("seconds"));
-            return Utils.colorize(text);
-        } else if (text.isEmpty())
-            return timeSection.getString("ending", "Ending");
+        if (text.isEmpty())
+            return timeSection.getString("ending", "ENDING");
         else
             return Utils.colorize(text);
     }

@@ -27,7 +27,7 @@ public class BungeeAddon implements MultiServerManager, PluginMessageListener {
         ByteArrayDataOutput out = ByteStreams.newDataOutput();
         out.writeUTF(text);
 
-        DeluxeAuctions.getInstance().dataHandler.debug("SENT Bungee Message: &f" + text + " &8(%level_color%Multi Server&8)", Logger.LogLevel.INFO);
+        DeluxeAuctions.getInstance().dataHandler.debug("SENT Bungee Message: &f" + text + " &8(%level_color%Multi Server&8)");
         Iterables.getFirst(Bukkit.getOnlinePlayers(), null).sendPluginMessage(DeluxeAuctions.getInstance(), this.channel, out.toByteArray());
     }
 
@@ -38,7 +38,7 @@ public class BungeeAddon implements MultiServerManager, PluginMessageListener {
         ByteArrayDataOutput out = ByteStreams.newDataOutput();
         out.writeUTF(text);
 
-        DeluxeAuctions.getInstance().dataHandler.debug("SENT Bungee Message: &f" + text + " &8(%level_color%Multi Server&8)", Logger.LogLevel.INFO);
+        DeluxeAuctions.getInstance().dataHandler.debug("SENT Bungee Message: &f" + text + " &8(%level_color%Multi Server&8)");
         Iterables.getFirst(Bukkit.getOnlinePlayers(), null).sendPluginMessage(DeluxeAuctions.getInstance(), this.channel, out.toByteArray());
         return true;
     }

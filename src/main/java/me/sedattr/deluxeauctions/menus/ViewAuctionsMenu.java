@@ -65,7 +65,7 @@ public class ViewAuctionsMenu {
             if (getTotalPage() > page) {
                 ItemStack nextPage = Utils.createItemFromSection(this.section.getConfigurationSection("next_page"), placeholderUtil);
                 if (nextPage != null) {
-                    this.gui.setItem(this.section.getInt("next_page.slot")-1, ClickableItem.of(nextPage, (event -> {
+                    this.gui.setItem(this.section.getInt("next_page.slot"), ClickableItem.of(nextPage, (event -> {
                         ClickType clickType = event.getClick();
                         if (clickType.equals(ClickType.RIGHT) || clickType.equals(ClickType.SHIFT_RIGHT))
                             open(getTotalPage());
@@ -78,7 +78,7 @@ public class ViewAuctionsMenu {
             if (page > 1) {
                 ItemStack previousPage = Utils.createItemFromSection(this.section.getConfigurationSection("previous_page"), placeholderUtil);
                 if (previousPage != null)
-                    this.gui.setItem(this.section.getInt("previous_page.slot")-1, ClickableItem.of(previousPage, (event -> {
+                    this.gui.setItem(this.section.getInt("previous_page.slot"), ClickableItem.of(previousPage, (event -> {
                         ClickType clickType = event.getClick();
                         if (clickType.equals(ClickType.RIGHT) || clickType.equals(ClickType.SHIFT_RIGHT))
                             open(1);
@@ -123,7 +123,7 @@ public class ViewAuctionsMenu {
             ItemStack itemStack = AuctionHook.getUpdatedAuctionItem(auction);
 
             int slot = i >= slots.size() ? 0 : slots.get(i);
-            this.gui.setItem(slot-1, ClickableItem.of(itemStack, (event) -> {
+            this.gui.setItem(slot, ClickableItem.of(itemStack, (event) -> {
                 if (auction.getAuctionType().equals(AuctionType.BIN))
                     new BinViewMenu(this.player, auction).open(this.target.getUniqueId().toString());
                 else

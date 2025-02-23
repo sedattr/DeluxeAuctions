@@ -14,6 +14,11 @@ import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.*;
 import java.time.ZonedDateTime;
 import java.util.*;
@@ -51,8 +56,9 @@ public class MySQLDatabase implements DatabaseManager {
         double price = set.getDouble(6);
         AuctionType type = AuctionType.valueOf(set.getString(8));
         boolean isClaimed = set.getBoolean(9);
+        String economy = set.getString(10);
 
-        Auction auction = new Auction(uuid, owner, displayName, item, price, type, endTime, isClaimed);
+        Auction auction = new Auction(uuid, owner, displayName, item, price, type, economy, endTime, isClaimed);
         if (auction.getAuctionCategory().isEmpty()) {
             AuctionCache.removeUpdatingAuction(uuid);
             return;
@@ -85,7 +91,7 @@ public class MySQLDatabase implements DatabaseManager {
                 String ownerDisplayName = newArgs[2];
                 double bidPrice = Double.parseDouble(newArgs[3]);
                 long bidTime = Long.parseLong(newArgs[4]);
-                boolean collected = Boolean.parseBoolean(newArgs[5]);
+                boolean collected = !type.equals(AuctionType.NORMAL) || Boolean.parseBoolean(newArgs[5]);
 
                 PlayerBid playerBid = new PlayerBid(orderUUID, ownerUUID, ownerDisplayName, bidPrice, bidTime, collected);
                 playerBids.add(playerBid);
@@ -119,14 +125,14 @@ public class MySQLDatabase implements DatabaseManager {
         this.user = section.getString("user");
         this.password = section.getString("password");
 
-        DeluxeAuctions.getInstance().dataHandler.debug("MySQL is connecting...", Logger.LogLevel.INFO);
+        DeluxeAuctions.getInstance().dataHandler.debug("MySQL is connecting...");
         this.connection = getConnection();
         if (this.connection == null) {
-            DeluxeAuctions.getInstance().dataHandler.debug("MySQL is not connected, changing database type to SQLite!", Logger.LogLevel.WARN);
+            DeluxeAuctions.getInstance().dataHandler.debug("MySQL is not connected, changing database type to SQLite!");
             DeluxeAuctions.getInstance().databaseManager = new SQLiteDatabase();
             return;
         }
-        DeluxeAuctions.getInstance().dataHandler.debug("MySQL is successfully connected!", Logger.LogLevel.INFO);
+        DeluxeAuctions.getInstance().dataHandler.debug("MySQL is successfully connected!");
 
         String prefix = DeluxeAuctions.getInstance().configFile.getString("database.table_prefix", "");
         this.auctions = prefix + "auctions";
@@ -144,7 +150,8 @@ public class MySQLDatabase implements DatabaseManager {
                         "price DOUBLE, " +
                         "end_time INT(11), " +
                         "type TEXT, " +
-                        "claimed BOOL);");
+                        "claimed BOOL, " +
+                        "economy TEXT);");
 
                 PreparedStatement statement2 = connection.prepareStatement("CREATE TABLE IF NOT EXISTS " + this.items + " (" +
                         "uuid VARCHAR(36) PRIMARY KEY, " +
@@ -169,6 +176,24 @@ public class MySQLDatabase implements DatabaseManager {
         } catch (SQLException x) {
             x.printStackTrace();
         }
+
+
+        try (Connection connection = getConnection();
+             PreparedStatement checkColumn = connection.prepareStatement("SHOW COLUMNS FROM " + this.auctions + " LIKE 'economy';");
+             ResultSet resultSet = checkColumn.executeQuery()) {
+
+            if (!resultSet.next()) {
+                try (PreparedStatement addColumn = connection.prepareStatement("ALTER TABLE " + this.auctions + " ADD COLUMN economy TEXT;")) {
+                    addColumn.executeUpdate();
+                    DeluxeAuctions.getInstance().dataHandler.debug("Column 'economy' has been added to " + this.auctions + " table.");
+                }
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        DeluxeAuctions.getInstance().dataHandler.debug("MySQL is connected!");
     }
 
     public Connection getConnection() {
@@ -343,7 +368,7 @@ public class MySQLDatabase implements DatabaseManager {
 
     // SAVE FUNCTIONS
     public void saveAuctions() {
-        String sql = "REPLACE INTO " + this.auctions + " (uuid, owner, display_name, item, bids, price, end_time, type, claimed) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);";
+        String sql = "REPLACE INTO " + this.auctions + " (uuid, owner, display_name, item, bids, price, end_time, type, claimed, economy) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
         runTask(() -> {
             try (PreparedStatement statement = getConnection().prepareStatement(sql)) {
                 int i = 0;
@@ -370,6 +395,7 @@ public class MySQLDatabase implements DatabaseManager {
                     statement.setLong(7, auction.getAuctionEndTime());
                     statement.setString(8, auction.getAuctionType().name());
                     statement.setBoolean(9, auction.isSellerClaimed());
+                    statement.setString(10, auction.getEconomy().getKey());
 
                     statement.execute();
                     i++;
@@ -384,7 +410,7 @@ public class MySQLDatabase implements DatabaseManager {
     }
 
     public void saveAuction(Auction auction) {
-        String sql = "REPLACE INTO " + this.auctions + " (uuid, owner, display_name, item, bids, price, end_time, type, claimed) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "REPLACE INTO " + this.auctions + " (uuid, owner, display_name, item, bids, price, end_time, type, claimed, economy) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         runTask(() -> {
             StringBuilder playerBids = new StringBuilder();
             List<PlayerBid> bids = auction.getAuctionBids().getPlayerBids();
@@ -408,6 +434,7 @@ public class MySQLDatabase implements DatabaseManager {
                 statement.setLong(7, auction.getAuctionEndTime());
                 statement.setString(8, auction.getAuctionType().name());
                 statement.setBoolean(9, auction.isSellerClaimed());
+                statement.setString(10, auction.getEconomy().getKey());
 
                 statement.execute();
 

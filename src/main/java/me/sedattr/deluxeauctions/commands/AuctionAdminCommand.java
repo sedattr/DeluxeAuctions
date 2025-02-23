@@ -10,6 +10,7 @@ import me.sedattr.deluxeauctions.managers.Auction;
 import me.sedattr.deluxeauctions.managers.Category;
 import me.sedattr.deluxeauctions.menus.AuctionsMenu;
 import me.sedattr.deluxeauctions.menus.MainMenu;
+import me.sedattr.deluxeauctions.others.Logger;
 import me.sedattr.deluxeauctions.others.PlaceholderUtil;
 import me.sedattr.deluxeauctions.others.Utils;
 import org.bukkit.Bukkit;
@@ -22,6 +23,7 @@ import org.bukkit.entity.Player;
 
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 public class AuctionAdminCommand implements CommandExecutor, TabCompleter {
     private final HashMap<String, List<String>> args = new HashMap<>();
@@ -73,7 +75,7 @@ public class AuctionAdminCommand implements CommandExecutor, TabCompleter {
                 return false;
             }
 
-            String lowerCaseArg = args[0].toLowerCase();
+            String lowerCaseArg = args[0].toLowerCase(Locale.ENGLISH);
             if (this.args.get("cancel").contains(lowerCaseArg)) {
                 if (!Utils.hasPermission(commandSender, "admin_commands", "cancel")) {
                     Utils.sendMessage(commandSender, "no_permission");
@@ -124,22 +126,47 @@ public class AuctionAdminCommand implements CommandExecutor, TabCompleter {
                 }
 
                 long start = System.currentTimeMillis();
-                String type = args[1].toLowerCase();
-                if (type.equals("auctionmaster") && Bukkit.getPluginManager().isPluginEnabled("AuctionMaster")) {
-                    if (new AuctionMasterConverter().convertAuctions())
-                        Utils.sendMessage(commandSender, "converted", new PlaceholderUtil()
-                                .addPlaceholder("%convert_type%", "AuctionMaster")
-                                .addPlaceholder("%convert_time%", String.valueOf(System.currentTimeMillis()-start)));
-                } else if (type.equalsIgnoreCase("zauctionhouse") && Bukkit.getPluginManager().isPluginEnabled("zAuctionHouseV3")) {
-                    if (new ZAuctionHouseConverter().convertAuctions())
-                        Utils.sendMessage(commandSender, "converted", new PlaceholderUtil()
-                                .addPlaceholder("%convert_type%", "zAuctionHouse")
-                                .addPlaceholder("%convert_time%", String.valueOf(System.currentTimeMillis()-start)));
-                } else {
-                    Utils.sendMessage(commandSender, "admin_convert_usage", placeholderUtil);
-                    return false;
+                String type = args[1].toLowerCase(Locale.ENGLISH);
+
+                if (type.startsWith("auctionmaster")) {
+                    if (!Bukkit.getPluginManager().isPluginEnabled("AuctionMaster")) {
+                        Logger.sendConsoleMessage("AuctionMaster is not enabled!", Logger.LogLevel.ERROR);
+                        return false;
+                    }
+
+                    CompletableFuture<Boolean> status = new AuctionMasterConverter().convertAuctions();
+                    status.thenAccept(value -> {
+                        if (value)
+                            Utils.sendMessage(commandSender, "converted", new PlaceholderUtil()
+                                    .addPlaceholder("%convert_type%", "AuctionMaster")
+                                    .addPlaceholder("%convert_time%", String.valueOf(System.currentTimeMillis()-start)));
+                        else
+                            Logger.sendConsoleMessage("There is a problem in AuctionMaster converter!", Logger.LogLevel.ERROR);
+                    });
+
+                    return true;
                 }
 
+                if (type.startsWith("zauctionhouse")) {
+                    if (!Bukkit.getPluginManager().isPluginEnabled("zAuctionHouseV3")) {
+                        Logger.sendConsoleMessage("zAuctionHouse is not enabled!", Logger.LogLevel.ERROR);
+                        return false;
+                    }
+
+                    CompletableFuture<Boolean> status = new ZAuctionHouseConverter().convertAuctions();
+                    status.thenAccept(value -> {
+                        if (value)
+                            Utils.sendMessage(commandSender, "converted", new PlaceholderUtil()
+                                    .addPlaceholder("%convert_type%", "zAuctionHouse")
+                                    .addPlaceholder("%convert_time%", String.valueOf(System.currentTimeMillis()-start)));
+                        else
+                            Logger.sendConsoleMessage("There is a problem in zAuctionHouse converter!", Logger.LogLevel.ERROR);
+                    });
+
+                    return true;
+                }
+
+                Utils.sendMessage(commandSender, "admin_convert_usage", placeholderUtil);
                 return true;
             }
 

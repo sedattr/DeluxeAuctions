@@ -4,7 +4,6 @@ import me.sedattr.deluxeauctions.DeluxeAuctions;
 import me.sedattr.auctionsapi.cache.AuctionCache;
 import me.sedattr.deluxeauctions.managers.Auction;
 import me.sedattr.deluxeauctions.managers.PlayerBid;
-import me.sedattr.deluxeauctions.others.Logger;
 
 import java.util.UUID;
 
@@ -13,7 +12,7 @@ public enum MessageType {
         @Override
         public void getMessage(String text) {
             DeluxeAuctions.getInstance().reload();
-            DeluxeAuctions.getInstance().dataHandler.debug("RELOAD &8(%level_color%Multi Server&8)", Logger.LogLevel.INFO);
+            DeluxeAuctions.getInstance().dataHandler.debug("RELOAD &8(%level_color%Multi Server&8)");
         }
     },
 
@@ -26,7 +25,7 @@ public enum MessageType {
             UUID uuid = UUID.fromString(text);
             DeluxeAuctions.getInstance().databaseManager.loadStat(uuid);
 
-            DeluxeAuctions.getInstance().dataHandler.debug("UPDATE Stats: &f" + text + " &8(%level_color%Multi Server&8)", Logger.LogLevel.INFO);
+            DeluxeAuctions.getInstance().dataHandler.debug("UPDATE Stats: &f" + text + " &8(%level_color%Multi Server&8)");
         }
     },
 
@@ -42,7 +41,7 @@ public enum MessageType {
             AuctionCache.removeUpdatingAuction(uuid);
             DeluxeAuctions.getInstance().multiServerManager.removeUpdatingAuction(text, "AUCTION_LOAD:" + text);
 
-            DeluxeAuctions.getInstance().dataHandler.debug("LOAD Auction: &f" + text + " &8(%level_color%Multi Server&8)", Logger.LogLevel.INFO);
+            DeluxeAuctions.getInstance().dataHandler.debug("LOAD Auction: &f" + text + " &8(%level_color%Multi Server&8)");
         }
     },
 
@@ -58,7 +57,7 @@ public enum MessageType {
             AuctionCache.removeUpdatingAuction(uuid);
             DeluxeAuctions.getInstance().multiServerManager.removeUpdatingAuction(text, "AUCTION_DELETE:" + text);
 
-            DeluxeAuctions.getInstance().dataHandler.debug("DELETE Auction: &f" + text + " &8(%level_color%Multi Server&8)", Logger.LogLevel.INFO);
+            DeluxeAuctions.getInstance().dataHandler.debug("DELETE Auction: &f" + text + " &8(%level_color%Multi Server&8)");
         }
     },
 
@@ -78,7 +77,7 @@ public enum MessageType {
             AuctionCache.removeUpdatingAuction(uuid);
             DeluxeAuctions.getInstance().multiServerManager.removeUpdatingAuction(text, "AUCTION_SELLER_COLLECTED:" + text);
 
-            DeluxeAuctions.getInstance().dataHandler.debug("SELLER COLLECTED Auction: &f" + text + " &8(%level_color%Multi Server&8)", Logger.LogLevel.INFO);
+            DeluxeAuctions.getInstance().dataHandler.debug("SELLER COLLECTED Auction: &f" + text + " &8(%level_color%Multi Server&8)");
         }
     },
 
@@ -107,7 +106,7 @@ public enum MessageType {
             AuctionCache.removeUpdatingAuction(uuid);
             DeluxeAuctions.getInstance().multiServerManager.removeUpdatingAuction(args[0], "AUCTION_BUYER_COLLECTED:" + text);
 
-            DeluxeAuctions.getInstance().dataHandler.debug("BUYER COLLECTED Auction: &f" + text + " &8(%level_color%Multi Server&8)", Logger.LogLevel.INFO);
+            DeluxeAuctions.getInstance().dataHandler.debug("BUYER COLLECTED Auction: &f" + text + " &8(%level_color%Multi Server&8)");
         }
     },
 
@@ -132,7 +131,7 @@ public enum MessageType {
             AuctionCache.removeUpdatingAuction(uuid);
             DeluxeAuctions.getInstance().multiServerManager.removeUpdatingAuction(args[0], "AUCTION_BOUGHT:" + text);
 
-            DeluxeAuctions.getInstance().dataHandler.debug("BOUGHT Auction: &f" + text + " &8(%level_color%Multi Server&8)", Logger.LogLevel.INFO);
+            DeluxeAuctions.getInstance().dataHandler.debug("BOUGHT Auction: &f" + text + " &8(%level_color%Multi Server&8)");
         }
     },
 
@@ -160,7 +159,7 @@ public enum MessageType {
             AuctionCache.removeUpdatingAuction(uuid);
             DeluxeAuctions.getInstance().multiServerManager.removeUpdatingAuction(args[0], "AUCTION_PLACE_BID:" + text);
 
-            DeluxeAuctions.getInstance().dataHandler.debug("PLACE BID Auction: &f" + text + " &8(%level_color%Multi Server&8)", Logger.LogLevel.INFO);
+            DeluxeAuctions.getInstance().dataHandler.debug("PLACE BID Auction: &f" + text + " &8(%level_color%Multi Server&8)");
         }
     };
 

@@ -8,8 +8,17 @@ import java.io.File;
 import java.io.IOException;
 
 public class YamlEconomy implements EconomyManager {
-    public String replace(OfflinePlayer player, String text) {
+    private final String folder;
+    private final String file;
+    private final String node;
 
+    public YamlEconomy(String folder, String file, String node) {
+        this.folder = folder;
+        this.file = file;
+        this.node = node;
+    }
+
+    public String replace(OfflinePlayer player, String text) {
         String message = DeluxeAuctions.getInstance().configFile.getString(text);
         if (message == null || message.isEmpty())
             return "";

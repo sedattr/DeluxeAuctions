@@ -20,18 +20,24 @@
 # PLUGIN SETTINGS
 settings:
   enable_plugin: true # Plugin can be enabled and disabled
-  enable_debug: false # Useful for debugging database and some systems.
+  enable_debug: true # Useful for debugging database and some systems.
   enable_log: true # Internal logging system, useful for finding exploits and bugs
+  input_type: "sign" # Default input, types: sign, anvil or chat
   # Uncategorized items will be found in this category
   # All items can be sold with this setting
   return_category:
     enabled: true
     category: "miscellaneous"
-  open_menu_directly: false # Auction menu will be opened when the /ah command used with this setting.
+  # This menu will be opened when the /ah command used with this setting.
+  # Types: auctions, main
+  # Delete or make it empty to disable this setting.
+  menu_to_open_directly: ""
   add_time_when_bid: 10 # SECONDS. When new bid is created, time is automatically added to the auction.
   purchase_cooldown: 60 # SECONDS. Once the auction is created, people will be able to purchase it after this period.
   bid_cooldown: 60 # SECONDS. Once the auction is created, people will be able to bid it after this period.
+  default_economy: vault_economy
   default_type: "BIN"
+  default_rarity: "all" # Default auction rarity for sorting.
   default_price: 1000 # Default auction creation price.
   default_duration: 21600 # Default auction creation duration.
   default_category: "weapons" # Default category that is selected when opening /ah menu
@@ -141,22 +147,6 @@ player_limits:
       - deluxeauctions.vip:500000000
       - deluxeauctions.mvip:100000000
 
-# PLUGIN ECONOMY
-economy:
-  type: "vault" # Types: vault, royaleeconomy_balance, royaleeconomy_bank, lands, tokenmanager, playerpoints, ultraeconomy, yaml
-  yaml_settings: # For yaml economy, ignore if you use any of the other economy-types
-    folder_name: "plugins/YAMLEconomy/players" # economy folder that includes players' balance files
-    file_name: "%player_uuid%.yml" # player's balance file name in folder (placeholders: %uuid% & %player%)
-    # player's balance in file
-    # example (you can put . for line)
-    # balance:
-    #   total: 100
-    node_text: "balance.total"
-  ultraeconomy_settings:
-    currency_name: "gold"
-  edprison_settings:
-    currency_name: "tokens"
-
 # PLUGIN DATABASE
 database:
   type: "sqlite" # Database Types: mysql, sqlite.
@@ -169,13 +159,6 @@ database:
 
 # PLUGIN ADDONS
 addons:
-  head_database: false # Set to true if some of your items in the auctions use the HeadDatabase plugin
-  placeholder_api: false # Set to true if you want to integrate/use placeholders for the Auctions
-  eco_items: false # Set to true if you want to use EcoItems items in the auction items
-  ban_manager: false # Set to true if you want to check for player mute while broadcasting auctions
-  lite_bans: false # Set to true if you want to check for player mute while broadcasting auctions
-  advanced_ban: false # Set to true if you want to check for player mute while broadcasting auctions
-  bungeecord: false # Set to true if you want to use bungeecord. You need DeluxeAuctionsBungee plugin.
   discord: # Enable this to use the discord webhook system for sending useful messages.
     enabled: false
     webhook_url: ""
@@ -201,37 +184,55 @@ number_format:
   type: "decimal" # Number format type, types: decimal, short
   decimal_settings: # Example: 10.2
     minimum_fraction: 0
-    maximum_fraction: 2
-    remove_decimal: true
+    maximum_fraction: 1
   short_settings: # Examples: 10k, 25M, 1T
     thousand: "k"
     million: "M"
     billion: "G"
     trillion: "T"
-    quadrillion: "Q"
+    quadrillion: "P"
     quintillion: "E"
+    sextillion: "Z"
+    septillion: "Y"
+    octillion: "R"
+    nonillion: "Q"
+    decillion: "Dc"
+    undecillion: "Ud"
+    duodecillion: "Dd"
+    tredecillion: "Td"
+    quattuordecillion: "Qd"
 
 # TIME FORMAT SETTINGS
 time_format:
   # These texts are used to indicate the duration in the /ah sell command.
   # Example: /ah sell [type] [price] [1w 3days 5minutes/2weeks 3m 5seconds]
   convert_times:
+    months:
+      - mo
+      - month
+      - months
     weeks:
       - w
+      - week
       - weeks
     days:
       - d
+      - day
       - days
     hours:
       - h
+      - hour
       - hours
     minutes:
       - m
+      - minute
       - minutes
     seconds:
       - s
+      - second
       - seconds
   auction_times:
+    months: "mo"
     weeks: "w"
     days: "d"
     hours: "h"
@@ -239,6 +240,7 @@ time_format:
     seconds: "s"
     ending: "ENDING"
   other_times:
+    months: " months"
     weeks: " weeks"
     days: " days"
     hours: " hours"
@@ -248,6 +250,9 @@ time_format:
 
 # PLUGIN PERMISSIONS
 permissions:
+  bypass: # this will bypass the auction create confirmation
+    enabled: false
+    permission: "deluxeauctions.bypass"
   item:
     enabled: false
     permission: "deluxeauctions.item.%item_name%"
@@ -367,4 +372,4 @@ sounds:
     pitch: 0.6
 
 # DON'T CHANGE THIS MANUALLY
-file_versions: 1.1
+file_versions: 1.2

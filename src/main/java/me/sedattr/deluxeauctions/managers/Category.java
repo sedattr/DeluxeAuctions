@@ -3,7 +3,6 @@ package me.sedattr.deluxeauctions.managers;
 import lombok.Getter;
 import lombok.Setter;
 import me.sedattr.deluxeauctions.DeluxeAuctions;
-import me.sedattr.deluxeauctions.others.Logger;
 import me.sedattr.deluxeauctions.others.MaterialHelper;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -53,7 +52,7 @@ public class Category {
 
         Material mat = MaterialHelper.getMaterial(material);
         if (mat == null)
-            DeluxeAuctions.getInstance().dataHandler.debug(material + " %level_color%is wrong material in main menu!", Logger.LogLevel.WARN);
+            DeluxeAuctions.getInstance().dataHandler.debug(material + " %level_color%is wrong material in main menu!");
         else {
             this.glass.setType(mat);
             this.glass.setDurability((short) glassSection.getInt("data"));

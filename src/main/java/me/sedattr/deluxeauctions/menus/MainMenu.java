@@ -49,8 +49,7 @@ public class MainMenu {
         if (item == null)
             return;
 
-        int slot = itemSection.getInt("slot");
-        this.gui.setItem(slot-1, ClickableItem.of(item, (event) -> new StatsMenu(this.player).open()));
+        this.gui.setItem(itemSection, ClickableItem.of(item, (event) -> new StatsMenu(this.player).open()));
     }
 
     private void loadManageItem() {
@@ -99,8 +98,7 @@ public class MainMenu {
             Utils.changeLore(item, lore, placeholderUtil);
         }
 
-        int slot = itemSection.getInt("slot");
-        this.gui.setItem(slot-1, ClickableItem.of(item, (event) -> new ManageMenu(this.player).open(1)));
+        this.gui.setItem(itemSection, ClickableItem.of(item, (event) -> new ManageMenu(this.player).open(1)));
     }
 
     private void loadBidsItem() {
@@ -162,8 +160,7 @@ public class MainMenu {
             Utils.changeLore(item, lore, placeholderUtil);
         }
 
-        int slot = itemSection.getInt("slot");
-        this.gui.setItem(slot-1, ClickableItem.of(item, (event) -> new BidsMenu(this.player).open(1)));
+        this.gui.setItem(itemSection, ClickableItem.of(item, (event) -> new BidsMenu(this.player).open(1)));
     }
 
     private void loadCreateAuctionItem() {
@@ -175,8 +172,7 @@ public class MainMenu {
         if (item == null)
             return;
 
-        int slot = itemSection.getInt("slot");
-        this.gui.setItem(slot-1, ClickableItem.of(item, (event) -> new CreateMenu(this.player).open("main")));
+        this.gui.setItem(itemSection, ClickableItem.of(item, (event) -> new CreateMenu(this.player).open("main")));
     }
 
     private void loadAuctionsBrowserItem() {
@@ -188,7 +184,6 @@ public class MainMenu {
         if (item == null)
             return;
 
-        int slot = itemSection.getInt("slot");
-        this.gui.setItem(slot-1, ClickableItem.of(item, (event) -> new AuctionsMenu(this.player).open(this.playerAuction.getCategory().getName(), 1)));
+        this.gui.setItem(itemSection, ClickableItem.of(item, (event) -> new AuctionsMenu(this.player).open(this.playerAuction.getCategory().getName(), 1)));
     }
 }

@@ -48,7 +48,7 @@ public class ConfirmMenu {
         int goBackSlot = this.section.getInt("back");
         ItemStack goBackItem = DeluxeAuctions.getInstance().normalItems.get("go_back");
         if (goBackSlot > 0 && goBackItem != null)
-            gui.setItem(goBackSlot-1, ClickableItem.of(goBackItem, (event) -> {
+            gui.setItem(goBackSlot, ClickableItem.of(goBackItem, (event) -> {
                 switch (type) {
                     case "confirm_purchase" -> new BinViewMenu(this.player, this.auction).open("auctions");
                     case "confirm_auction" -> new CreateMenu(this.player).open("main");
@@ -61,7 +61,7 @@ public class ConfirmMenu {
         ConfigurationSection cancelSection = this.section.getConfigurationSection("cancel");
         ItemStack cancel = Utils.createItemFromSection(cancelSection, null);
         if (cancel != null)
-            gui.setItem(cancelSection.getInt("slot")-1, ClickableItem.of(cancel, (event) -> {
+            gui.setItem(cancelSection.getInt("slot"), ClickableItem.of(cancel, (event) -> {
                 switch (type) {
                     case "confirm_purchase" -> {
                         if (auction.getAuctionType().equals(AuctionType.BIN))
@@ -81,33 +81,33 @@ public class ConfirmMenu {
             case "confirm_auction" -> {
                 ItemStack createItem = PlayerCache.getItem(this.player.getUniqueId());
                 if (this.section.getInt("example_item") > 0)
-                    this.gui.setItem(this.section.getInt("example_item")-1, ClickableItem.empty(createItem.clone()));
+                    this.gui.setItem(this.section.getInt("example_item"), ClickableItem.empty(createItem.clone()));
 
                 placeholderUtil
-                        .addPlaceholder("%auction_fee%", DeluxeAuctions.getInstance().numberFormat.format(this.price))
+                        .addPlaceholder("%auction_fee%", this.playerAuction.getCreateEconomy().getText().replace("%price%", DeluxeAuctions.getInstance().numberFormat.format(this.price)))
                         .addPlaceholder("%item_displayname%", Utils.getDisplayName(createItem));
             }
             case "confirm_purchase" -> {
                 if (this.section.getInt("example_item") > 0)
-                    this.gui.setItem(this.section.getInt("example_item")-1, ClickableItem.empty(auction.getAuctionItem().clone()));
+                    this.gui.setItem(this.section.getInt("example_item"), ClickableItem.empty(auction.getAuctionItem().clone()));
 
                 placeholderUtil
-                        .addPlaceholder("%auction_price%", DeluxeAuctions.getInstance().numberFormat.format(auction.getAuctionPrice()))
+                        .addPlaceholder("%auction_price%", auction.getEconomy().getText().replace("%price%", DeluxeAuctions.getInstance().numberFormat.format(auction.getAuctionPrice())))
                         .addPlaceholder("%item_displayname%", Utils.getDisplayName(auction.getAuctionItem()));
             }
             case "confirm_bid" -> {
                 if (this.section.getInt("example_item") > 0)
-                    this.gui.setItem(this.section.getInt("example_item")-1, ClickableItem.empty(auction.getAuctionItem().clone()));
+                    this.gui.setItem(this.section.getInt("example_item"), ClickableItem.empty(auction.getAuctionItem().clone()));
 
                 placeholderUtil
-                        .addPlaceholder("%bid_price%", DeluxeAuctions.getInstance().numberFormat.format(this.price))
+                        .addPlaceholder("%bid_price%", auction.getEconomy().getText().replace("%price%", DeluxeAuctions.getInstance().numberFormat.format(this.price)))
                         .addPlaceholder("%item_displayname%", Utils.getDisplayName(auction.getAuctionItem()));
             }
         }
         ItemStack confirm = Utils.createItemFromSection(confirmSection, placeholderUtil);
 
         if (confirm != null)
-            gui.setItem(confirmSection.getInt("slot")-1, ClickableItem.of(confirm, (event) -> {
+            gui.setItem(confirmSection.getInt("slot"), ClickableItem.of(confirm, (event) -> {
                 ItemStack createItem = PlayerCache.getItem(this.player.getUniqueId());
                 placeholderUtil
                         .addPlaceholder("%auction_type%", playerAuction.getCreateType().name())
@@ -124,10 +124,12 @@ public class ConfirmMenu {
                         }
 
                         AuctionType createType = playerAuction.getCreateType();
-                        Auction newAuction = new Auction(createItem, playerAuction.getCreatePrice(), createType, playerAuction.getCreateTime());
+                        String type = playerAuction.getCreateType().equals(AuctionType.BIN) ? "bin" : "normal";
+
+                        Auction newAuction = new Auction(createItem, playerAuction.getCreateEconomy(), playerAuction.getCreatePrice(), createType, playerAuction.getCreateTime());
                         if (newAuction.create(this.player, this.price)) {
-                            Utils.sendMessage(this.player, "created_" + playerAuction.getCreateType().name().toLowerCase() + "_auction", placeholderUtil);
-                            Utils.broadcastMessage(this.player, playerAuction.getCreateType().name().toLowerCase() + "_auction_broadcast", placeholderUtil
+                            Utils.sendMessage(this.player, "created_" + type + "_auction", placeholderUtil);
+                            Utils.broadcastMessage(this.player, type + "_auction_broadcast", placeholderUtil
                                     .addPlaceholder("%player_displayname%", this.player.getDisplayName())
                                     .addPlaceholder("%auction_uuid%", String.valueOf(newAuction.getAuctionUUID())));
 
@@ -187,7 +189,7 @@ public class ConfirmMenu {
                                     continue;
 
                                 Utils.broadcastMessage(offlinePlayer.getPlayer(), "outbid", placeholderUtil
-                                        .addPlaceholder("%outbid_price%", DeluxeAuctions.getInstance().numberFormat.format(this.price-playerBid.getBidPrice())));
+                                        .addPlaceholder("%outbid_price%", auction.getEconomy().getText().replace("%price%", DeluxeAuctions.getInstance().numberFormat.format(this.price-playerBid.getBidPrice()))));
                             }
 
                             Player seller = Bukkit.getPlayer(this.auction.getAuctionOwner());

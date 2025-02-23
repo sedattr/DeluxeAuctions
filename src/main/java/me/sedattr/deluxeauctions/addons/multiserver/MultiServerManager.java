@@ -1,7 +1,6 @@
 package me.sedattr.deluxeauctions.addons.multiserver;
 
 import me.sedattr.deluxeauctions.DeluxeAuctions;
-import me.sedattr.deluxeauctions.others.Logger;
 
 import java.util.UUID;
 
@@ -30,7 +29,7 @@ public interface MultiServerManager {
         String type = args[0];
         MessageType messageType = MessageType.valueOf(type);
 
-        DeluxeAuctions.getInstance().dataHandler.debug("Handling Message: &f" + text + " &8(%level_color%Multi Server&8)", Logger.LogLevel.WARN);
+        DeluxeAuctions.getInstance().dataHandler.debug("Handling Message: &f" + text + " &8(%level_color%Multi Server&8)");
         messageType.getMessage(args.length > 1 ? args[1] : "");
     }
 }

@@ -64,9 +64,10 @@ public class CategoryCache {
 
         String type = customItem.getType();
         List<String> lore = customItem.getLore();
+
         if (!lore.isEmpty()) {
             List<String> itemLore = Utils.getLore(itemStack);
-            if (itemLore == null || itemLore.isEmpty())
+            if (itemLore.isEmpty())
                 return false;
 
             if (type.equalsIgnoreCase("contains_lore"))
@@ -76,13 +77,15 @@ public class CategoryCache {
         }
 
         String material = customItem.getMaterial();
-        if (!material.isEmpty() && !material.equals(itemStack.getType().name()))
+        if (material != null && !material.isEmpty() && !material.equals(itemStack.getType().name()))
             return false;
 
         String name = customItem.getName();
-        if (!name.isEmpty()) {
+        if (name != null && !name.isEmpty()) {
+            name = Utils.colorize(name);
+
             String itemName = Utils.getDisplayName(itemStack);
-            if (itemName == null || itemName.isEmpty())
+            if (itemName.isEmpty())
                 return false;
 
             if (type.equalsIgnoreCase("contains_name"))
@@ -113,6 +116,7 @@ public class CategoryCache {
         if (itemStack == null)
             return "";
 
+        String custom = "";
         for (Category category : categories.values()) {
             List<String> items = category.getItems();
             for (String item : items) {
@@ -120,41 +124,62 @@ public class CategoryCache {
                     return category.getName();
 
                 String displayName = Utils.getDisplayName(itemStack);
-                if (displayName != null && displayName.equals(item))
-                    return category.getName();
+                if (!displayName.isEmpty() && displayName.equals(item)) {
+                    custom = category.getName();
+                    continue;
+                }
 
-                if (itemStack.getType().name().equals(item))
-                    return category.getName();
+                if (itemStack.getType().name().equals(item)) {
+                    custom = category.getName();
+                    continue;
+                }
 
                 if (item.equalsIgnoreCase("all_spawn_eggs"))
-                    if (itemStack.getType().name().endsWith("SPAWN_EGG"))
-                        return category.getName();
+                    if (itemStack.getType().name().endsWith("SPAWN_EGG")) {
+                        custom = category.getName();
+                        continue;
+                    }
 
                 if (item.equalsIgnoreCase("all_ingots"))
-                    if (itemStack.getType().name().endsWith("INGOT"))
-                        return category.getName();
+                    if (itemStack.getType().name().endsWith("INGOT")) {
+                        custom = category.getName();
+                        continue;
+                    }
 
                 if (item.equalsIgnoreCase("all_nuggets"))
-                    if (itemStack.getType().name().endsWith("NUGGET"))
-                        return category.getName();
+                    if (itemStack.getType().name().endsWith("NUGGET")) {
+                        custom = category.getName();
+                        continue;
+                    }
 
                 if (item.equalsIgnoreCase("all_templates"))
-                    if (itemStack.getType().name().endsWith("TEMPLATE"))
-                        return category.getName();
+                    if (itemStack.getType().name().endsWith("TEMPLATE")) {
+                        custom = category.getName();
+                        continue;
+                    }
 
                 if (item.equalsIgnoreCase("all_dyes"))
-                    if (itemStack.getType().name().endsWith("DYE"))
-                        return category.getName();
+                    if (itemStack.getType().name().endsWith("DYE")) {
+                        custom = category.getName();
+                        continue;
+                    }
 
                 if (item.equalsIgnoreCase("all_blocks"))
-                    if (itemStack.getType().isBlock())
-                        return category.getName();
+                    if (itemStack.getType().isBlock()) {
+                        custom = category.getName();
+                        continue;
+                    }
 
                 if (item.equalsIgnoreCase("all_consumables"))
-                    if (itemStack.getType().isEdible())
-                        return category.getName();
+                    if (itemStack.getType().isEdible()) {
+                        custom = category.getName();
+                        continue;
+                    }
             }
         }
+
+        if (!custom.isEmpty())
+            return custom;
 
         String returnCategory = DeluxeAuctions.getInstance().returnCategory;
         if (!returnCategory.isEmpty())

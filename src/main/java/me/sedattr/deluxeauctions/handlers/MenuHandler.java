@@ -30,19 +30,15 @@ public class MenuHandler {
             return;
 
         for (String key : keys) {
-            int slot = section.getInt(key + ".slot");
-            if (slot <= 0)
-                continue;
-
             ItemStack item = Utils.createItemFromSection(section.getConfigurationSection(key), null);
             if (item == null)
                 continue;
 
             List<String> commands = section.getStringList(key + ".commands");
             if (commands.isEmpty())
-                gui.setItem(slot-1, ClickableItem.empty(item));
+                gui.setItem(section, ClickableItem.empty(item));
             else
-                gui.setItem(slot-1, ClickableItem.of(item, (event) -> {
+                gui.setItem(section, ClickableItem.of(item, (event) -> {
                     for (String command : commands) {
                         command = command
                                 .replace("%player_displayname%", player.getDisplayName())
@@ -68,7 +64,7 @@ public class MenuHandler {
         int closeSlot = section.getInt("close");
         ItemStack close = DeluxeAuctions.getInstance().normalItems.get("close");
         if (closeSlot > 0 && close != null)
-            gui.setItem(closeSlot-1, ClickableItem.of(close, (event) -> player.closeInventory()));
+            gui.setItem(closeSlot, ClickableItem.of(close, (event) -> player.closeInventory()));
 
         List<Integer> glassSlots = section.getIntegerList("glass");
         ItemStack glass = category != null ? category.getGlass() : DeluxeAuctions.getInstance().normalItems.get("glass");
@@ -77,7 +73,7 @@ public class MenuHandler {
         glass = glass.clone();
 
         for (int i : glassSlots)
-            gui.setItem(i-1, ClickableItem.empty(glass));
+            gui.setItem(i, ClickableItem.empty(glass));
     }
     public void addNormalItems(Player player, HInventory gui, ConfigurationSection section) {
         List<Integer> glassSlots = section.getIntegerList("glass");
@@ -88,12 +84,12 @@ public class MenuHandler {
 
         if (!glassSlots.isEmpty())
             for (int i : glassSlots)
-                gui.setItem(i-1, ClickableItem.empty(glass));
+                gui.setItem(i, ClickableItem.empty(glass));
 
         int closeSlot = section.getInt("close");
         ItemStack close = DeluxeAuctions.getInstance().normalItems.get("close");
         if (closeSlot > 0 && close != null)
-            gui.setItem(closeSlot-1, ClickableItem.of(close, (event) -> player.closeInventory()));
+            gui.setItem(closeSlot, ClickableItem.of(close, (event) -> player.closeInventory()));
     }
 
     public HInventory createInventory(Player player, ConfigurationSection section, String type, PlaceholderUtil placeholderUtil) {

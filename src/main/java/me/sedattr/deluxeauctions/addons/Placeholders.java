@@ -33,12 +33,12 @@ public class Placeholders extends PlaceholderExpansion {
 
         // %auction_bin_auctions%
         if (identifier.contains("bin_auctions")) {
-            return String.valueOf(AuctionCache.getFilteredAuctions(AuctionType.BIN, null, null).size());
+            return String.valueOf(AuctionCache.getFilteredAuctions(AuctionType.BIN, null, null, null).size());
         }
 
         // %auction_normal_auctions%
         if (identifier.startsWith("normal_auctions")) {
-            return String.valueOf(AuctionCache.getFilteredAuctions(AuctionType.NORMAL, null, null).size());
+            return String.valueOf(AuctionCache.getFilteredAuctions(AuctionType.NORMAL, null, null, null).size());
         }
 
         // %auction_bid_auctions%
@@ -46,6 +46,7 @@ public class Placeholders extends PlaceholderExpansion {
             return String.valueOf(AuctionCache.getBidAuctions(player.getUniqueId()).size());
         }
 
+        /*
         // %auction_balance_formatted%
         if (identifier.contains("balance_formatted")) {
             return DeluxeAuctions.getInstance().numberFormat.format(DeluxeAuctions.getInstance().economyManager.getBalance(player));
@@ -55,6 +56,7 @@ public class Placeholders extends PlaceholderExpansion {
         if (identifier.contains("balance")) {
             return String.valueOf(DeluxeAuctions.getInstance().economyManager.getBalance(player));
         }
+         */
 
         String[] args = identifier.split("[_]", 3);
         if (args.length < 2)
@@ -66,7 +68,7 @@ public class Placeholders extends PlaceholderExpansion {
             if (category == null)
                 return "0";
 
-            return String.valueOf(AuctionCache.getFilteredAuctions(AuctionType.ALL, CategoryCache.getCategories().get(category), null).size());
+            return String.valueOf(AuctionCache.getFilteredAuctions(AuctionType.ALL, null, CategoryCache.getCategories().get(category), null).size());
         }
 
         return "";

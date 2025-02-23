@@ -2,6 +2,7 @@ package me.sedattr.auctionsapi.cache;
 
 import com.google.common.collect.Maps;
 import lombok.Getter;
+import me.sedattr.deluxeauctions.DeluxeAuctions;
 import me.sedattr.deluxeauctions.managers.*;
 import me.sedattr.deluxeauctions.others.Utils;
 import org.bukkit.inventory.ItemStack;
@@ -65,7 +66,7 @@ public class AuctionCache {
         }).toList();
     }
 
-    public static List<Auction> getFilteredAuctions(AuctionType type, Category category, String search) {
+    public static List<Auction> getFilteredAuctions(AuctionType type, String rarity, Category category, String search) {
         if (auctions.isEmpty())
             return Collections.emptyList();
 
@@ -83,10 +84,26 @@ public class AuctionCache {
                 if (!auction.getAuctionCategory().equals(category.getName()))
                     return;
 
-            if (search != null && !search.isEmpty()) {
-                String lowerCaseSearch = search.toLowerCase();
+            ItemMeta meta = itemStack.getItemMeta();
+            if (rarity != null && !rarity.isEmpty()) {
+                String line = DeluxeAuctions.getInstance().menusFile.getString("auctions_menu.rarity_sorter.types." + rarity);
+                if (line != null && !line.isEmpty()) {
+                    line = Utils.colorize(line);
 
-                ItemMeta meta = itemStack.getItemMeta();
+                    List<String> lore = meta.getLore();
+                    if (lore == null || lore.isEmpty())
+                        return;
+
+                    if (lore.contains(line))
+                        result.add(auction);
+
+                    return;
+                }
+            }
+
+            if (search != null && !search.isEmpty()) {
+                String lowerCaseSearch = search.toLowerCase(Locale.ENGLISH);
+
                 if (meta instanceof EnchantmentStorageMeta) {
                     if (EnchantCache.isEnchantmentAdded(((EnchantmentStorageMeta) meta).getStoredEnchants(), lowerCaseSearch)) {
                         result.add(auction);
@@ -101,7 +118,7 @@ public class AuctionCache {
 
                 if (meta != null) {
                     if (meta.getDisplayName() != null) {
-                        if (Utils.strip(meta.getDisplayName().toLowerCase()).contains(lowerCaseSearch)) {
+                        if (Utils.strip(meta.getDisplayName().toLowerCase(Locale.ENGLISH)).contains(lowerCaseSearch)) {
                             result.add(auction);
                             return;
                         }
@@ -120,7 +137,7 @@ public class AuctionCache {
                     */
                 }
 
-                if (itemStack.getType().name().replace("_", " ").toLowerCase().contains(lowerCaseSearch))
+                if (itemStack.getType().name().replace("_", " ").toLowerCase(Locale.ENGLISH).contains(lowerCaseSearch))
                     result.add(auction);
 
                 return;

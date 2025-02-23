@@ -49,7 +49,7 @@ public class BidsMenu {
         int goBackSlot = this.section.getInt("back");
         ItemStack goBackItem = DeluxeAuctions.getInstance().normalItems.get("go_back");
         if (goBackSlot > 0 && goBackItem != null)
-            gui.setItem(goBackSlot-1, ClickableItem.of(goBackItem, (event) -> new MainMenu(this.player).open()));
+            gui.setItem(goBackSlot, ClickableItem.of(goBackItem, (event) -> new MainMenu(this.player).open()));
 
         loadClaimAll();
         loadBids();
@@ -58,7 +58,7 @@ public class BidsMenu {
             if (this.totalPage > page) {
                 ItemStack nextPage = Utils.createItemFromSection(this.section.getConfigurationSection("next_page"), placeholderUtil);
                 if (nextPage != null) {
-                    this.gui.setItem(this.section.getInt("next_page.slot")-1, ClickableItem.of(nextPage, (event -> {
+                    this.gui.setItem(this.section.getInt("next_page.slot"), ClickableItem.of(nextPage, (event -> {
                         ClickType clickType = event.getClick();
                         if (clickType.equals(ClickType.RIGHT) || clickType.equals(ClickType.SHIFT_RIGHT))
                             open(this.totalPage);
@@ -71,7 +71,7 @@ public class BidsMenu {
             if (page > 1) {
                 ItemStack previousPage = Utils.createItemFromSection(this.section.getConfigurationSection("previous_page"), placeholderUtil);
                 if (previousPage != null)
-                    this.gui.setItem(this.section.getInt("previous_page.slot")-1, ClickableItem.of(previousPage, (event -> {
+                    this.gui.setItem(this.section.getInt("previous_page.slot"), ClickableItem.of(previousPage, (event -> {
                         ClickType clickType = event.getClick();
                         if (clickType.equals(ClickType.RIGHT) || clickType.equals(ClickType.SHIFT_RIGHT))
                             open(1);
@@ -118,7 +118,7 @@ public class BidsMenu {
                 continue;
 
             int slot = i >= slots.size() ? 0 : slots.get(i);
-            this.gui.setItem(slot-1, ClickableItem.of(itemStack, (event) -> {
+            this.gui.setItem(slot, ClickableItem.of(itemStack, (event) -> {
                 if (auction.getAuctionType().equals(AuctionType.BIN))
                     new BinViewMenu(this.player, auction).open("bids");
                 else
@@ -155,7 +155,7 @@ public class BidsMenu {
             if (itemStack == null)
                 return;
 
-            this.gui.setItem(claimSection.getInt("slot")-1, ClickableItem.empty(itemStack));
+            this.gui.setItem(claimSection.getInt("slot"), ClickableItem.empty(itemStack));
         } else {
             ConfigurationSection claimSection = itemSection.getConfigurationSection("with_claimable");
             PlaceholderUtil placeholderUtil = new PlaceholderUtil()
@@ -166,7 +166,7 @@ public class BidsMenu {
             if (itemStack == null)
                 return;
 
-            this.gui.setItem(claimSection.getInt("slot")-1, ClickableItem.of(itemStack, (event) -> {
+            this.gui.setItem(claimSection.getInt("slot"), ClickableItem.of(itemStack, (event) -> {
                 this.player.closeInventory();
                 this.playerAuction.collectBids(this.player);
             }));

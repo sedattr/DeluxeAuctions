@@ -1,7 +1,7 @@
 package me.sedattr.deluxeauctions.addons;
 
-import com.willfp.eco.core.items.Items;
-import com.willfp.eco.core.items.TestableItem;
+import com.willfp.ecoitems.items.EcoItem;
+import com.willfp.ecoitems.items.EcoItems;
 import org.bukkit.inventory.ItemStack;
 
 public class EcoItemsAddon {
@@ -9,7 +9,10 @@ public class EcoItemsAddon {
         if (name == null || name.isEmpty())
             return null;
 
-        TestableItem item = Items.lookup(name);
-        return item.getItem();
+        EcoItem item = EcoItems.INSTANCE.getByID(name);
+        if (item == null)
+            return null;
+
+        return item.getItemStack();
     }
 }

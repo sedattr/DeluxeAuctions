@@ -29,11 +29,13 @@ public class Auction {
     private UUID auctionOwner;
     private String auctionOwnerDisplayName;
     @Setter private boolean sellerClaimed = false;
+    private final Economy economy;
 
     private long auctionStartTime = 0;
 
-    public Auction(ItemStack item, Double price, AuctionType type, long time) {
+    public Auction(ItemStack item, Economy economy, Double price, AuctionType type, long time) {
         this.auctionUUID = UUID.randomUUID();
+        this.economy = economy;
         this.auctionPrice = price;
         this.auctionItem = item;
         this.auctionType = type;
@@ -42,23 +44,28 @@ public class Auction {
         this.auctionCategory = CategoryCache.getItemCategory(item);
     }
 
-    public Auction(UUID uuid, UUID owner, String displayName, ItemStack item, Double price, AuctionType type, long end, boolean sellerClaimed) {
+    public Auction(UUID uuid, UUID owner, String displayName, ItemStack item, Double price, AuctionType type, String economy, long end, boolean sellerClaimed) {
         this.auctionUUID = uuid;
         this.auctionPrice = price;
-        this.auctionItem = item;
+        this.auctionItem = item;    
         this.auctionType = type;
         this.auctionEndTime = end;
         this.auctionOwnerDisplayName = displayName;
         this.auctionOwner = owner;
         this.sellerClaimed = sellerClaimed;
         this.auctionCategory = CategoryCache.getItemCategory(item);
+
+        if (economy == null || economy.isEmpty())
+            this.economy = DeluxeAuctions.getInstance().createEconomy;
+        else
+            this.economy = DeluxeAuctions.getInstance().economies.getOrDefault(economy, DeluxeAuctions.getInstance().createEconomy);
     }
 
     public boolean create(Player player, double totalFee) {
         if (this.auctionCategory.isEmpty())
             return false;
 
-        double balance = DeluxeAuctions.getInstance().economyManager.getBalance(player);
+        double balance = this.economy.getManager().getBalance(player);
         if (balance < totalFee) {
             Utils.playSound(player, "not_enough_money");
             Utils.sendMessage(player, "not_enough_money", new PlaceholderUtil()
@@ -77,10 +84,11 @@ public class Auction {
         AuctionCache.addUpdatingAuction(this.auctionUUID);
 
         AuctionCache.addAuction(this);
-        DeluxeAuctions.getInstance().economyManager.removeBalance(player, totalFee);
+        this.economy.getManager().removeBalance(player, totalFee);
 
         PlayerPreferences playerPreferences = PlayerCache.getPreferences(this.auctionOwner);
         playerPreferences.updateCreate(null);
+        playerPreferences.setCreateEconomy(DeluxeAuctions.getInstance().createEconomy);
         playerPreferences.setCreatePrice(DeluxeAuctions.getInstance().createPrice);
         playerPreferences.setCreateTime(DeluxeAuctions.getInstance().createTime);
 
@@ -89,6 +97,8 @@ public class Auction {
         stats.addTotalFees(totalFee);
 
         DeluxeAuctions.getInstance().dataHandler.writeToLog("[PLAYER CREATED AUCTION] " + player.getName() + " (" + player.getUniqueId() + ") created " + this.auctionType + " auction for " + Utils.getDisplayName(this.auctionItem) + " (" + this.auctionUUID + ") auction!");
+        DeluxeAuctions.getInstance().dataHandler.debug("Player (" + player.getUniqueId() + ") created auction (" + this.auctionUUID + ") for " + this.auctionItem.getType().name() + "!");
+
         DeluxeAuctions.getInstance().databaseManager.saveAuction(this);
         DeluxeAuctions.getInstance().databaseManager.saveStats(stats);
         return true;
@@ -166,6 +176,7 @@ public class Auction {
 
         // Log
         DeluxeAuctions.getInstance().dataHandler.writeToLog("[PLAYER CANCELLED AUCTION] " + player.getName() + " (" + player.getUniqueId() + ") cancelled " + Utils.getDisplayName(this.auctionItem) + " (" + this.auctionUUID + ") auction!");
+        DeluxeAuctions.getInstance().dataHandler.debug("Player (" + player.getUniqueId() + ") cancelled auction (" + this.auctionUUID + ") for " + this.auctionItem.getType().name() + "!");
 
         // Stats
         PlayerStats stats = PlayerCache.getStats(player.getUniqueId());
@@ -181,29 +192,41 @@ public class Auction {
     }
 
     public boolean placeBid(Player player, double price) {
-        if (AuctionCache.getAuction(this.auctionUUID) == null)
+        if (AuctionCache.getAuction(this.auctionUUID) == null) {
+            DeluxeAuctions.getInstance().dataHandler.debug("Auction (" + this.auctionUUID + ") is not found in the auction list, it can't be sold again!");
             return false;
+        }
 
         // Check if auction is already ended
-        if (isEnded())
+        if (isEnded()) {
+            DeluxeAuctions.getInstance().dataHandler.debug("Auction (" + this.auctionUUID + ") is already ended, it can't be sold again!");
             return false;
+        }
 
         // Check if seller is claimed
-        if (this.isSellerClaimed())
+        if (this.isSellerClaimed()) {
+            DeluxeAuctions.getInstance().dataHandler.debug("Auction (" + this.auctionUUID + ") is already claimed by the seller, it can't be sold again!");
             return false;
+        }
 
         // Check if auction type is not normal
-        if (this.auctionType != AuctionType.NORMAL)
+        if (!this.auctionType.equals(AuctionType.NORMAL)) {
+            DeluxeAuctions.getInstance().dataHandler.debug("Auction (" + this.auctionUUID + ") type is not NORMAL, it can't be sold with bid method!");
             return false;
+        }
 
         // Check if player's balance is not enough
-        if (DeluxeAuctions.getInstance().economyManager.getBalance(player) < price)
+        if (this.economy.getManager().getBalance(player) < price) {
+            DeluxeAuctions.getInstance().dataHandler.debug("Player (" + player.getUniqueId() + ") does not enough have money for auction (" + this.auctionUUID + ")!");
             return false;
+        }
 
         // Check if auction is new
-        if (this.auctionStartTime > 0) {
+        long time = DeluxeAuctions.getInstance().configFile.getLong("settings.bid_cooldown", 0);
+        if (time > 0 && this.auctionStartTime > 0) {
             long difference = ZonedDateTime.now().toInstant().getEpochSecond() - this.auctionStartTime;
-            if (difference < DeluxeAuctions.getInstance().configFile.getLong("settings.bid_cooldown", 60)) {
+            if (difference < time) {
+                DeluxeAuctions.getInstance().dataHandler.debug("Player (" + player.getUniqueId() + ") is trying to bid new auction (" + this.auctionUUID + "), bid is still on cooldown!");
                 Utils.sendMessage(player, "bid_cooldown", new PlaceholderUtil()
                         .addPlaceholder("%seconds_left%", String.valueOf(difference)));
                 return false;
@@ -212,18 +235,21 @@ public class Auction {
 
         // Check if player is laggy
         if (Utils.isLaggy(player)) {
+            DeluxeAuctions.getInstance().dataHandler.debug("Player (" + player.getUniqueId() + ") is laggy to bid auction (" + this.auctionUUID + ")!");
             Utils.sendMessage(player, "laggy");
             return false;
         }
 
         // Check if auction is updating in multi-server system
         if (AuctionCache.isAuctionUpdating(this.auctionUUID)) {
+            DeluxeAuctions.getInstance().dataHandler.debug("Player (" + player.getUniqueId() + ") is trying to bid refreshing auction (" + this.auctionUUID + ")!");
             Utils.sendMessage(player, "refreshing");
             return false;
         }
 
         // Check if auction is updating in multi-server system
         if (DeluxeAuctions.getInstance().multiServerManager != null && DeluxeAuctions.getInstance().multiServerManager.isAuctionUpdating(this.auctionUUID)) {
+            DeluxeAuctions.getInstance().dataHandler.debug("Player (" + player.getUniqueId() + ") is trying to bid refreshing auction (" + this.auctionUUID + ")!");
             Utils.sendMessage(player, "refreshing");
             return false;
         }
@@ -236,10 +262,12 @@ public class Auction {
 
         // Multi server system
         if (DeluxeAuctions.getInstance().multiServerManager != null && ! DeluxeAuctions.getInstance().multiServerManager.playerPlaceBidAuction(this.auctionUUID, player.getUniqueId(), price)) {
+            DeluxeAuctions.getInstance().dataHandler.debug("Player (" + player.getUniqueId() + ") is trying to bid refreshing auction (" + this.auctionUUID + ")!");
             Utils.sendMessage(player, "refreshing");
             return false;
         }
 
+        DeluxeAuctions.getInstance().dataHandler.debug("Player (" + player.getUniqueId() + ") is bid to auction (" + this.auctionUUID + ")!");
         AuctionCache.addUpdatingAuction(this.auctionUUID);
 
         // Add Time
@@ -249,13 +277,13 @@ public class Auction {
         DeluxeAuctions.getInstance().dataHandler.writeToLog("[PLAYER BID AUCTION] " + player.getName() + " (" + player.getUniqueId() + ") bid " + price + " COINS for " + Bukkit.getOfflinePlayer(this.auctionOwner).getName() + "'s " + Utils.getDisplayName(this.auctionItem) + " (" + this.auctionUUID + ")!");
 
         // Balance
-        DeluxeAuctions.getInstance().economyManager.removeBalance(player, price);
+        this.economy.getManager().removeBalance(player, price);
 
         // Highest Bid
         PlayerBid highestBid = this.auctionBids.getHighestBid();
         if (highestBid != null) {
             OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(highestBid.getBidOwner());
-            DeluxeAuctions.getInstance().economyManager.addBalance(offlinePlayer, highestBid.getBidPrice());
+            this.economy.getManager().addBalance(offlinePlayer, highestBid.getBidPrice());
             highestBid.setCollected(true);
         }
 
@@ -276,54 +304,73 @@ public class Auction {
     }
 
     public boolean purchase(Player player) {
-        if (AuctionCache.getAuction(this.auctionUUID) == null)
+        if (AuctionCache.getAuction(this.auctionUUID) == null) {
+            DeluxeAuctions.getInstance().dataHandler.debug("Auction (" + this.auctionUUID + ") is not found in the auction list, it can't be sold again!");
             return false;
+        }
 
         // Checking auction status
-        if (isEnded())
+        if (isEnded()) {
+            DeluxeAuctions.getInstance().dataHandler.debug("Auction (" + this.auctionUUID + ") is already ended, it can't be sold again!");
             return false;
+        }
 
         // If it's claimed already, don't let to sell auction again
-        if (this.isSellerClaimed())
+        if (this.isSellerClaimed()) {
+            DeluxeAuctions.getInstance().dataHandler.debug("Auction (" + this.auctionUUID + ") is already claimed by the seller, it can't be sold again!");
             return false;
+        }
 
         // Checking auction type anyway
-        if (this.auctionType != AuctionType.BIN)
+        if (!this.auctionType.equals(AuctionType.BIN)) {
+            DeluxeAuctions.getInstance().dataHandler.debug("Auction (" + this.auctionUUID + ") type is not BIN, it can't be sold with purchase method!");
             return false;
+        }
 
         // Balance check
-        if (DeluxeAuctions.getInstance().economyManager.getBalance(player) < this.auctionPrice)
+        if (this.economy.getManager().getBalance(player) < this.auctionPrice) {
+            DeluxeAuctions.getInstance().dataHandler.debug("Player (" + player.getUniqueId() + ") does not enough have money for auction (" + this.auctionUUID + ")!");
+            Utils.sendMessage(player, "not_enough_money", new PlaceholderUtil().addPlaceholder("%required_money%", DeluxeAuctions.getInstance().numberFormat.format(this.auctionPrice-this.economy.getManager().getBalance(player))));
             return false;
+        }
 
         // Empty slot check
         if (!Utils.hasEmptySlot(player)) {
+            DeluxeAuctions.getInstance().dataHandler.debug("Player (" + player.getUniqueId() + ") does not have enough slot to purchase auction (" + this.auctionUUID + ")!");
             Utils.sendMessage(player, "no_empty_slot");
             return false;
         }
 
         // Check if auction is new
-        if (this.auctionStartTime > 0) {
+        long time = DeluxeAuctions.getInstance().configFile.getLong("settings.purchase_cooldown", 0);
+        if (time > 0 && this.auctionStartTime > 0) {
             long difference = ZonedDateTime.now().toInstant().getEpochSecond() - this.auctionStartTime;
-            if (difference < DeluxeAuctions.getInstance().configFile.getLong("settings.purchase_cooldown", 60)) {
+            long remainingTime = time - difference;
+
+            if (difference < time) {
+                DeluxeAuctions.getInstance().dataHandler.debug("Player (" + player.getUniqueId() + ") is trying to purchase new auction (" + this.auctionUUID + "), purchase is still on cooldown!");
                 Utils.sendMessage(player, "purchase_cooldown", new PlaceholderUtil()
-                        .addPlaceholder("%seconds_left%", String.valueOf(difference)));
+                        .addPlaceholder("%seconds_left%", String.valueOf(remainingTime)));
                 return false;
             }
         }
 
         // Lag check
         if (Utils.isLaggy(player)) {
+            DeluxeAuctions.getInstance().dataHandler.debug("Player (" + player.getUniqueId() + ") is laggy to purchase auction (" + this.auctionUUID + ")!");
             Utils.sendMessage(player, "laggy");
             return false;
         }
 
         if (AuctionCache.isAuctionUpdating(this.auctionUUID)) {
+            DeluxeAuctions.getInstance().dataHandler.debug("Player (" + player.getUniqueId() + ") is trying to purchase refreshing auction (" + this.auctionUUID + ")!");
             Utils.sendMessage(player, "refreshing");
             return false;
         }
 
         // Check if auction is updating in multi-server system
         if (DeluxeAuctions.getInstance().multiServerManager != null && DeluxeAuctions.getInstance().multiServerManager.isAuctionUpdating(this.auctionUUID)) {
+            DeluxeAuctions.getInstance().dataHandler.debug("Player (" + player.getUniqueId() + ") is trying to purchase refreshing auction (" + this.auctionUUID + ")!");
             Utils.sendMessage(player, "refreshing");
             return false;
         }
@@ -331,18 +378,22 @@ public class Auction {
         // Cancellable event
         AuctionPurchaseEvent event = new AuctionPurchaseEvent(player, this);
         Bukkit.getPluginManager().callEvent(event);
-        if (event.isCancelled())
+        if (event.isCancelled()) {
+            DeluxeAuctions.getInstance().dataHandler.debug("Player (" + player.getUniqueId() + ")'s auction (" + this.auctionUUID + ") purchase event is cancelled!");
             return false;
+        }
 
         if (DeluxeAuctions.getInstance().multiServerManager != null && !DeluxeAuctions.getInstance().multiServerManager.playerBoughtAuction(this.auctionUUID, player.getUniqueId())) {
+            DeluxeAuctions.getInstance().dataHandler.debug("Player (" + player.getUniqueId() + ") is trying to purchase refreshing auction (" + this.auctionUUID + ")!");
             Utils.sendMessage(player, "refreshing");
             return false;
         }
 
+        DeluxeAuctions.getInstance().dataHandler.debug("Player (" + player.getUniqueId() + ") is purchased auction (" + this.auctionUUID + ")!");
         AuctionCache.addUpdatingAuction(this.auctionUUID);
 
         // Player
-        DeluxeAuctions.getInstance().economyManager.removeBalance(player, this.auctionPrice);
+        this.economy.getManager().removeBalance(player, this.auctionPrice);
         player.getInventory().addItem(this.auctionItem.clone());
 
         // Log
@@ -436,7 +487,7 @@ public class Auction {
             stats.addExpiredAuction();
         } else {
             DeluxeAuctions.getInstance().dataHandler.writeToLog("[SELLER COLLECTED AUCTION] " + player.getName() + " (" + player.getUniqueId() + ") collected " + highestBid.getBidPrice() + " COINS from " + Utils.getDisplayName(this.auctionItem) + " (" + this.auctionUUID + ") auction!");
-            DeluxeAuctions.getInstance().economyManager.addBalance(player, highestBid.getBidPrice());
+            this.economy.getManager().addBalance(player, highestBid.getBidPrice());
             type = "money";
 
             stats.addSoldAuction();
@@ -540,7 +591,7 @@ public class Auction {
             DeluxeAuctions.getInstance().dataHandler.writeToLog("[BUYER COLLECTED AUCTION] " + player.getName() + " (" + player.getUniqueId() + ") collected from " + Utils.getDisplayName(this.auctionItem) + " (" + this.auctionUUID + ") auction!");
 
             if (!isClaimed)
-                DeluxeAuctions.getInstance().economyManager.addBalance(player, playerBid.getBidPrice());
+                this.economy.getManager().addBalance(player, playerBid.getBidPrice());
 
             stats.addLostAuction();
         }

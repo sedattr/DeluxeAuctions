@@ -1,6 +1,5 @@
 package me.sedattr.deluxeauctions.managers;
 
-import com.google.common.util.concurrent.AtomicDouble;
 import lombok.Getter;
 import lombok.Setter;
 import me.sedattr.auctionsapi.events.AuctionPreCollectAllEvent;
@@ -18,7 +17,6 @@ import org.bukkit.inventory.ItemStack;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Getter
 @Setter
@@ -28,6 +26,7 @@ public class PlayerPreferences {
     // for auctions menu
     private AuctionType auctionType = DeluxeAuctions.getInstance().auctionType;
     private SortType sortType = DeluxeAuctions.getInstance().sortType;
+    private String rarityType = DeluxeAuctions.getInstance().rarityType;
     private String search = "";
     private Category category = CategoryCache.getCategories().get(DeluxeAuctions.getInstance().category);
     private int page = 1;
@@ -37,6 +36,7 @@ public class PlayerPreferences {
     private AuctionType createType = DeluxeAuctions.getInstance().createType;
     private double createPrice = DeluxeAuctions.getInstance().createPrice;
     private long createTime = DeluxeAuctions.getInstance().createTime;
+    private Economy createEconomy = DeluxeAuctions.getInstance().createEconomy;
 
     public PlayerPreferences(UUID player) {
         this.player = player;
@@ -56,8 +56,8 @@ public class PlayerPreferences {
             return;
 
         TaskUtils.runAsync(() -> {
-            AtomicDouble money = new AtomicDouble();
-            AtomicInteger item = new AtomicInteger();
+            double money = 0.0;
+            int item = 0;
 
             for (Auction auction : auctions) {
                 if (auction == null)
@@ -69,19 +69,19 @@ public class PlayerPreferences {
 
                 PlayerBid playerBid = auction.getAuctionBids().getHighestBid();
                 if (playerBid == null)
-                    item.getAndIncrement();
+                    item++;
                 else
-                    money.updateAndGet(v -> v + playerBid.getBidPrice());
+                    money+=playerBid.getBidPrice();
             }
 
             DeluxeAuctions.getInstance().dataHandler.writeToLog("[SELLER COLLECTED ALL AUCTIONS] " + player.getName() + " (" + player.getUniqueId() + ") collected " + money + " COINS and " + item + " ITEMS from auction!");
-            if (money.get() > 0.0)
+            if (money > 0.0)
                 Utils.sendMessage(player, "seller_collected_moneys", new PlaceholderUtil()
-                        .addPlaceholder("%total_money_amount%", DeluxeAuctions.getInstance().numberFormat.format(money.get())));
+                        .addPlaceholder("%total_money_amount%", DeluxeAuctions.getInstance().numberFormat.format(money)));
 
-            if (item.get() > 0)
+            if (item > 0)
                 Utils.sendMessage(player, "seller_collected_items", new PlaceholderUtil()
-                        .addPlaceholder("%total_item_amount%", String.valueOf(item.get())));
+                        .addPlaceholder("%total_item_amount%", String.valueOf(item)));
         });
     }
 
@@ -94,8 +94,8 @@ public class PlayerPreferences {
             return;
 
         TaskUtils.runAsync(() -> {
-            AtomicDouble money = new AtomicDouble();
-            AtomicInteger item = new AtomicInteger();
+            double money = 0.0;
+            int item = 0;
 
             for (Auction auction : auctions) {
                 if (auction == null)
@@ -107,19 +107,19 @@ public class PlayerPreferences {
 
                 PlayerBid playerBid = auction.getAuctionBids().getPlayerBid(player.getUniqueId());
                 if (auction.getAuctionBids().getHighestBid() == playerBid)
-                    item.getAndIncrement();
+                    item++;
                 else
-                    money.updateAndGet(v -> v + playerBid.getBidPrice());
+                    money+=playerBid.getBidPrice();
             }
 
             DeluxeAuctions.getInstance().dataHandler.writeToLog("[BUYER COLLECTED ALL BIDS] " + player.getName() + " (" + player.getUniqueId() + ") collected " + money + " COINS and " + item + " ITEMS from auction!");
-            if (money.get() > 0.0)
+            if (money > 0.0)
                 Utils.sendMessage(player, "buyer_collected_moneys", new PlaceholderUtil()
-                        .addPlaceholder("%total_money_amount%", DeluxeAuctions.getInstance().numberFormat.format(money.get())));
+                        .addPlaceholder("%total_money_amount%", DeluxeAuctions.getInstance().numberFormat.format(money)));
 
-            if (item.get() > 0)
+            if (item > 0)
                 Utils.sendMessage(player, "buyer_collected_items", new PlaceholderUtil()
-                        .addPlaceholder("%total_item_amount%", String.valueOf(item.get())));
+                        .addPlaceholder("%total_item_amount%", String.valueOf(item)));
         });
     }
 }

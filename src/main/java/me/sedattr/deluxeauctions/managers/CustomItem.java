@@ -27,14 +27,14 @@ public class CustomItem {
         this.type = section.getString("type", "");
 
         List<String> lore = section.getStringList("lore");
-        if (lore.isEmpty())
-            return;
+        if (!lore.isEmpty()) {
+            List<String> newLore = new ArrayList<>(lore.size());
+            for (String line : lore)
+                newLore.add(Utils.colorize(line));
 
-        List<String> newLore = new ArrayList<>(lore.size());
-        for (String line : lore)
-            newLore.add(Utils.colorize(line));
+            this.lore = newLore;
+        }
 
-        this.lore = newLore;
         DeluxeAuctions.getInstance().customItems.put(name, this);
     }
 }

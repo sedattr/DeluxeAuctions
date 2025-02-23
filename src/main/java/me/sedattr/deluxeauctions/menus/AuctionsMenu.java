@@ -12,12 +12,12 @@ import me.sedattr.deluxeauctions.managers.*;
 import me.sedattr.deluxeauctions.others.PlaceholderUtil;
 import me.sedattr.deluxeauctions.others.TaskUtils;
 import me.sedattr.deluxeauctions.others.Utils;
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
 
@@ -54,29 +54,8 @@ public class AuctionsMenu implements MenuManager {
 
         this.playerAuction.setPage(page);
 
-        TaskUtils.runAsync(() -> {
-            updateTotalPage();
-
-            this.currentAuctions = AuctionCache.getOnGoingAuctions(this.filteredAuctions, this.playerAuction.getSortType(), this.playerAuction.getPage(), this.slots.size());
-            this.gui = DeluxeAuctions.getInstance().menuHandler.createInventory(this.player, this.section, this.playerAuction.getSearch().isEmpty() ? "auctions" : "search", createPlaceholderUtil());
-            DeluxeAuctions.getInstance().menuHandler.addNormalItems(this.player, this.gui, this.section, this.playerAuction.getCategory());
-
-            int goBackSlot = this.section.getInt("back");
-            ItemStack goBackItem = DeluxeAuctions.getInstance().normalItems.get("go_back");
-            if (goBackSlot > 0 && goBackItem != null)
-                gui.setItem(goBackSlot-1, ClickableItem.of(goBackItem, (event) -> new MainMenu(this.player).open()));
-
-            loadInventoryItems();
-
-            TaskUtils.run(() -> {
-                this.gui.open(this.player);
-                updateItems();
-            });
-        });
-    }
-
-    private void loadInventoryItems() {
-        loadItems();
+        this.gui = DeluxeAuctions.getInstance().menuHandler.createInventory(this.player, this.section, this.playerAuction.getSearch().isEmpty() ? "auctions" : "search", createPlaceholderUtil());
+        DeluxeAuctions.getInstance().menuHandler.addNormalItems(this.player, this.gui, this.section, this.playerAuction.getCategory());
 
         loadSearchItem();
         loadCategories();
@@ -85,10 +64,28 @@ public class AuctionsMenu implements MenuManager {
         loadSorterItem();
         loadPageItems();
         loadResetItem();
+        loadRaritySorter();
+
+        int goBackSlot = this.section.getInt("back");
+        ItemStack goBackItem = DeluxeAuctions.getInstance().normalItems.get("go_back");
+        if (goBackSlot > 0 && goBackItem != null)
+            gui.setItem(goBackSlot, ClickableItem.of(goBackItem, (event) -> new MainMenu(this.player).open()));
+
+        TaskUtils.runAsync(() -> {
+            updateTotalPage();
+            loadItems();
+
+            TaskUtils.run(() -> {
+                this.gui.open(this.player);
+                updateItems();
+            });
+        });
     }
 
     private void updateTotalPage() {
-        this.filteredAuctions = AuctionCache.getFilteredAuctions(this.playerAuction.getAuctionType(), this.playerAuction.getCategory(), this.playerAuction.getSearch());
+        this.filteredAuctions = AuctionCache.getFilteredAuctions(this.playerAuction.getAuctionType(), this.playerAuction.getRarityType(), this.playerAuction.getCategory(), this.playerAuction.getSearch());
+        this.currentAuctions = AuctionCache.getOnGoingAuctions(this.filteredAuctions, this.playerAuction.getSortType(), this.playerAuction.getPage(), this.slots.size());
+
         int auctionAmount = this.filteredAuctions.size();
 
         int totalPage = auctionAmount / this.slots.size() + 1;
@@ -109,28 +106,34 @@ public class AuctionsMenu implements MenuManager {
         PlaceholderUtil placeholderUtil = createPlaceholderUtil();
 
         if (totalPage > this.playerAuction.getPage()) {
-            ItemStack nextPage = Utils.createItemFromSection(this.section.getConfigurationSection("next_page"), placeholderUtil);
-            if (nextPage != null) {
-                this.gui.setItem(this.section.getInt("next_page.slot")-1, ClickableItem.of(nextPage, (event -> {
-                    ClickType clickType = event.getClick();
-                    if (clickType.equals(ClickType.RIGHT) || clickType.equals(ClickType.SHIFT_RIGHT))
-                        open(this.playerAuction.getCategory().getName(), this.totalPage);
-                    else
-                        open(this.playerAuction.getCategory().getName(), this.playerAuction.getPage()+1);
-                })));
+            ConfigurationSection nextSection = this.section.getConfigurationSection("next_page");
+            if (nextSection != null) {
+                ItemStack nextPage = Utils.createItemFromSection(nextSection, placeholderUtil);
+                if (nextPage != null) {
+                    this.gui.setItem(nextSection, ClickableItem.of(nextPage, (event -> {
+                        ClickType clickType = event.getClick();
+                        if (clickType.equals(ClickType.RIGHT) || clickType.equals(ClickType.SHIFT_RIGHT))
+                            open(this.playerAuction.getCategory().getName(), this.totalPage);
+                        else
+                            open(this.playerAuction.getCategory().getName(), this.playerAuction.getPage()+1);
+                    })));
+                }
             }
         }
 
         if (this.playerAuction.getPage() > 1) {
-            ItemStack previousPage = Utils.createItemFromSection(this.section.getConfigurationSection("previous_page"), placeholderUtil);
-            if (previousPage != null)
-                this.gui.setItem(this.section.getInt("previous_page.slot")-1, ClickableItem.of(previousPage, (event -> {
-                    ClickType clickType = event.getClick();
-                    if (clickType.equals(ClickType.RIGHT) || clickType.equals(ClickType.SHIFT_RIGHT))
-                        open(this.playerAuction.getCategory().getName(), 1);
-                    else
-                        open(this.playerAuction.getCategory().getName(), this.playerAuction.getPage()-1);
-                })));
+            ConfigurationSection previousSection = this.section.getConfigurationSection("previous_page");
+            if (previousSection != null) {
+                ItemStack previousPage = Utils.createItemFromSection(previousSection, placeholderUtil);
+                if (previousPage != null)
+                    this.gui.setItem(previousSection, ClickableItem.of(previousPage, (event -> {
+                        ClickType clickType = event.getClick();
+                        if (clickType.equals(ClickType.RIGHT) || clickType.equals(ClickType.SHIFT_RIGHT))
+                            open(this.playerAuction.getCategory().getName(), 1);
+                        else
+                            open(this.playerAuction.getCategory().getName(), this.playerAuction.getPage() - 1);
+                    })));
+            }
         }
     }
 
@@ -142,7 +145,7 @@ public class AuctionsMenu implements MenuManager {
 
         if (hasResetSettings()) {
             ItemStack reset = Utils.createItemFromSection(resetSection, null);
-            gui.setItem(slot-1, ClickableItem.of(reset, (event) -> resetSettings()));
+            gui.setItem(slot, ClickableItem.of(reset, (event) -> resetSettings()));
         } else {
             handleEmptyResetSlot(slot);
         }
@@ -152,15 +155,16 @@ public class AuctionsMenu implements MenuManager {
         this.playerAuction.setSearch("");
         this.playerAuction.setAuctionType(DeluxeAuctions.getInstance().auctionType);
         this.playerAuction.setSortType(DeluxeAuctions.getInstance().sortType);
+        this.playerAuction.setRarityType("all");
 
         open(this.playerAuction.getCategory().getName(), 1);
     }
 
     private void handleEmptyResetSlot(int slot) {
         if (this.section.getIntegerList("glass").contains(slot))
-            gui.setItem(slot-1, ClickableItem.empty(this.playerAuction.getCategory().getGlass()));
+            gui.setItem(slot, ClickableItem.empty(this.playerAuction.getCategory().getGlass()));
         else
-            gui.setItem(slot-1, null);
+            gui.setItem(slot, null);
     }
 
     private boolean hasResetSettings() {
@@ -176,8 +180,7 @@ public class AuctionsMenu implements MenuManager {
             if (search != null) {
                 updateSearchItemLore(search, searchSection);
 
-                int slot = searchSection.getInt("slot");
-                gui.setItem(slot - 1, ClickableItem.of(search, event -> handleSearchClick(event.getClick())));
+                gui.setItem(searchSection, ClickableItem.of(search, event -> handleSearchClick(event.getClick())));
             }
         }
     }
@@ -209,6 +212,8 @@ public class AuctionsMenu implements MenuManager {
         if (categoriesSection == null)
             return;
         ItemStack categoriesItem = Utils.createItemFromSection(categoriesSection, null);
+        if (categoriesItem == null)
+            return;
 
         List<String> lore = this.section.getStringList("categories.lore");
         if (!lore.isEmpty()) {
@@ -240,7 +245,7 @@ public class AuctionsMenu implements MenuManager {
 
             Utils.changeLore(categoriesItem, newLore, null);
         }
-        this.gui.setItem(categoriesSection.getInt("slot")-1, ClickableItem.of(categoriesItem, (event) -> {
+        this.gui.setItem(categoriesSection.getInt("slot"), ClickableItem.of(categoriesItem, (event) -> {
             ClickType clickType = event.getClick();
 
             int number = categories.indexOf(this.playerAuction.getCategory().getName());
@@ -261,7 +266,10 @@ public class AuctionsMenu implements MenuManager {
 
     private void loadSorterItem() {
         ItemStack sorterItem = Utils.createItemFromSection(this.section.getConfigurationSection("auction_sorter"), null);
-        List<String> lore = this.section.getStringList("auction_sorter.lore." + this.playerAuction.getSortType().name().toLowerCase());
+        if (sorterItem == null)
+            return;
+
+        List<String> lore = this.section.getStringList("auction_sorter.lore." + this.playerAuction.getSortType().name().toLowerCase(Locale.ENGLISH));
         List<String> newLore = new ArrayList<>();
         if (!lore.isEmpty())
             for (String line : lore)
@@ -270,7 +278,7 @@ public class AuctionsMenu implements MenuManager {
         Utils.changeLore(sorterItem, newLore, null);
 
         int slot = this.section.getInt("auction_sorter.slot");
-        this.gui.setItem(slot-1, ClickableItem.of(sorterItem, event -> {
+        this.gui.setItem(slot, ClickableItem.of(sorterItem, event -> {
             ClickType clickType = event.getClick();
             Utils.playSound(player, "sorter_item_click");
 
@@ -292,7 +300,49 @@ public class AuctionsMenu implements MenuManager {
             }
 
             String newType = types.get(currentType);
-            this.playerAuction.setSortType(SortType.valueOf(newType.toUpperCase()));
+            this.playerAuction.setSortType(SortType.valueOf(newType.toUpperCase(Locale.ENGLISH)));
+
+            open(this.playerAuction.getCategory().getName(), Math.min(this.playerAuction.getPage(), this.totalPage));
+        }));
+    }
+
+    private void loadRaritySorter() {
+        ItemStack sorterItem = Utils.createItemFromSection(this.section.getConfigurationSection("rarity_sorter"), null);
+        if (sorterItem == null)
+            return;
+
+        List<String> lore = this.section.getStringList("rarity_sorter.lore." + this.playerAuction.getRarityType());
+        List<String> newLore = new ArrayList<>();
+        if (!lore.isEmpty())
+            for (String line : lore)
+                newLore.add(Utils.colorize(line));
+
+        Utils.changeLore(sorterItem, newLore, null);
+
+        int slot = this.section.getInt("rarity_sorter.slot");
+        this.gui.setItem(slot, ClickableItem.of(sorterItem, event -> {
+            ClickType clickType = event.getClick();
+            Utils.playSound(player, "rarity_item_click");
+
+            List<String> types = this.section.getConfigurationSection("rarity_sorter.types").getKeys(false).stream().toList();
+            int currentType = !types.isEmpty() && types.contains(this.playerAuction.getRarityType()) ? types.indexOf(this.playerAuction.getRarityType()) : 0;
+
+            // backwards
+            if (!types.isEmpty()) {
+                if (clickType.equals(ClickType.RIGHT) || clickType.equals(ClickType.SHIFT_RIGHT)) {
+                    currentType--;
+                    if (currentType < 0)
+                        currentType = types.size()-1;
+                }
+                else {
+                    currentType++;
+                    if (currentType >= types.size())
+                        currentType = 0;
+                }
+            }
+
+            String newType = types.get(currentType);
+            this.playerAuction.setRarityType(newType);
 
             open(this.playerAuction.getCategory().getName(), Math.min(this.playerAuction.getPage(), this.totalPage));
         }));
@@ -300,7 +350,10 @@ public class AuctionsMenu implements MenuManager {
 
     private void loadFilterItem() {
         ItemStack filterItem = Utils.createItemFromSection(this.section.getConfigurationSection("auction_filter"), null);
-        List<String> lore = this.section.getStringList("auction_filter.lore." + this.playerAuction.getAuctionType().name().toLowerCase());
+        if (filterItem == null)
+            return;
+
+        List<String> lore = this.section.getStringList("auction_filter.lore." + this.playerAuction.getAuctionType().name().toLowerCase(Locale.ENGLISH));
         List<String> newLore = new ArrayList<>();
         if (!lore.isEmpty())
             for (String line : lore)
@@ -308,7 +361,7 @@ public class AuctionsMenu implements MenuManager {
 
         Utils.changeLore(filterItem, newLore, null);
         int slot = this.section.getInt("auction_filter.slot");
-        this.gui.setItem(slot-1, ClickableItem.of(filterItem, event -> {
+        this.gui.setItem(slot, ClickableItem.of(filterItem, event -> {
             ClickType clickType = event.getClick();
             Utils.playSound(player, "filter_item_click");
 
@@ -330,7 +383,7 @@ public class AuctionsMenu implements MenuManager {
             }
 
             String newType = types.get(currentType);
-            this.playerAuction.setAuctionType(AuctionType.valueOf(newType.toUpperCase()));
+            this.playerAuction.setAuctionType(AuctionType.valueOf(newType.toUpperCase(Locale.ENGLISH)));
 
             open(this.playerAuction.getCategory().getName(), Math.min(this.playerAuction.getPage(), this.totalPage));
         }));
@@ -360,14 +413,14 @@ public class AuctionsMenu implements MenuManager {
                 continue;
 
             if (i >= this.currentAuctions.size()) {
-                this.gui.setItem(slot-1, null);
+                this.gui.setItem(slot, null);
                 continue;
             }
 
             Auction auction = this.currentAuctions.get(i);
             ItemStack itemStack = AuctionHook.getUpdatedAuctionItem(auction);
 
-            this.gui.setItem(slot-1, ClickableItem.of(itemStack, (event) -> {
+            this.gui.setItem(slot, ClickableItem.of(itemStack, (event) -> {
                 Utils.playSound(this.player, "auction_item_click");
 
                 if (auction.getAuctionType().equals(AuctionType.BIN))
@@ -386,17 +439,17 @@ public class AuctionsMenu implements MenuManager {
 
         String fillType =  categoriesSection.getString("pagination.fill_type", "all_glass");
         if (fillType.endsWith("glass")) {
-            this.gui.setItem(previousSlot - 1, ClickableItem.empty(this.playerAuction.getCategory().getGlass()));
-            this.gui.setItem(nextSlot - 1, ClickableItem.empty(this.playerAuction.getCategory().getGlass()));
+            this.gui.setItem(previousSlot, ClickableItem.empty(this.playerAuction.getCategory().getGlass()));
+            this.gui.setItem(nextSlot, ClickableItem.empty(this.playerAuction.getCategory().getGlass()));
 
             if (fillType.startsWith("page"))
-                slots.forEach(a -> this.gui.setItem(a - 1, ClickableItem.empty(null)));
+                slots.forEach(a -> this.gui.setItem(a, ClickableItem.empty(null)));
             else
-                slots.forEach(a -> this.gui.setItem(a - 1, ClickableItem.empty(this.playerAuction.getCategory().getGlass())));
+                slots.forEach(a -> this.gui.setItem(a, ClickableItem.empty(this.playerAuction.getCategory().getGlass())));
         } else {
-            slots.forEach(a -> this.gui.setItem(a-1, ClickableItem.empty(null)));
-            this.gui.setItem(previousSlot-1, ClickableItem.empty(null));
-            this.gui.setItem(nextSlot-1, ClickableItem.empty(null));
+            slots.forEach(a -> this.gui.setItem(a, ClickableItem.empty(null)));
+            this.gui.setItem(previousSlot, ClickableItem.empty(null));
+            this.gui.setItem(nextSlot, ClickableItem.empty(null));
         }
 
         List<Category> categories = new ArrayList<>(CategoryCache.getCategories().values());
@@ -412,7 +465,7 @@ public class AuctionsMenu implements MenuManager {
         boolean addPageSlots = categoriesSection.getBoolean("pagination.add_page_slots", true);
         if (currentPage > 1) {
             ItemStack previous = Utils.createItemFromSection(categoriesSection.getConfigurationSection("previous_page"), placeholderUtil);
-            this.gui.setItem(previousSlot-1, ClickableItem.of(previous, (event) -> {
+            this.gui.setItem(previousSlot, ClickableItem.of(previous, (event) -> {
                 ClickType clickType = event.getClick();
                 if (clickType.equals(ClickType.RIGHT) || clickType.equals(ClickType.SHIFT_RIGHT))
                     this.playerAuction.setCategoryPage(1);
@@ -423,7 +476,7 @@ public class AuctionsMenu implements MenuManager {
             }));
         } else if (addPageSlots) {
             Category currentCategory = categories.get(0);
-            loadCategory(currentCategory, previousSlot-1);
+            loadCategory(currentCategory, previousSlot);
 
             categories.remove(currentCategory);
         }
@@ -448,14 +501,14 @@ public class AuctionsMenu implements MenuManager {
         for (int i = startIndex; i < endIndex; i++) {
             int slot = slots.get(a);
             Category currentCategory = categories.get(i);
-            loadCategory(currentCategory, slot-1);
+            loadCategory(currentCategory, slot);
 
             a++;
         }
 
         if (totalPage > currentPage) {
             ItemStack next = Utils.createItemFromSection(categoriesSection.getConfigurationSection("next_page"), placeholderUtil);
-            this.gui.setItem(nextSlot-1, ClickableItem.of(next, (event) -> {
+            this.gui.setItem(nextSlot, ClickableItem.of(next, (event) -> {
                 ClickType clickType = event.getClick();
                 if (clickType.equals(ClickType.RIGHT) || clickType.equals(ClickType.SHIFT_RIGHT))
                     this.playerAuction.setCategoryPage(totalPage);
@@ -497,7 +550,16 @@ public class AuctionsMenu implements MenuManager {
         String type;
         if (hasPermission) {
             if (isCategorySame) {
-                categoryItem.addUnsafeEnchantment(Enchantment.SILK_TOUCH, 1);
+                if (DeluxeAuctions.getInstance().version >= 21) {
+                    ItemMeta meta = categoryItem.getItemMeta();
+                    if (meta == null)
+                        return;
+
+                    //meta.setEnchantmentGlintOverride(true);
+                    categoryItem.setItemMeta(meta);
+                } else
+                    categoryItem.addUnsafeEnchantment(Enchantment.SILK_TOUCH, 1);
+
                 type = "selected";
             } else
                 type = "not_selected";
@@ -513,7 +575,7 @@ public class AuctionsMenu implements MenuManager {
                 if (!description.isEmpty()) {
                     for (String desc : description)
                         newLore.add(Utils.colorize(desc
-                                .replace("%category_item_amount%", String.valueOf(AuctionCache.getFilteredAuctions(this.playerAuction.getAuctionType(), auctionCategory, this.playerAuction.getSearch()).size()))));
+                                .replace("%category_item_amount%", String.valueOf(AuctionCache.getFilteredAuctions(this.playerAuction.getAuctionType(), this.playerAuction.getRarityType(), auctionCategory, this.playerAuction.getSearch()).size()))));
                 }
 
                 continue;

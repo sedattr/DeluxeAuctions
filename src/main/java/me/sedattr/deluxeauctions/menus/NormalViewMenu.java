@@ -3,7 +3,6 @@ package me.sedattr.deluxeauctions.menus;
 import me.sedattr.auctionsapi.AuctionHook;
 import me.sedattr.auctionsapi.cache.PlayerCache;
 import me.sedattr.deluxeauctions.inventoryapi.HInventory;
-import me.sedattr.deluxeauctions.inventoryapi.inventory.InventoryAPI;
 import me.sedattr.deluxeauctions.inventoryapi.item.ClickableItem;
 import me.sedattr.deluxeauctions.DeluxeAuctions;
 import me.sedattr.deluxeauctions.managers.Auction;
@@ -65,7 +64,7 @@ public class NormalViewMenu implements MenuManager {
             int goBackSlot = this.section.getInt("back");
             ItemStack goBackItem = DeluxeAuctions.getInstance().normalItems.get("go_back");
             if (goBackSlot > 0 && goBackItem != null)
-                gui.setItem(goBackSlot-1, ClickableItem.of(goBackItem, (event) -> goBack()));
+                gui.setItem(goBackSlot, ClickableItem.of(goBackItem, (event) -> goBack()));
         }
 
         if (this.player.getUniqueId().equals(this.auction.getAuctionOwner()))
@@ -119,13 +118,13 @@ public class NormalViewMenu implements MenuManager {
             if (itemStack == null)
                 return;
 
-            this.gui.setItem(collectSection.getInt("slot")-1, ClickableItem.empty(itemStack));
+            this.gui.setItem(collectSection.getInt("slot"), ClickableItem.empty(itemStack));
             return;
         }
 
         PlaceholderUtil placeholderUtil = new PlaceholderUtil()
                 .addPlaceholder("%item_displayname%", Utils.getDisplayName(this.auction.getAuctionItem()))
-                .addPlaceholder("%auction_price%", DeluxeAuctions.getInstance().numberFormat.format(playerBid.getBidPrice()))
+                .addPlaceholder("%auction_price%", this.auction.getEconomy().getText().replace("%price%", DeluxeAuctions.getInstance().numberFormat.format(playerBid.getBidPrice())))
                 .addPlaceholder("%seller_displayname%", this.auction.getAuctionOwnerDisplayName());
 
         if (highestBid == playerBid)
@@ -137,7 +136,7 @@ public class NormalViewMenu implements MenuManager {
         if (itemStack == null)
             return;
 
-        this.gui.setItem(collectSection.getInt("slot")-1, ClickableItem.of(itemStack, (event) -> {
+        this.gui.setItem(collectSection.getInt("slot"), ClickableItem.of(itemStack, (event) -> {
             this.player.closeInventory();
 
             String type = this.auction.buyerCollect(this.player, false);
@@ -174,14 +173,14 @@ public class NormalViewMenu implements MenuManager {
                 collectSection = collectSection.getConfigurationSection("sold");
                 placeholderUtil
                         .addPlaceholder("%buyer_displayname%", playerBid.getBidOwnerDisplayName())
-                        .addPlaceholder("%auction_price%", DeluxeAuctions.getInstance().numberFormat.format(playerBid.getBidPrice()));
+                        .addPlaceholder("%auction_price%", this.auction.getEconomy().getText().replace("%price%", DeluxeAuctions.getInstance().numberFormat.format(playerBid.getBidPrice())));
 
                 itemStack = Utils.createItemFromSection(collectSection, placeholderUtil);
             }
             if (itemStack == null)
                 return;
 
-            this.gui.setItem(collectSection.getInt("slot")-1, ClickableItem.of(itemStack, (event) -> {
+            this.gui.setItem(collectSection.getInt("slot"), ClickableItem.of(itemStack, (event) -> {
                 this.player.closeInventory();
 
                 String type = this.auction.sellerCollect(this.player, false);
@@ -212,7 +211,7 @@ public class NormalViewMenu implements MenuManager {
                 return;
 
             if (playerBid == null)
-                this.gui.setItem(cancelSection.getInt("slot")-1, ClickableItem.of(itemStack, (event) -> {
+                this.gui.setItem(cancelSection.getInt("slot"), ClickableItem.of(itemStack, (event) -> {
                      this.player.closeInventory();
 
                     if (this.auction.cancel(this.player)) {
@@ -231,7 +230,7 @@ public class NormalViewMenu implements MenuManager {
                     goBack();
                 }));
             else
-                this.gui.setItem(cancelSection.getInt("slot")-1, ClickableItem.empty(itemStack));
+                this.gui.setItem(cancelSection.getInt("slot"), ClickableItem.empty(itemStack));
         }
     }
 
@@ -261,7 +260,7 @@ public class NormalViewMenu implements MenuManager {
         if (bids.getHighestBid() != null && bids.getHighestBid().getBidOwner().equals(this.player.getUniqueId()))
             itemSection = itemSection.getConfigurationSection("top_bid");
         else {
-            if (DeluxeAuctions.getInstance().economyManager.getBalance(player) >= price)
+            if (this.auction.getEconomy().getManager().getBalance(player) >= price)
                 itemSection = itemSection.getConfigurationSection("enough_money");
             else
                 itemSection = itemSection.getConfigurationSection("not_enough_money");
@@ -270,16 +269,16 @@ public class NormalViewMenu implements MenuManager {
             return;
 
         PlaceholderUtil placeholderUtil = new PlaceholderUtil()
-                .addPlaceholder("%minimum_bid_amount%", DeluxeAuctions.getInstance().numberFormat.format(price));
+                .addPlaceholder("%minimum_bid_amount%", this.auction.getEconomy().getText().replace("%price%", DeluxeAuctions.getInstance().numberFormat.format(price)));
 
         ItemStack itemStack = Utils.createItemFromSection(itemSection, placeholderUtil);
         if (itemStack == null)
             return;
 
         if (itemSection.getName().equals("enough_money"))
-            gui.setItem(itemSection.getInt("slot")-1, ClickableItem.of(itemStack, (event) -> DeluxeAuctions.getInstance().inputMenu.open(this.player, this)));
+            gui.setItem(itemSection.getInt("slot"), ClickableItem.of(itemStack, (event) -> DeluxeAuctions.getInstance().inputMenu.open(this.player, this)));
         else
-            gui.setItem(itemSection.getInt("slot")-1, ClickableItem.empty(itemStack));
+            gui.setItem(itemSection.getInt("slot"), ClickableItem.empty(itemStack));
     }
 
     private void loadBidItem() {
@@ -290,7 +289,7 @@ public class NormalViewMenu implements MenuManager {
         if (itemSection==null)
             return;
 
-        double balance = DeluxeAuctions.getInstance().economyManager.getBalance(player);
+        double balance = this.auction.getEconomy().getManager().getBalance(player);
         if (bids.getHighestBid() != null && bids.getHighestBid().getBidOwner().equals(this.player.getUniqueId()))
             itemSection = itemSection.getConfigurationSection("top_bid");
         else {
@@ -301,63 +300,73 @@ public class NormalViewMenu implements MenuManager {
         }
 
         PlaceholderUtil placeholderUtil = new PlaceholderUtil()
-                .addPlaceholder("%auction_price%", DeluxeAuctions.getInstance().numberFormat.format(price));
+                .addPlaceholder("%auction_price%", this.auction.getEconomy().getText().replace("%price%", DeluxeAuctions.getInstance().numberFormat.format(price)));
 
         ItemStack itemStack = Utils.createItemFromSection(itemSection, placeholderUtil);
         if (itemStack == null)
             return;
-
-        if (itemSection.getName().equals("enough_money"))
-            gui.setItem(itemSection.getInt("slot")-1, ClickableItem.of(itemStack, (event) -> new ConfirmMenu(this.player, "confirm_bid").setAuction(this.auction).setPrice(price).open()));
-        else
-            gui.setItem(itemSection.getInt("slot")-1, ClickableItem.of(itemStack, (event) -> {
+        if (itemSection.getName().equals("not_enough_money"))
+            gui.setItem(itemSection.getInt("slot"), ClickableItem.of(itemStack, (event) -> {
                 Utils.playSound(this.player, "not_enough_money");
-                Utils.sendMessage(this.player, "not_enough_money", placeholderUtil.addPlaceholder("%required_money%", DeluxeAuctions.getInstance().numberFormat.format(price-balance)));
+                Utils.sendMessage(this.player, "not_enough_money", placeholderUtil
+                        .addPlaceholder("%required_money%", this.auction.getEconomy().getText().replace("%price%", DeluxeAuctions.getInstance().numberFormat.format(price-balance))));
             }));
+        else if (itemSection.getName().equals("enough_money"))
+            gui.setItem(itemSection.getInt("slot"), ClickableItem.of(itemStack, (event) -> new ConfirmMenu(this.player, "confirm_bid").setAuction(this.auction).setPrice(price).open()));
+        else
+            gui.setItem(itemSection.getInt("slot"), ClickableItem.empty(itemStack));
     }
 
     private void loadBidHistoryItem() {
         AuctionBids bids = this.auction.getAuctionBids();
-        List<PlayerBid> playerBids = bids.getPlayerBids();
+        if (bids == null)
+            return;
 
+        List<PlayerBid> playerBids = new ArrayList<>(bids.getPlayerBids());
         ConfigurationSection itemSection = playerBids.isEmpty() ? this.section.getConfigurationSection("bid_history.without_bids") : this.section.getConfigurationSection("bid_history.with_bids");
         if (itemSection == null)
             return;
 
         ItemStack itemStack = Utils.createItemFromSection(itemSection, null);
+        if (itemStack == null)
+            return;
+
         if (!playerBids.isEmpty()) {
             playerBids.sort(Comparator.comparingDouble(PlayerBid::getBidPrice).reversed());
+
             List<String> lore = itemSection.getStringList("lore");
+            if (!lore.isEmpty()) {
+                List<String> newLore = new ArrayList<>();
 
-            List<String> newLore = new ArrayList<>();
-            for (String line : lore) {
-                if (line.contains("%bid_descriptions%")) {
-                    List<String> bidDescription = itemSection.getStringList("bid_description");
+                for (String line : lore) {
+                    if (line.contains("%bid_descriptions%")) {
+                        List<String> bidDescription = itemSection.getStringList("bid_description");
 
-                    int maximum = itemSection.getInt("maximum_bids", 5);
-                    int i=0;
-                    for (PlayerBid bid : playerBids) {
-                        if (i >= maximum)
-                            break;
+                        int maximum = itemSection.getInt("maximum_bids", 5);
+                        int i=0;
+                        for (PlayerBid bid : playerBids) {
+                            if (i >= maximum)
+                                break;
 
-                        bidDescription.forEach(a -> newLore.add(Utils.colorize(a
-                                .replace("%bid_time%", DeluxeAuctions.getInstance().timeFormat.formatTime(ZonedDateTime.now().toInstant().getEpochSecond()-bid.getBidTime(), "other_times"))
-                                .replace("%bidder_username%", bid.getBidOwnerDisplayName())
-                                .replace("%bid_amount%", DeluxeAuctions.getInstance().numberFormat.format(bid.getBidPrice())))));
-                        i++;
+                            bidDescription.forEach(a -> newLore.add(Utils.colorize(a
+                                    .replace("%bid_time%", DeluxeAuctions.getInstance().timeFormat.formatTime(ZonedDateTime.now().toInstant().getEpochSecond()-bid.getBidTime(), "other_times"))
+                                    .replace("%bidder_username%", bid.getBidOwnerDisplayName())
+                                    .replace("%bid_amount%", this.auction.getEconomy().getText().replace("%price%", DeluxeAuctions.getInstance().numberFormat.format(bid.getBidPrice()))))));
+                            i++;
+                        }
+
+                        continue;
                     }
 
-                    continue;
+                    newLore.add(Utils.colorize(line
+                            .replace("%total_bid_amount%", String.valueOf(playerBids.size()))));
                 }
 
-                newLore.add(Utils.colorize(line
-                        .replace("%total_bid_amount%", String.valueOf(playerBids.size()))));
+                Utils.changeLore(itemStack, newLore, null);
             }
-
-            Utils.changeLore(itemStack, newLore, null);
         }
 
-        gui.setItem(itemSection.getInt("slot")-1, ClickableItem.empty(itemStack));
+        gui.setItem(itemSection.getInt("slot"), ClickableItem.empty(itemStack));
     }
 
     private void loadExampleItem() {
@@ -365,7 +374,7 @@ public class NormalViewMenu implements MenuManager {
         if (itemStack == null)
             return;
 
-        gui.setItem(this.section.getInt("example_item")-1, ClickableItem.of(itemStack, (event) -> {
+        gui.setItem(this.section.getInt("example_item"), ClickableItem.of(itemStack, (event) -> {
             Utils.broadcastMessage(this.player, "auction_view_info", new PlaceholderUtil()
                     .addPlaceholder("%auction_uuid%", String.valueOf(this.auction.getAuctionUUID())));
 
@@ -402,13 +411,14 @@ public class NormalViewMenu implements MenuManager {
             return;
         }
 
-        double balance = DeluxeAuctions.getInstance().economyManager.getBalance(this.player);
+        double balance = this.auction.getEconomy().getManager().getBalance(this.player);
 
         PlayerBid oldBid = this.auction.getAuctionBids().getPlayerBid(this.player.getUniqueId());
         double money = oldBid != null ? number-oldBid.getBidPrice() : number;
         if (balance < money) {
             Utils.playSound(this.player, "not_enough_money");
-            Utils.sendMessage(this.player, "not_enough_money", new PlaceholderUtil().addPlaceholder("%required_money%", DeluxeAuctions.getInstance().numberFormat.format(money-balance)));
+            Utils.sendMessage(this.player, "not_enough_money", new PlaceholderUtil()
+                    .addPlaceholder("%required_money%", this.auction.getEconomy().getText().replace("%price%", DeluxeAuctions.getInstance().numberFormat.format(money-balance))));
 
             open(this.back);
             return;

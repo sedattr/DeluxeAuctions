@@ -40,10 +40,11 @@ public class Utils {
         if (section == null)
             return true;
 
-        if (type.equals("item") || type.equals("category")) {
-            if (!section.getBoolean("enabled"))
-                return true;
+        String enabled = section.getString("enabled");
+        if (enabled != null && !enabled.isEmpty() && !section.getBoolean("enabled"))
+            return true;
 
+        if (type.equals("item") || type.equals("category")) {
             String permission = section.getString("permission");
             if (permission == null || permission.isEmpty())
                 return true;
@@ -321,7 +322,7 @@ public class Utils {
         if (messageList.isEmpty()) {
             String message = DeluxeAuctions.getInstance().messagesFile.getString(text);
             if (message == null) {
-                DeluxeAuctions.getInstance().dataHandler.debug(text + " %level_color%message is not found in messages.yml", Logger.LogLevel.WARN);
+                DeluxeAuctions.getInstance().dataHandler.debug(text + " %level_color%message is not found in messages.yml");
                 return false;
             }
             if (message.isEmpty())
@@ -344,7 +345,7 @@ public class Utils {
             String message = DeluxeAuctions.getInstance().messagesFile.getString(text);
 
             if (message == null) {
-                DeluxeAuctions.getInstance().dataHandler.debug(text + " %level_color%message is not found in messages.yml", Logger.LogLevel.WARN);
+                DeluxeAuctions.getInstance().dataHandler.debug(text + " %level_color%message is not found in messages.yml");
                 return false;
             }
             if (message.isEmpty())
@@ -434,7 +435,7 @@ public class Utils {
             return null;
 
         ItemStack item = null;
-        if (material.name().toUpperCase().contains("SKULL_ITEM") || material.name().toUpperCase().contains("PLAYER_HEAD")) {
+        if (material.name().toUpperCase(Locale.ENGLISH).contains("SKULL_ITEM") || material.name().toUpperCase(Locale.ENGLISH).contains("PLAYER_HEAD")) {
             String skin = section.getString("skin");
             if (skin != null && !skin.isEmpty())
                 item = new SkullTexture().getSkull(material, section.getString("skin"));

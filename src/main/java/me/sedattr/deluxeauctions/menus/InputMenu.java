@@ -5,9 +5,10 @@ import me.sedattr.deluxeauctions.DeluxeAuctions;
 import me.sedattr.deluxeauctions.others.ChatInput;
 import me.sedattr.deluxeauctions.others.TaskUtils;
 import me.sedattr.deluxeauctions.others.Utils;
-import net.wesjd.anvilgui.AnvilGUI;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
+
+import net.wesjd.anvilgui.AnvilGUI;
 
 import java.util.Collections;
 import java.util.List;
@@ -56,13 +57,17 @@ public class InputMenu {
         String textType = menuManager.getClass().equals(AuctionsMenu.class) ? "text" : "number";
 
         try {
-            new AnvilGUI.Builder()
+            AnvilGUI.Builder builder = new AnvilGUI.Builder()
                     .onClick((slot, state) -> {
                         menuManager.inputResult(state.getText());
                         return Collections.singletonList(AnvilGUI.ResponseAction.close());
                     }).text(Utils.colorize((DeluxeAuctions.getInstance().messagesFile.getString("input_lines.anvil." + textType))))
-                    .plugin(DeluxeAuctions.getInstance())
-                    .open(player);
+                    .plugin(DeluxeAuctions.getInstance());
+
+            if (TaskUtils.isFolia)
+                builder.mainThreadExecutor((command) -> Bukkit.getGlobalRegionScheduler().execute(DeluxeAuctions.getInstance(), command));
+
+            builder.open(player);
         } catch (Exception exception) {
             chatInput(player, menuManager);
         }

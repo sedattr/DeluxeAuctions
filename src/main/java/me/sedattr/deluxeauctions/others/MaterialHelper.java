@@ -4,6 +4,7 @@ import lombok.Getter;
 import org.bukkit.Material;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public enum MaterialHelper {
@@ -1528,7 +1529,7 @@ public enum MaterialHelper {
     public static Material getMaterial(String name) {
         if (name == null || name.isEmpty())
             return null;
-        name = name.toUpperCase();
+        name = name.toUpperCase(Locale.ENGLISH);
 
         MaterialHelper nameCache = NAME_CACHE.getOrDefault(name, null);
         if (nameCache != null)

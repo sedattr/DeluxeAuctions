@@ -1,10 +1,12 @@
 package me.sedattr.deluxeauctions.menus;
 
 import me.sedattr.auctionsapi.AuctionHook;
+import me.sedattr.auctionsapi.cache.AuctionCache;
 import me.sedattr.auctionsapi.cache.PlayerCache;
 import me.sedattr.deluxeauctions.DeluxeAuctions;
 import me.sedattr.deluxeauctions.inventoryapi.HInventory;
 import me.sedattr.deluxeauctions.inventoryapi.item.ClickableItem;
+import me.sedattr.deluxeauctions.managers.Auction;
 import me.sedattr.deluxeauctions.managers.AuctionType;
 import me.sedattr.deluxeauctions.managers.PlayerPreferences;
 import me.sedattr.deluxeauctions.others.PlaceholderUtil;
@@ -30,11 +32,14 @@ public class CreateMenu implements MenuManager {
         this.playerAuction = PlayerCache.getPreferences(player.getUniqueId());
 
         this.createItem = PlayerCache.getItem(player.getUniqueId());
-        this.section = DeluxeAuctions.getInstance().menusFile.getConfigurationSection(this.playerAuction.getCreateType().name().toLowerCase() + "_auction_create_menu");
+        this.section = DeluxeAuctions.getInstance().menusFile.getConfigurationSection((this.playerAuction.getCreateType().equals(AuctionType.BIN) ? "bin" : "normal") + "_auction_create_menu");
     }
 
     public void open(String back) {
-        this.type=back;
+        if (this.section == null)
+            return;
+
+        this.type = back;
         this.gui = DeluxeAuctions.getInstance().menuHandler.createInventory(this.player, this.section, "create", null);
 
         if (!back.equals("command")) {
@@ -42,7 +47,7 @@ public class CreateMenu implements MenuManager {
             ItemStack goBackItem = DeluxeAuctions.getInstance().normalItems.get("go_back");
 
             if (goBackSlot > 0 && goBackItem != null)
-                gui.setItem(goBackSlot - 1, ClickableItem.of(goBackItem, (event) -> {
+                gui.setItem(goBackSlot, ClickableItem.of(goBackItem, (event) -> {
                     if (back.equals("manage"))
                         new ManageMenu(this.player).open(1);
                     else
@@ -55,8 +60,21 @@ public class CreateMenu implements MenuManager {
         loadSwitchItem();
         loadConfirmItem();
         loadTimeItem();
+        loadEconomyItem();
 
         this.gui.open(this.player);
+    }
+
+    private void loadEconomyItem() {
+        ConfigurationSection itemSection = this.section.getConfigurationSection("auction_economy");
+        if (itemSection == null)
+            return;
+
+        PlaceholderUtil placeholderUtil = new PlaceholderUtil()
+                .addPlaceholder("%economy_name%", this.playerAuction.getCreateEconomy().getName());
+
+        ItemStack itemStack = Utils.createItemFromSection(itemSection, placeholderUtil);
+        gui.setItem(itemSection.getInt("slot"), ClickableItem.of(itemStack, (event) -> new EconomyMenu(this.player).open()));
     }
 
     private void loadTimeItem() {
@@ -65,11 +83,11 @@ public class CreateMenu implements MenuManager {
             return;
 
         PlaceholderUtil placeholderUtil = new PlaceholderUtil()
-                .addPlaceholder("%time_fee%", DeluxeAuctions.getInstance().numberFormat.format(AuctionHook.calculateDurationFee(this.playerAuction.getCreateTime())))
+                .addPlaceholder("%time_fee%", this.playerAuction.getCreateEconomy().getText().replace("%price%", DeluxeAuctions.getInstance().numberFormat.format(AuctionHook.calculateDurationFee(this.playerAuction.getCreateTime()))))
                 .addPlaceholder("%auction_time%", DeluxeAuctions.getInstance().timeFormat.formatTime(this.playerAuction.getCreateTime(), "other_times"));
 
         ItemStack itemStack = Utils.createItemFromSection(itemSection, placeholderUtil);
-        gui.setItem(itemSection.getInt("slot")-1, ClickableItem.of(itemStack, (event) -> new DurationMenu(this.player).open()));
+        gui.setItem(itemSection.getInt("slot"), ClickableItem.of(itemStack, (event) -> new DurationMenu(this.player).open()));
     }
 
     private void loadPriceItem() {
@@ -77,14 +95,14 @@ public class CreateMenu implements MenuManager {
         if (itemSection == null)
             return;
 
-        double priceFeePercent = AuctionHook.calculatePriceFeePercent(this.playerAuction.getCreatePrice(), this.playerAuction.getCreateType().name().toLowerCase());
+        double priceFeePercent = AuctionHook.calculatePriceFeePercent(this.playerAuction.getCreatePrice(), this.playerAuction.getCreateType().equals(AuctionType.BIN) ? "bin" : "normal");
         PlaceholderUtil placeholderUtil = new PlaceholderUtil()
-                .addPlaceholder("%price_fee%", DeluxeAuctions.getInstance().numberFormat.format(this.playerAuction.getCreatePrice()/100*priceFeePercent))
-                .addPlaceholder("%price_fee_percent%", DeluxeAuctions.getInstance().numberFormat.format(priceFeePercent))
-                .addPlaceholder("%auction_price%", DeluxeAuctions.getInstance().numberFormat.format(this.playerAuction.getCreatePrice()));
+                .addPlaceholder("%auction_price%", this.playerAuction.getCreateEconomy().getText().replace("%price%", DeluxeAuctions.getInstance().numberFormat.format(this.playerAuction.getCreatePrice())))
+                .addPlaceholder("%price_fee%", this.playerAuction.getCreateEconomy().getText().replace("%price%", DeluxeAuctions.getInstance().numberFormat.format(this.playerAuction.getCreatePrice()/100*priceFeePercent)))
+                .addPlaceholder("%price_fee_percent%", DeluxeAuctions.getInstance().numberFormat.format(priceFeePercent));
 
         ItemStack itemStack = Utils.createItemFromSection(itemSection, placeholderUtil);
-        gui.setItem(itemSection.getInt("slot")-1, ClickableItem.of(itemStack, (event) -> DeluxeAuctions.getInstance().inputMenu.open(this.player, this)));
+        gui.setItem(itemSection.getInt("slot"), ClickableItem.of(itemStack, (event) -> DeluxeAuctions.getInstance().inputMenu.open(this.player, this)));
     }
 
     private void loadSwitchItem() {
@@ -93,7 +111,7 @@ public class CreateMenu implements MenuManager {
             return;
 
         ItemStack itemStack = Utils.createItemFromSection(itemSection, null);
-        gui.setItem(itemSection.getInt("slot")-1, ClickableItem.of(itemStack, (event) -> {
+        gui.setItem(itemSection.getInt("slot"), ClickableItem.of(itemStack, (event) -> {
             AuctionType auctionType = this.playerAuction.getCreateType().equals(AuctionType.BIN) ? AuctionType.NORMAL : AuctionType.BIN;
 
             if (AuctionHook.isAuctionTypeDisabled(auctionType.name()))
@@ -101,7 +119,7 @@ public class CreateMenu implements MenuManager {
                         .addPlaceholder("%auction_type%", auctionType.name()));
             else {
                 this.playerAuction.setCreateType(auctionType);
-                this.section = DeluxeAuctions.getInstance().menusFile.getConfigurationSection(this.playerAuction.getCreateType().name().toLowerCase() + "_auction_create_menu");
+                this.section = DeluxeAuctions.getInstance().menusFile.getConfigurationSection((this.playerAuction.getCreateType().equals(AuctionType.BIN) ? "bin" : "normal") + "_auction_create_menu");
             }
 
             open(this.type);
@@ -113,23 +131,51 @@ public class CreateMenu implements MenuManager {
         if (itemSection == null)
             return;
 
-        double priceFeePercent = AuctionHook.calculatePriceFeePercent(this.playerAuction.getCreatePrice(), this.playerAuction.getCreateType().name().toLowerCase());
+        double priceFeePercent = AuctionHook.calculatePriceFeePercent(this.playerAuction.getCreatePrice(), this.playerAuction.getCreateType().equals(AuctionType.BIN) ? "bin" : "normal");
         double totalFee = this.playerAuction.getCreatePrice()/100*priceFeePercent+AuctionHook.calculateDurationFee(this.playerAuction.getCreateTime());
         PlaceholderUtil placeholderUtil = new PlaceholderUtil()
+                .addPlaceholder("%auction_fee%", this.playerAuction.getCreateEconomy().getText().replace("%price%", DeluxeAuctions.getInstance().numberFormat.format(totalFee)))
+                .addPlaceholder("%auction_price%", this.playerAuction.getCreateEconomy().getText().replace("%price%", DeluxeAuctions.getInstance().numberFormat.format(this.playerAuction.getCreatePrice())))
                 .addPlaceholder("%item_displayname%", Utils.getDisplayName(this.createItem))
-                .addPlaceholder("%auction_time%", DeluxeAuctions.getInstance().timeFormat.formatTime(this.playerAuction.getCreateTime(), "other_times"))
-                .addPlaceholder("%auction_fee%", DeluxeAuctions.getInstance().numberFormat.format(totalFee))
-                .addPlaceholder("%auction_price%", DeluxeAuctions.getInstance().numberFormat.format(this.playerAuction.getCreatePrice()));
+                .addPlaceholder("%auction_time%", DeluxeAuctions.getInstance().timeFormat.formatTime(this.playerAuction.getCreateTime(), "other_times"));
 
         ItemStack itemStack = Utils.createItemFromSection(itemSection, placeholderUtil);
         if (this.createItem == null)
-            gui.setItem(itemSection.getInt("slot")-1, ClickableItem.empty(itemStack));
+            gui.setItem(itemSection.getInt("slot"), ClickableItem.empty(itemStack));
         else
-            gui.setItem(itemSection.getInt("slot")-1, ClickableItem.of(itemStack, (event) -> {
-                double balance = DeluxeAuctions.getInstance().economyManager.getBalance(this.player);
+            gui.setItem(itemSection.getInt("slot"), ClickableItem.of(itemStack, (event) -> {
+                double balance = this.playerAuction.getCreateEconomy().getManager().getBalance(this.player);
                 if (balance < totalFee) {
                     Utils.playSound(this.player, "not_enough_money");
-                    Utils.sendMessage(this.player, "not_enough_money", placeholderUtil.addPlaceholder("%required_money%", DeluxeAuctions.getInstance().numberFormat.format(totalFee-balance)));
+                    Utils.sendMessage(this.player, "not_enough_money", placeholderUtil.addPlaceholder("%required_money%", this.playerAuction.getCreateEconomy().getText().replace("%price%", DeluxeAuctions.getInstance().numberFormat.format(totalFee-balance))));
+                    return;
+                }
+
+                if (Utils.hasPermission(player, "bypass", "permission")) {
+                    if (AuctionCache.getOwnedAuctions(this.player.getUniqueId()).size() >= AuctionHook.getLimit(this.player, "auction_limit")) {
+                        Utils.sendMessage(this.player, "reached_auction_limit");
+                        return;
+                    }
+
+                    AuctionType createType = playerAuction.getCreateType();
+                    String type = playerAuction.getCreateType().equals(AuctionType.BIN) ? "bin" : "normal";
+
+                    Auction newAuction = new Auction(createItem, playerAuction.getCreateEconomy(), playerAuction.getCreatePrice(), createType, playerAuction.getCreateTime());
+                    if (newAuction.create(this.player, totalFee)) {
+                        Utils.sendMessage(this.player, "created_" + type + "_auction", placeholderUtil);
+                        Utils.broadcastMessage(this.player, type + "_auction_broadcast", placeholderUtil
+                                .addPlaceholder("%player_displayname%", this.player.getDisplayName())
+                                .addPlaceholder("%auction_uuid%", String.valueOf(newAuction.getAuctionUUID())));
+
+                        if (DeluxeAuctions.getInstance().discordWebhook != null)
+                            DeluxeAuctions.getInstance().discordWebhook.sendMessage("create_auction", placeholderUtil);
+
+                        if (createType == AuctionType.BIN)
+                            new BinViewMenu(player, newAuction).open("manage");
+                        else
+                            new NormalViewMenu(player, newAuction).open("manage");
+                    }
+
                     return;
                 }
 
@@ -180,7 +226,7 @@ public class CreateMenu implements MenuManager {
         }
 
         int slot = exampleSection.getInt("slot");
-        this.gui.setItem(slot-1, ClickableItem.of(example, (event) -> {
+        this.gui.setItem(slot, ClickableItem.of(example, (event) -> {
             if (this.createItem != null) {
                 if (!Utils.hasEmptySlot(player)) {
                     Utils.sendMessage(player, "no_empty_slot");
@@ -219,7 +265,7 @@ public class CreateMenu implements MenuManager {
             double limit = AuctionHook.getPriceLimit(player, "price_limit");
             if (number > limit)
                 Utils.sendMessage(player, "reached_price_limit", new PlaceholderUtil()
-                        .addPlaceholder("%price_limit%", DeluxeAuctions.getInstance().numberFormat.format((double) limit)));
+                        .addPlaceholder("%price_limit%", this.playerAuction.getCreateEconomy().getText().replace("%price%",  DeluxeAuctions.getInstance().numberFormat.format(limit))));
 
             this.playerAuction.setCreatePrice(Math.min(number, limit));
         }

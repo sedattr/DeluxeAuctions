@@ -5,14 +5,12 @@ import me.sedattr.deluxeauctions.DeluxeAuctions;
 import me.sedattr.deluxeauctions.configupdater.ConfigUpdater;
 import me.sedattr.deluxeauctions.database.MySQLDatabase;
 import me.sedattr.deluxeauctions.database.SQLiteDatabase;
-import me.sedattr.deluxeauctions.economy.*;
 import me.sedattr.deluxeauctions.managers.AuctionType;
 import me.sedattr.deluxeauctions.managers.CustomItem;
+import me.sedattr.deluxeauctions.managers.Economy;
 import me.sedattr.deluxeauctions.managers.SortType;
 import me.sedattr.deluxeauctions.menus.InputMenu;
 import me.sedattr.deluxeauctions.others.*;
-import net.milkbowl.vault.economy.Economy;
-import org.bukkit.Bukkit;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -22,22 +20,20 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Set;
+import java.util.*;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.RegisteredServiceProvider;
 
 public class DataHandler {
     private final File log = new File(DeluxeAuctions.getInstance().getDataFolder(), "logs.txt");
     private final boolean logEnabled = DeluxeAuctions.getInstance().getConfig().getBoolean("settings.enable_log", true);
     private final boolean debugEnabled = DeluxeAuctions.getInstance().getConfig().getBoolean("settings.enable_debug", false);
 
-    public void debug(String message, Logger.LogLevel level) {
+    public void debug(String message) {
         if (this.debugEnabled)
-            Logger.sendConsoleMessage(message, level);
+            Logger.sendConsoleMessage(message, Logger.LogLevel.DEBUG);
     }
 
     public void writeToLog(String inject) {
@@ -59,24 +55,43 @@ public class DataHandler {
     }
 
     public boolean loadDefaultSettings() {
-        DeluxeAuctions.getInstance().auctionType = AuctionType.valueOf(DeluxeAuctions.getInstance().configFile.getString("settings.default_filter_type", "ALL").toUpperCase());
-        DeluxeAuctions.getInstance().sortType = SortType.valueOf(DeluxeAuctions.getInstance().configFile.getString("settings.default_sort_type", "HIGHEST_PRICE").toUpperCase());
+        DeluxeAuctions.getInstance().rarityType = DeluxeAuctions.getInstance().configFile.getString("settings.default_rarity", "all");
+        DeluxeAuctions.getInstance().auctionType = AuctionType.valueOf(DeluxeAuctions.getInstance().configFile.getString("settings.default_filter_type", "ALL").toUpperCase(Locale.ENGLISH));
+        DeluxeAuctions.getInstance().sortType = SortType.valueOf(DeluxeAuctions.getInstance().configFile.getString("settings.default_sort_type", "HIGHEST_PRICE").toUpperCase(Locale.ENGLISH));
         DeluxeAuctions.getInstance().category = DeluxeAuctions.getInstance().configFile.getString("settings.default_category", "weapons");
-        DeluxeAuctions.getInstance().createType = AuctionType.valueOf(DeluxeAuctions.getInstance().configFile.getString("settings.default_type", "BIN").toUpperCase());
+        DeluxeAuctions.getInstance().createType = AuctionType.valueOf(DeluxeAuctions.getInstance().configFile.getString("settings.default_type", "BIN").toUpperCase(Locale.ENGLISH));
         DeluxeAuctions.getInstance().createPrice = DeluxeAuctions.getInstance().configFile.getDouble("settings.default_price", 500);
         DeluxeAuctions.getInstance().createTime = DeluxeAuctions.getInstance().configFile.getInt("settings.default_duration", 21600);
+        DeluxeAuctions.getInstance().createEconomy = DeluxeAuctions.getInstance().economies.get(DeluxeAuctions.getInstance().configFile.getString("settings.default_economy"));
+
+        if (DeluxeAuctions.getInstance().createEconomy == null) {
+            Logger.sendConsoleMessage("You need to setup the economy system in the economy.yml to use the plugin efficient!", Logger.LogLevel.WARN);
+            String type = DeluxeAuctions.getInstance().configFile.getString("economy.type");
+            if (type != null && !type.isEmpty()) {
+                DeluxeAuctions.getInstance().economies = new HashMap<>();
+                new Economy(type);
+            }
+            else {
+                List<Economy> economies = DeluxeAuctions.getInstance().economies.values().stream().toList();
+                if (economies.isEmpty())
+                    return false;
+
+                DeluxeAuctions.getInstance().createEconomy = economies.get(0);
+            }
+        }
 
         return DeluxeAuctions.getInstance().category != null;
     }
 
     public boolean load() {
         DeluxeAuctions.getInstance().configFile = DeluxeAuctions.getInstance().getConfig();
+        DeluxeAuctions.getInstance().economyFile = getConfiguration("economy.yml");
         if (!setupEconomy()) {
             Logger.sendConsoleMessage("There is a problem in economy setup! Plugin is disabling...", Logger.LogLevel.ERROR);
             return false;
         }
         if (!loadDefaultSettings()) {
-            Logger.sendConsoleMessage("There is a problem in default category setting (config.yml -> default_category)! Plugin is disabling...", Logger.LogLevel.ERROR);
+            Logger.sendConsoleMessage("There is a problem in default category setting (config.yml -> default_category) or economy (economy.yml)! Plugin is disabling...", Logger.LogLevel.ERROR);
             return false;
         }
 
@@ -238,6 +253,23 @@ public class DataHandler {
             DeluxeAuctions.getInstance().databaseManager = new SQLiteDatabase();
     }
 
+    private boolean setupEconomy() {
+        Set<String> keys = DeluxeAuctions.getInstance().economyFile.getKeys(false);
+        if (keys.isEmpty())
+            return false;
+
+        for (String key : keys) {
+            ConfigurationSection section = DeluxeAuctions.getInstance().economyFile.getConfigurationSection(key);
+            if (section == null)
+                continue;
+
+            new Economy(section);
+        }
+
+        return true;
+    }
+
+    /*
     public Boolean setupEconomy() {
         String economyType = DeluxeAuctions.getInstance().configFile.getString("economy.type", "vault");
         if (economyType.isEmpty())
@@ -256,6 +288,12 @@ public class DataHandler {
                     return false;
 
                 DeluxeAuctions.getInstance().economyManager = new EdPrisonEconomy();
+                return true;
+            case "skript":
+                if (!Bukkit.getServer().getPluginManager().isPluginEnabled("Skript"))
+                    return false;
+
+                DeluxeAuctions.getInstance().economyManager = new SkriptEconomy();
                 return true;
             case "royaleeconomy_balance":
                 if (!Bukkit.getServer().getPluginManager().isPluginEnabled("RoyaleEconomy"))
@@ -298,4 +336,5 @@ public class DataHandler {
                 return true;
         }
     }
+     */
 }

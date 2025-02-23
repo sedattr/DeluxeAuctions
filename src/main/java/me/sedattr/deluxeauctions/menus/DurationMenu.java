@@ -35,7 +35,7 @@ public class DurationMenu implements MenuManager {
         int goBackSlot = this.section.getInt("back");
         ItemStack goBackItem = DeluxeAuctions.getInstance().normalItems.get("go_back");
         if (goBackSlot > 0 && goBackItem != null)
-            gui.setItem(goBackSlot-1, ClickableItem.of(goBackItem, (event) -> new CreateMenu(this.player).open("main")));
+            gui.setItem(goBackSlot, ClickableItem.of(goBackItem, (event) -> new CreateMenu(this.player).open("main")));
 
         loadDurationItems();
         loadCustomDuration();
@@ -55,15 +55,23 @@ public class DurationMenu implements MenuManager {
 
             int time = durationSection.getInt("duration", 86400);
             PlaceholderUtil placeholderUtil = new PlaceholderUtil()
-                    .addPlaceholder("%duration_fee%", DeluxeAuctions.getInstance().numberFormat.format(AuctionHook.calculateDurationFee(time)));
+                    .addPlaceholder("%duration_fee%", this.playerAuction.getCreateEconomy().getText().replace("%price%", DeluxeAuctions.getInstance().numberFormat.format(AuctionHook.calculateDurationFee(time))));
 
             ItemStack itemStack = Utils.createItemFromSection(durationSection, placeholderUtil);
             if (itemStack == null)
                 return;
 
-            int slot = durationSection.getInt("slot")-1;
+            int slot = durationSection.getInt("slot");
             if (this.playerAuction.getCreateTime() == time) {
-                itemStack.addUnsafeEnchantment(Enchantment.SILK_TOUCH, 1);
+                if (DeluxeAuctions.getInstance().version >= 21) {
+                    ItemMeta meta = itemStack.getItemMeta();
+                    if (meta == null)
+                        return;
+
+                    //meta.setEnchantmentGlintOverride(true);
+                    itemStack.setItemMeta(meta);
+                } else
+                    itemStack.addUnsafeEnchantment(Enchantment.SILK_TOUCH, 1);
 
                 ItemMeta meta = itemStack.getItemMeta();
                 if (meta == null)
@@ -97,7 +105,7 @@ public class DurationMenu implements MenuManager {
             return;
 
         int slot = itemSection.getInt("slot");
-        this.gui.setItem(slot-1, ClickableItem.of(item, (event) -> {
+        this.gui.setItem(slot, ClickableItem.of(item, (event) -> {
             ClickType clickType = event.getClick();
             this.isHours = clickType != ClickType.RIGHT && clickType != ClickType.SHIFT_RIGHT;
 
