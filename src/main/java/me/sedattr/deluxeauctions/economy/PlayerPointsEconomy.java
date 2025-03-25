@@ -4,9 +4,6 @@ import org.black_ixx.playerpoints.PlayerPoints;
 import org.black_ixx.playerpoints.PlayerPointsAPI;
 import org.bukkit.OfflinePlayer;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-
 public class PlayerPointsEconomy implements EconomyManager {
     public final PlayerPointsAPI api;
 
