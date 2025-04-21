@@ -14,11 +14,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.sql.*;
 import java.time.ZonedDateTime;
 import java.util.*;
@@ -65,16 +60,17 @@ public class MySQLDatabase implements DatabaseManager {
         }
 
         /*
-        if (check) {
-            Auction oldAuction = AuctionCache.getAuction(uuid);
-            if (oldAuction == null) {
-                    AuctionCreateEvent event = new AuctionCreateEvent(Bukkit.getPlayer(owner), auction);
-                    Bukkit.getPluginManager().callEvent(event);
-                    if (event.isCancelled())
-                        return;
-            }
-        }
-        */
+         * if (check) {
+         * Auction oldAuction = AuctionCache.getAuction(uuid);
+         * if (oldAuction == null) {
+         * AuctionCreateEvent event = new AuctionCreateEvent(Bukkit.getPlayer(owner),
+         * auction);
+         * Bukkit.getPluginManager().callEvent(event);
+         * if (event.isCancelled())
+         * return;
+         * }
+         * }
+         */
 
         String bids = set.getString(5);
         if (bids != null) {
@@ -93,7 +89,8 @@ public class MySQLDatabase implements DatabaseManager {
                 long bidTime = Long.parseLong(newArgs[4]);
                 boolean collected = !type.equals(AuctionType.NORMAL) || Boolean.parseBoolean(newArgs[5]);
 
-                PlayerBid playerBid = new PlayerBid(orderUUID, ownerUUID, ownerDisplayName, bidPrice, bidTime, collected);
+                PlayerBid playerBid = new PlayerBid(orderUUID, ownerUUID, ownerDisplayName, bidPrice, bidTime,
+                        collected);
                 playerBids.add(playerBid);
             }
 
@@ -114,7 +111,8 @@ public class MySQLDatabase implements DatabaseManager {
     }
 
     public MySQLDatabase() {
-        ConfigurationSection section = DeluxeAuctions.getInstance().getConfig().getConfigurationSection("database.mysql_settings");
+        ConfigurationSection section = DeluxeAuctions.getInstance().getConfig()
+                .getConfigurationSection("database.mysql_settings");
         if (section == null) {
             DeluxeAuctions.getInstance().databaseManager = new SQLiteDatabase();
             return;
@@ -141,35 +139,37 @@ public class MySQLDatabase implements DatabaseManager {
 
         try (
                 Connection connection = getConnection();
-                PreparedStatement statement1 = connection.prepareStatement("CREATE TABLE IF NOT EXISTS " + this.auctions + " (" +
-                        "uuid VARCHAR(36) PRIMARY KEY, " +
-                        "owner VARCHAR(36), " +
-                        "display_name TEXT, " +
-                        "item MEDIUMTEXT, " +
-                        "bids MEDIUMTEXT, " +
-                        "price DOUBLE, " +
-                        "end_time INT(11), " +
-                        "type TEXT, " +
-                        "claimed BOOL, " +
-                        "economy TEXT);");
+                PreparedStatement statement1 = connection
+                        .prepareStatement("CREATE TABLE IF NOT EXISTS " + this.auctions + " (" +
+                                "uuid VARCHAR(36) PRIMARY KEY, " +
+                                "owner VARCHAR(36), " +
+                                "display_name TEXT, " +
+                                "item MEDIUMTEXT, " +
+                                "bids MEDIUMTEXT, " +
+                                "price DOUBLE, " +
+                                "end_time INT(11), " +
+                                "type TEXT, " +
+                                "claimed BOOL, " +
+                                "economy TEXT);");
 
-                PreparedStatement statement2 = connection.prepareStatement("CREATE TABLE IF NOT EXISTS " + this.items + " (" +
-                        "uuid VARCHAR(36) PRIMARY KEY, " +
-                        "create_item MEDIUMTEXT);");
+                PreparedStatement statement2 = connection
+                        .prepareStatement("CREATE TABLE IF NOT EXISTS " + this.items + " (" +
+                                "uuid VARCHAR(36) PRIMARY KEY, " +
+                                "create_item MEDIUMTEXT);");
 
-                PreparedStatement statement3 = connection.prepareStatement("CREATE TABLE IF NOT EXISTS " + this.stats + " (" +
-                        "uuid VARCHAR(36) PRIMARY KEY, " +
-                        "won_auctions INTEGER, " +
-                        "lost_auctions INTEGER, " +
-                        "total_bids INTEGER, " +
-                        "highest_bid DOUBLE, " +
-                        "spent_money DOUBLE, " +
-                        "created_auctions INTEGER, " +
-                        "expired_auctions INTEGER, " +
-                        "sold_auctions INTEGER, " +
-                        "earned_money DOUBLE, " +
-                        "total_fees DOUBLE);")
-        ) {
+                PreparedStatement statement3 = connection
+                        .prepareStatement("CREATE TABLE IF NOT EXISTS " + this.stats + " (" +
+                                "uuid VARCHAR(36) PRIMARY KEY, " +
+                                "won_auctions INTEGER, " +
+                                "lost_auctions INTEGER, " +
+                                "total_bids INTEGER, " +
+                                "highest_bid DOUBLE, " +
+                                "spent_money DOUBLE, " +
+                                "created_auctions INTEGER, " +
+                                "expired_auctions INTEGER, " +
+                                "sold_auctions INTEGER, " +
+                                "earned_money DOUBLE, " +
+                                "total_fees DOUBLE);")) {
             statement1.execute();
             statement2.execute();
             statement3.execute();
@@ -177,15 +177,17 @@ public class MySQLDatabase implements DatabaseManager {
             x.printStackTrace();
         }
 
-
         try (Connection connection = getConnection();
-             PreparedStatement checkColumn = connection.prepareStatement("SHOW COLUMNS FROM " + this.auctions + " LIKE 'economy';");
-             ResultSet resultSet = checkColumn.executeQuery()) {
+                PreparedStatement checkColumn = connection
+                        .prepareStatement("SHOW COLUMNS FROM " + this.auctions + " LIKE 'economy';");
+                ResultSet resultSet = checkColumn.executeQuery()) {
 
             if (!resultSet.next()) {
-                try (PreparedStatement addColumn = connection.prepareStatement("ALTER TABLE " + this.auctions + " ADD COLUMN economy TEXT;")) {
+                try (PreparedStatement addColumn = connection
+                        .prepareStatement("ALTER TABLE " + this.auctions + " ADD COLUMN economy TEXT;")) {
                     addColumn.executeUpdate();
-                    DeluxeAuctions.getInstance().dataHandler.debug("Column 'economy' has been added to " + this.auctions + " table.");
+                    DeluxeAuctions.getInstance().dataHandler
+                            .debug("Column 'economy' has been added to " + this.auctions + " table.");
                 }
             }
 
@@ -265,17 +267,21 @@ public class MySQLDatabase implements DatabaseManager {
 
                 DeluxeAuctions.getInstance().loaded = true;
                 if (Bukkit.getPluginManager().isPluginEnabled("DeluxeAuctionsRedis")) {
-                    me.sedattr.deluxeauctionsredis.RedisPlugin redis = (RedisPlugin) Bukkit.getPluginManager().getPlugin("DeluxeAuctionsRedis");
+                    me.sedattr.deluxeauctionsredis.RedisPlugin redis = (RedisPlugin) Bukkit.getPluginManager()
+                            .getPlugin("DeluxeAuctionsRedis");
                     if (redis != null && redis.isLoaded()) {
                         DeluxeAuctions.getInstance().multiServerManager = new RedisAddon();
-                        Logger.sendConsoleMessage("Enabled &fDeluxeAuctions Redis %level_color%support!", Logger.LogLevel.INFO);
+                        Logger.sendConsoleMessage("Enabled &fDeluxeAuctions Redis %level_color%support!",
+                                Logger.LogLevel.INFO);
                     }
                 } else if (DeluxeAuctions.getInstance().configFile.getBoolean("addons.bungeecord", false)) {
                     DeluxeAuctions.getInstance().multiServerManager = new BungeeAddon();
-                    Logger.sendConsoleMessage("Enabled &fDeluxeAuctions Bungee %level_color%support!", Logger.LogLevel.INFO);
+                    Logger.sendConsoleMessage("Enabled &fDeluxeAuctions Bungee %level_color%support!",
+                            Logger.LogLevel.INFO);
                 }
 
-                Logger.sendConsoleMessage("&f" + i + " %level_color%auctions loaded in &f" + (System.currentTimeMillis()-time) + " ms%level_color%!", Logger.LogLevel.INFO);
+                Logger.sendConsoleMessage("&f" + i + " %level_color%auctions loaded in &f"
+                        + (System.currentTimeMillis() - time) + " ms%level_color%!", Logger.LogLevel.INFO);
             } catch (SQLException x) {
                 x.printStackTrace();
             }
@@ -303,8 +309,7 @@ public class MySQLDatabase implements DatabaseManager {
 
         runTask(() -> {
             try (
-                    PreparedStatement itemsStatement = getConnection().prepareStatement(items)
-            ) {
+                    PreparedStatement itemsStatement = getConnection().prepareStatement(items)) {
                 itemsStatement.setString(1, uuid.toString());
                 ResultSet item = itemsStatement.executeQuery();
 
@@ -329,8 +334,7 @@ public class MySQLDatabase implements DatabaseManager {
 
         runTask(() -> {
             try (
-                    PreparedStatement statsStatement = getConnection().prepareStatement(stats)
-            ) {
+                    PreparedStatement statsStatement = getConnection().prepareStatement(stats)) {
                 statsStatement.setString(1, uuid.toString());
                 ResultSet stat = statsStatement.executeQuery();
 
@@ -368,7 +372,8 @@ public class MySQLDatabase implements DatabaseManager {
 
     // SAVE FUNCTIONS
     public void saveAuctions() {
-        String sql = "REPLACE INTO " + this.auctions + " (uuid, owner, display_name, item, bids, price, end_time, type, claimed, economy) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+        String sql = "REPLACE INTO " + this.auctions
+                + " (uuid, owner, display_name, item, bids, price, end_time, type, claimed, economy) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
         runTask(() -> {
             try (PreparedStatement statement = getConnection().prepareStatement(sql)) {
                 int i = 0;
@@ -401,7 +406,8 @@ public class MySQLDatabase implements DatabaseManager {
                     i++;
                 }
 
-                Logger.sendConsoleMessage("&f" + i + " %level_color%auctions saved in &f" + (System.currentTimeMillis()-time) + " ms%level_color%!", Logger.LogLevel.INFO);
+                Logger.sendConsoleMessage("&f" + i + " %level_color%auctions saved in &f"
+                        + (System.currentTimeMillis() - time) + " ms%level_color%!", Logger.LogLevel.INFO);
                 DeluxeAuctions.getInstance().converting = false;
             } catch (SQLException x) {
                 handleSQLException(x, this::saveAuctions);
@@ -410,7 +416,8 @@ public class MySQLDatabase implements DatabaseManager {
     }
 
     public void saveAuction(Auction auction) {
-        String sql = "REPLACE INTO " + this.auctions + " (uuid, owner, display_name, item, bids, price, end_time, type, claimed, economy) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "REPLACE INTO " + this.auctions
+                + " (uuid, owner, display_name, item, bids, price, end_time, type, claimed, economy) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         runTask(() -> {
             StringBuilder playerBids = new StringBuilder();
             List<PlayerBid> bids = auction.getAuctionBids().getPlayerBids();
@@ -473,11 +480,11 @@ public class MySQLDatabase implements DatabaseManager {
     public void saveStats(PlayerStats stats) {
         UUID uuid = stats.getPlayer();
 
-        String sql = "REPLACE INTO " + this.stats + " (uuid, won_auctions, lost_auctions, total_bids, highest_bid, spent_money, created_auctions, expired_auctions, sold_auctions, earned_money, total_fees) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "REPLACE INTO " + this.stats
+                + " (uuid, won_auctions, lost_auctions, total_bids, highest_bid, spent_money, created_auctions, expired_auctions, sold_auctions, earned_money, total_fees) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         runTask(() -> {
             try (
-                    PreparedStatement statement = getConnection().prepareStatement(sql)
-            ) {
+                    PreparedStatement statement = getConnection().prepareStatement(sql)) {
                 statement.setString(1, uuid.toString());
                 statement.setInt(2, stats.getWonAuctions());
                 statement.setInt(3, stats.getLostAuctions());

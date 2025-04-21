@@ -2,7 +2,7 @@ name: DeluxeAuctions
 main: me.sedattr.deluxeauctions.DeluxeAuctions
 
 author: SedatTR
-version: 3.1
+version: 3.2
 api-version: 1.13
 folia-supported: true
 

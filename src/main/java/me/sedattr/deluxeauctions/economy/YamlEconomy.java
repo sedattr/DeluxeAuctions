@@ -32,11 +32,11 @@ public class YamlEconomy implements EconomyManager {
     }
 
     public boolean addBalance(OfflinePlayer player, Double count) {
-        File file = new File(replace(player, "economy.yaml_settings.folder_name"), replace(player, "default.economy.yaml.file"));
+        File file = new File(replace(player, this.folder), replace(player, this.file));
         YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
-        Double oldCount = config.getDouble(replace(player, "economy.yaml_settings.node_text"));
+        Double oldCount = config.getDouble(replace(player, this.node));
 
-        config.set(replace(player, "economy.yaml_settings.node_text"), oldCount + count);
+        config.set(replace(player, this.node), oldCount + count);
         try {
             config.save(file);
             return true;
@@ -47,11 +47,12 @@ public class YamlEconomy implements EconomyManager {
 
     @Override
     public boolean removeBalance(OfflinePlayer player, Double count) {
-        File file = new File(replace(player, "economy.yaml_settings.folder_name"), replace(player, "default.economy.yaml.file"));
+        File file = new File(replace(player, this.folder),
+                replace(player, this.file));
         YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
-        Double oldCount = config.getDouble(replace(player, "economy.yaml_settings.node_text"));
+        Double oldCount = config.getDouble(replace(player, this.node));
 
-        config.set(replace(player, "economy.yaml_settings.node_text"), oldCount - count);
+        config.set(replace(player, this.node), oldCount - count);
         try {
             config.save(file);
             return true;
@@ -62,9 +63,10 @@ public class YamlEconomy implements EconomyManager {
 
     @Override
     public double getBalance(OfflinePlayer player) {
-        File file = new File(replace(player, "economy.yaml_settings.folder.name"), replace(player, "default.economy.yaml.file"));
+        File file = new File(replace(player, this.folder),
+                replace(player, this.file));
         YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
 
-        return config.getDouble(replace(player, "economy.yaml_settings.node_text"));
+        return config.getDouble(replace(player, this.node));
     }
 }

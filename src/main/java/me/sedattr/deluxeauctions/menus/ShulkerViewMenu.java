@@ -25,7 +25,7 @@ public class ShulkerViewMenu {
         this.auction = auction;
     }
 
-    public void open() {
+    public void open(String back) {
         this.gui = DeluxeAuctions.getInstance().menuHandler.createInventory(this.player, this.section, "shulker_view", null);
 
         int goBackSlot = this.section.getInt("back");
@@ -33,9 +33,9 @@ public class ShulkerViewMenu {
         if (goBackSlot > 0 && goBackItem != null)
             gui.setItem(goBackSlot, ClickableItem.of(goBackItem, (event) -> {
                 if (auction.getAuctionType().equals(AuctionType.BIN))
-                    new BinViewMenu(this.player, auction).open("auctions");
+                    new BinViewMenu(this.player, auction).open(back);
                 else
-                    new NormalViewMenu(this.player, auction).open("auctions");
+                    new NormalViewMenu(this.player, auction).open(back);
             }));
 
         loadItems();

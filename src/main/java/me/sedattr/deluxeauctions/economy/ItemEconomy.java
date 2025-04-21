@@ -71,7 +71,7 @@ public class ItemEconomy implements EconomyManager {
                     int addHere = Math.min(spaceLeft, toAdd);
                     item.setAmount(item.getAmount() + addHere);
                     toAdd -= addHere;
-                    
+
                     if (toAdd == 0)
                         return true;
                 }

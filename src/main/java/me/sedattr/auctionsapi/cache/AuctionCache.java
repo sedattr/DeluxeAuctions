@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class AuctionCache {
     @Getter private static final HashMap<UUID, Auction> auctions = Maps.newHashMap();
     private static final Set<UUID> updatedAuctions = new HashSet<>();
+    private static final HashMap<UUID, Auction> endedAuctions = Maps.newHashMap();
 
     public static boolean isAuctionUpdating(UUID auctionUUID) {
         return updatedAuctions.contains(auctionUUID);
@@ -26,6 +27,24 @@ public class AuctionCache {
 
     public static void removeUpdatingAuction(UUID auctionUUID) {
         updatedAuctions.remove(auctionUUID);
+    }
+
+    public static Auction getEndedAuction(UUID uuid) {
+        return auctions.get(uuid);
+    }
+
+    public static void addEndedAuction(Auction auction) {
+        if (auction == null)
+            return;
+
+        endedAuctions.put(auction.getAuctionUUID(), auction);
+    }
+
+    public static void removeEndedAuction(UUID uuid) {
+        if (!endedAuctions.containsKey(uuid))
+            return;
+
+        endedAuctions.remove(uuid);
     }
 
     public static Auction getAuction(UUID uuid) {

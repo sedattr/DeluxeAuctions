@@ -1,6 +1,8 @@
 package me.sedattr.deluxeauctions.menus;
 
 import de.rapha149.signgui.SignGUI;
+import me.sedattr.auctionsapi.events.AuctionCancelEvent;
+import me.sedattr.auctionsapi.events.InputOpenEvent;
 import me.sedattr.deluxeauctions.DeluxeAuctions;
 import me.sedattr.deluxeauctions.others.ChatInput;
 import me.sedattr.deluxeauctions.others.TaskUtils;
@@ -23,6 +25,12 @@ public class InputMenu {
     }
 
     public void open(Player player, MenuManager menuManager) {
+        // Custom event
+        InputOpenEvent event = new InputOpenEvent(player, menuManager.getMenuName());
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled())
+            return;
+
         if (this.type.equalsIgnoreCase("sign"))
             signInput(player, menuManager);
         else if (this.type.equalsIgnoreCase("anvil"))

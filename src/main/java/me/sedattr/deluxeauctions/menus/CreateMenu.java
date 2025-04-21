@@ -272,4 +272,9 @@ public class CreateMenu implements MenuManager {
 
         open(this.type);
     }
+
+    @Override
+    public String getMenuName() {
+        return "create";
+    }
 }

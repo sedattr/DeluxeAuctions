@@ -165,6 +165,8 @@ public class ConfirmMenu {
 
                             if (DeluxeAuctions.getInstance().discordWebhook != null)
                                 DeluxeAuctions.getInstance().discordWebhook.sendMessage("sold_item", placeholderUtil);
+
+                            new AuctionsMenu(this.player).open(this.playerAuction.getCategory().getName(), this.playerAuction.getCategoryPage());
                         }
                     }
                     case "confirm_bid" -> {
@@ -203,7 +205,7 @@ public class ConfirmMenu {
                             if (seller != null && seller.isOnline())
                                 Utils.broadcastMessage(seller, "new_bid", placeholderUtil);
 
-                            if (this.auction.getAuctionType() == AuctionType.BIN)
+                            if (this.auction.getAuctionType().equals(AuctionType.BIN))
                                 new BinViewMenu(player, this.auction).open("bids");
                             else
                                 new NormalViewMenu(player, this.auction).open("bids");

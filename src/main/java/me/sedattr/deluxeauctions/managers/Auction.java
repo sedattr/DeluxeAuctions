@@ -25,13 +25,14 @@ public class Auction {
     private final String auctionCategory;
     private final AuctionType auctionType;
     private final AuctionBids auctionBids = new AuctionBids();
-    @Setter private long auctionEndTime;
-    private UUID auctionOwner;
-    private String auctionOwnerDisplayName;
-    @Setter private boolean sellerClaimed = false;
     private final Economy economy;
 
-    private long auctionStartTime = 0;
+    private UUID auctionOwner;
+    private String auctionOwnerDisplayName;
+    private long auctionStartTime;
+
+    @Setter private long auctionEndTime;
+    @Setter private boolean sellerClaimed = false;
 
     public Auction(ItemStack item, Economy economy, Double price, AuctionType type, long time) {
         this.auctionUUID = UUID.randomUUID();
@@ -39,7 +40,6 @@ public class Auction {
         this.auctionPrice = price;
         this.auctionItem = item;
         this.auctionType = type;
-        this.auctionStartTime = ZonedDateTime.now().toInstant().getEpochSecond();
         this.auctionEndTime = this.auctionStartTime + time;
         this.auctionCategory = CategoryCache.getItemCategory(item);
     }
@@ -80,6 +80,8 @@ public class Auction {
         Bukkit.getPluginManager().callEvent(event);
         if (event.isCancelled())
             return false;
+
+        this.auctionStartTime = ZonedDateTime.now().toInstant().getEpochSecond();
 
         AuctionCache.addUpdatingAuction(this.auctionUUID);
 
@@ -183,6 +185,7 @@ public class Auction {
         stats.removeCreatedAuction();
 
         // Remove from Variables
+        AuctionCache.addEndedAuction(this);
         AuctionCache.removeAuction(this.auctionUUID);
 
         // Database
@@ -218,6 +221,15 @@ public class Auction {
         // Check if player's balance is not enough
         if (this.economy.getManager().getBalance(player) < price) {
             DeluxeAuctions.getInstance().dataHandler.debug("Player (" + player.getUniqueId() + ") does not enough have money for auction (" + this.auctionUUID + ")!");
+            return false;
+        }
+
+        // Check if bid is low
+        AuctionBids bids = this.getAuctionBids();
+        double bidPrice = bids.getHighestBid() == null ? this.auctionPrice : bids.getHighestBid().getBidPrice();
+        if (price <= bidPrice) {
+            DeluxeAuctions.getInstance().dataHandler.debug("Player (" + player.getUniqueId() + ") is trying to bid low to auction (" + this.auctionUUID + ")!");
+            Utils.sendMessage(player, "low_bid");
             return false;
         }
 
@@ -498,6 +510,7 @@ public class Auction {
 
         // Database
         if (isAllClaimed) {
+            AuctionCache.addEndedAuction(this);
             AuctionCache.removeAuction(this.auctionUUID);
             DeluxeAuctions.getInstance().databaseManager.deleteAuction(this.auctionUUID.toString());
         } else
@@ -600,6 +613,7 @@ public class Auction {
 
         // Database
         if (isAllClaimed) {
+            AuctionCache.addEndedAuction(this);
             AuctionCache.removeAuction(this.auctionUUID);
             DeluxeAuctions.getInstance().databaseManager.deleteAuction(this.auctionUUID.toString());
         } else

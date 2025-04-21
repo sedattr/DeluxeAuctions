@@ -3,7 +3,6 @@ package me.sedattr.deluxeauctions.economy;
 import me.TechsCode.UltraEconomy.UltraEconomyAPI;
 import me.TechsCode.UltraEconomy.objects.Account;
 import me.TechsCode.UltraEconomy.objects.Currency;
-import me.sedattr.deluxeauctions.DeluxeAuctions;
 import org.bukkit.OfflinePlayer;
 
 import java.util.Optional;

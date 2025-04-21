@@ -1,6 +1,5 @@
 package me.sedattr.deluxeauctions.economy;
 
-import me.sedattr.deluxeauctions.DeluxeAuctions;
 import org.bukkit.OfflinePlayer;
 import ch.njol.skript.variables.Variables;
 
@@ -41,8 +40,8 @@ public class SkriptEconomy implements EconomyManager {
             return 0;
 
         Object balanceObj = Variables.getVariable(this.variable
-                        .replace("%player_name%", player.getName())
-                        .replace("%player_uuid%", player.getUniqueId().toString()), null, false);
+                .replace("%player_name%", player.getName())
+                .replace("%player_uuid%", player.getUniqueId().toString()), null, false);
 
         if (balanceObj instanceof Number)
             return ((Number) balanceObj).doubleValue();

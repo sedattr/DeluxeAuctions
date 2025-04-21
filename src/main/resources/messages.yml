@@ -54,6 +54,7 @@ sold: "&8[&aAuctions&8] &f%buyer_displayname% &7bought &f%item_displayname% &7fo
 bid: "&8[&aAuctions&8] &7Bid of &6%bid_price% &7placed for &f%item_displayname%&7!"
 new_bid: "&8[&aAuctions&8] &f%bidder_displayname% &7bid &6%bid_price% &7on &f%item_displayname%&7!"
 outbid: "&8[&aAuctions&8] &f%bidder_displayname% &7outbid you by &6%outbid_price% &7for &f%item_displayname%&7!"
+low_bid: "&8[&cAuctions&8] &7Your bid is too low!"
 cancelled: "&8[&aAuctions&8] &7You cancelled your auction for &f%item_displayname%&7!"
 admin_cancelled: "&8[&aAuctions&8] &7You cancelled &f%player_displayname%'s &7auction!"
 ended_auction: "&8[&cAuctions&8] &f%item_displayname% &7auction is ended!"

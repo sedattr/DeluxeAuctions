@@ -2,7 +2,6 @@ package me.sedattr.deluxeauctions.economy;
 
 import com.edwardbelt.edprison.EdPrison;
 import com.edwardbelt.edprison.api.models.EconomyModel;
-import me.sedattr.deluxeauctions.DeluxeAuctions;
 import org.bukkit.OfflinePlayer;
 
 public class EdPrisonEconomy implements EconomyManager {

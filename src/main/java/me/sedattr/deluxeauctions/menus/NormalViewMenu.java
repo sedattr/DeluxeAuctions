@@ -379,7 +379,7 @@ public class NormalViewMenu implements MenuManager {
                     .addPlaceholder("%auction_uuid%", String.valueOf(this.auction.getAuctionUUID())));
 
             if (itemStack.getType().toString().endsWith("SHULKER_BOX"))
-                new ShulkerViewMenu(this.player, this.auction).open();
+                new ShulkerViewMenu(this.player, this.auction).open(this.back);
         }));
     }
 
@@ -425,5 +425,10 @@ public class NormalViewMenu implements MenuManager {
         }
 
         new ConfirmMenu(this.player, "confirm_bid").setAuction(this.auction).setPrice(number).open();
+    }
+
+    @Override
+    public String getMenuName() {
+        return "view";
     }
 }

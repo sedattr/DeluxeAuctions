@@ -43,6 +43,8 @@ public class AuctionsMenu implements MenuManager {
     }
 
     public void open(String categoryName, int page) {
+        page = Math.max(page, 1);
+
         if (!categoryName.equalsIgnoreCase("search")) {
             Category category = CategoryCache.getCategories().get(categoryName);
             if (category == null)
@@ -595,5 +597,10 @@ public class AuctionsMenu implements MenuManager {
     public void inputResult(String input) {
         this.playerAuction.setSearch(input == null ? "" : input);
         open("search", 1);
+    }
+
+    @Override
+    public String getMenuName() {
+        return "auctions";
     }
 }

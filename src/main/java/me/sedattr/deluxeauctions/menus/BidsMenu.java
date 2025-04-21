@@ -166,10 +166,7 @@ public class BidsMenu {
             if (itemStack == null)
                 return;
 
-            this.gui.setItem(claimSection.getInt("slot"), ClickableItem.of(itemStack, (event) -> {
-                this.player.closeInventory();
-                this.playerAuction.collectBids(this.player);
-            }));
+            this.gui.setItem(claimSection.getInt("slot"), ClickableItem.of(itemStack, (event) -> this.playerAuction.collectBids(this.player)));
         }
     }
 

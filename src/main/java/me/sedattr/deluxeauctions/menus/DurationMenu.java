@@ -136,4 +136,9 @@ public class DurationMenu implements MenuManager {
 
         new CreateMenu(this.player).open("main");
     }
+
+    @Override
+    public String getMenuName() {
+        return "duration";
+    }
 }

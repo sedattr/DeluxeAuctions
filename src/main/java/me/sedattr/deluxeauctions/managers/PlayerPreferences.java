@@ -7,6 +7,7 @@ import me.sedattr.deluxeauctions.DeluxeAuctions;
 import me.sedattr.auctionsapi.cache.AuctionCache;
 import me.sedattr.auctionsapi.cache.CategoryCache;
 import me.sedattr.auctionsapi.cache.PlayerCache;
+import me.sedattr.deluxeauctions.menus.BidsMenu;
 import me.sedattr.deluxeauctions.others.PlaceholderUtil;
 import me.sedattr.deluxeauctions.others.TaskUtils;
 import me.sedattr.deluxeauctions.others.Utils;
@@ -120,6 +121,9 @@ public class PlayerPreferences {
             if (item > 0)
                 Utils.sendMessage(player, "buyer_collected_items", new PlaceholderUtil()
                         .addPlaceholder("%total_item_amount%", String.valueOf(item)));
+
+
+            new BidsMenu(player).open(1);
         });
     }
 }

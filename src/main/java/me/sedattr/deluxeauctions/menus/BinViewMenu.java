@@ -194,7 +194,7 @@ public class BinViewMenu {
                     .addPlaceholder("%auction_uuid%", String.valueOf(this.auction.getAuctionUUID())));
 
             if (itemStack.getType().toString().endsWith("SHULKER_BOX"))
-                new ShulkerViewMenu(this.player, this.auction).open();
+                new ShulkerViewMenu(this.player, this.auction).open(this.back);
         }));
     }
 

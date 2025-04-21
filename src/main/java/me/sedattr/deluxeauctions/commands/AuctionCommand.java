@@ -197,11 +197,17 @@ public class AuctionCommand implements CommandExecutor, TabCompleter {
                     UUID uuid = UUID.fromString(args[1]);
                     Auction auction = AuctionCache.getAuction(uuid);
                     if (auction != null) {
-                        if (auction.getAuctionType() == AuctionType.BIN)
+                        if (auction.getAuctionType().equals(AuctionType.BIN))
                             new BinViewMenu(player, auction).open("command");
                         else
                             new NormalViewMenu(player, auction).open("command");
                         return true;
+                    }
+
+                    Auction endedAuction = AuctionCache.getEndedAuction(uuid);
+                    if (endedAuction != null) {
+                        Utils.sendMessage(player, "ended_auction", placeholderUtil);
+                        return false;
                     }
 
                     Player target = Bukkit.getPlayer(uuid);
