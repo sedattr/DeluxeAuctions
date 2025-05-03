@@ -40,6 +40,7 @@ public class Auction {
         this.auctionPrice = price;
         this.auctionItem = item;
         this.auctionType = type;
+        this.auctionStartTime = ZonedDateTime.now().toInstant().getEpochSecond();
         this.auctionEndTime = this.auctionStartTime + time;
         this.auctionCategory = CategoryCache.getItemCategory(item);
     }
@@ -81,18 +82,18 @@ public class Auction {
         if (event.isCancelled())
             return false;
 
-        this.auctionStartTime = ZonedDateTime.now().toInstant().getEpochSecond();
-
-        AuctionCache.addUpdatingAuction(this.auctionUUID);
-
-        AuctionCache.addAuction(this);
-        this.economy.getManager().removeBalance(player, totalFee);
-
         PlayerPreferences playerPreferences = PlayerCache.getPreferences(this.auctionOwner);
-        playerPreferences.updateCreate(null);
+        boolean status = playerPreferences.updateCreateItem(player, null, false);
+        if (!status)
+            return false;
+
         playerPreferences.setCreateEconomy(DeluxeAuctions.getInstance().createEconomy);
         playerPreferences.setCreatePrice(DeluxeAuctions.getInstance().createPrice);
         playerPreferences.setCreateTime(DeluxeAuctions.getInstance().createTime);
+
+        AuctionCache.addAuction(this);
+        AuctionCache.addUpdatingAuction(this.auctionUUID);
+        this.economy.getManager().removeBalance(player, totalFee);
 
         PlayerStats stats = PlayerCache.getStats(this.auctionOwner);
         stats.addCreatedAuction();
@@ -110,7 +111,7 @@ public class Auction {
         if (this.sellerClaimed)
             return true;
 
-        if (this.auctionType == AuctionType.BIN)
+        if (this.auctionType.equals(AuctionType.BIN))
             if (!this.auctionBids.getPlayerBids().isEmpty())
                 return true;
 

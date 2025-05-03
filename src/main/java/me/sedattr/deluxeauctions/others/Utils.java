@@ -493,7 +493,8 @@ public class Utils {
                     continue;
 
                 Enchantment enchantment = Enchantment.getByName(args[0]);
-                if (enchantment == null) continue;
+                if (enchantment == null)
+                    continue;
 
                 item.addUnsafeEnchantment(enchantment, Integer.parseInt(args[1]));
             }

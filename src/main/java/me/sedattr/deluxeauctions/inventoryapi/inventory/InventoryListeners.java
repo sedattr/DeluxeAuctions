@@ -78,18 +78,12 @@ public class InventoryListeners implements Listener {
             if (previewEvent.isCancelled())
                 return;
 
-            ItemStack clone = item.clone();
-            player.getInventory().removeItem(item);
-
-            ItemStack createItem = PlayerCache.getItem(player.getUniqueId());
-            if (createItem != null)
-                player.getInventory().addItem(createItem);
+            PlayerPreferences preferences = PlayerCache.getPreferences(player.getUniqueId());
+            boolean status = preferences.updateCreateItem(player, item, true);
+            if (!status)
+                return;
 
             Utils.playSound(player, "inventory_item_click");
-
-            PlayerPreferences preferences = PlayerCache.getPreferences(player.getUniqueId());
-            preferences.updateCreate(clone);
-
             new CreateMenu(player).open("main");
 
             InventoryVariables.addCooldown(player, ZonedDateTime.now().toInstant().toEpochMilli());

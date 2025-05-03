@@ -15,9 +15,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Getter
 @Setter
@@ -32,6 +31,7 @@ public class PlayerPreferences {
     private Category category = CategoryCache.getCategories().get(DeluxeAuctions.getInstance().category);
     private int page = 1;
     private int categoryPage = 1;
+    private final AtomicBoolean clicked = new AtomicBoolean(false);
 
     // for create menu
     private AuctionType createType = DeluxeAuctions.getInstance().createType;
@@ -43,9 +43,46 @@ public class PlayerPreferences {
         this.player = player;
     }
 
-    public void updateCreate(ItemStack item) {
-        PlayerCache.setItem(this.player, item);
-        DeluxeAuctions.getInstance().databaseManager.saveItem(this.player, item);
+    public boolean updateCreateItem(Player player, ItemStack newItem, boolean giveOldItem) {
+        if (!this.clicked.compareAndSet(false, true))
+            return false;
+
+        if (giveOldItem) {
+            ItemStack oldItem = PlayerCache.getItem(this.player);
+            PlayerCache.setItem(this.player, null);
+
+            if (oldItem != null) {
+                if (!Utils.hasEmptySlot(player)) {
+                    Utils.sendMessage(player, "no_empty_slot");
+
+                    PlayerCache.setItem(this.player, oldItem);
+                    TaskUtils.runLater(() -> this.clicked.set(false), 1);
+                    return false;
+                }
+
+                player.getInventory().addItem(oldItem);
+                DeluxeAuctions.getInstance().databaseManager.saveItem(this.player, null);
+            }
+        }
+
+        if (newItem != null) {
+            Map<Integer, ItemStack> items = player.getInventory().removeItem(newItem);
+            if (!items.isEmpty()) {
+                TaskUtils.runLater(() -> this.clicked.set(false), 1);
+                return false;
+            }
+
+            newItem = newItem.clone();
+
+            PlayerCache.setItem(this.player, newItem.clone());
+            DeluxeAuctions.getInstance().databaseManager.saveItem(this.player, newItem);
+        } else {
+            PlayerCache.setItem(this.player, null);
+            DeluxeAuctions.getInstance().databaseManager.saveItem(this.player, null);
+        }
+
+        TaskUtils.runLater(() -> this.clicked.set(false), 1);
+        return true;
     }
 
     public void collectAuctions(Player player) {

@@ -14,6 +14,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 public class ConfirmMenu {
     private final Player player;
@@ -112,9 +113,7 @@ public class ConfirmMenu {
                 placeholderUtil
                         .addPlaceholder("%auction_type%", playerAuction.getCreateType().name())
                         .addPlaceholder("%player_name%", this.player.getName())
-                        .addPlaceholder("%item_name%", Utils.strip(Utils.getDisplayName(this.auction != null ? this.auction.getAuctionItem() : createItem)))
-                        .addPlaceholder("%buyer_displayname%", this.player.getDisplayName())
-                        .addPlaceholder("%buyer_name%", this.player.getName());
+                        .addPlaceholder("%item_name%", Utils.strip(Utils.getDisplayName(this.auction != null ? this.auction.getAuctionItem() : createItem)));
 
                 switch (type) {
                     case "confirm_auction" -> {
@@ -150,13 +149,16 @@ public class ConfirmMenu {
                             Utils.playSound(this.player, "bought_auction");
                             Utils.sendMessage(this.player, "bought", placeholderUtil);
 
-                            Player seller = Bukkit.getPlayer(this.auction.getAuctionOwner());
+                            OfflinePlayer seller = Bukkit.getOfflinePlayer(this.auction.getAuctionOwner());
                             placeholderUtil
-                                    .addPlaceholder("%seller_name%", seller != null ? seller.getName() : "?");
+                                    .addPlaceholder("%seller_displayname%", seller.getPlayer() != null ? seller.getPlayer().getDisplayName() : "?")
+                                    .addPlaceholder("%seller_name%", seller.getName())
+                                    .addPlaceholder("%buyer_displayname%", this.player.getDisplayName())
+                                    .addPlaceholder("%buyer_name%", this.player.getName());
 
-                            if (seller != null && seller.isOnline()) {
-                                Utils.playSound(seller, "sold_auction");
-                                Utils.broadcastMessage(seller, "sold", placeholderUtil
+                            if (seller.getPlayer() != null && seller.isOnline()) {
+                                Utils.playSound(seller.getPlayer(), "sold_auction");
+                                Utils.broadcastMessage(seller.getPlayer(), "sold", placeholderUtil
                                         .addPlaceholder("%auction_uuid%", String.valueOf(this.auction.getAuctionUUID())));
                             }
 

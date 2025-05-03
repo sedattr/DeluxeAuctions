@@ -11,7 +11,6 @@ import java.util.UUID;
 public class PlayerCache {
     @Getter private static final HashMap<UUID, PlayerStats> stats = new HashMap<>();
     @Getter private static final HashMap<UUID, PlayerPreferences> players = new HashMap<>();
-    @Getter private static final HashMap<UUID, ItemStack> items = new HashMap<>();
 
     public static PlayerStats getStats(UUID player) {
         PlayerStats playerStats = stats.get(player);
@@ -24,6 +23,7 @@ public class PlayerCache {
         return playerStats;
     }
 
+    @Getter private static final HashMap<UUID, ItemStack> items = new HashMap<>();
     public static ItemStack getItem(UUID player) {
         return items.getOrDefault(player, null);
     }

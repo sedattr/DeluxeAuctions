@@ -137,6 +137,8 @@ public class CreateMenu implements MenuManager {
                 .addPlaceholder("%auction_fee%", this.playerAuction.getCreateEconomy().getText().replace("%price%", DeluxeAuctions.getInstance().numberFormat.format(totalFee)))
                 .addPlaceholder("%auction_price%", this.playerAuction.getCreateEconomy().getText().replace("%price%", DeluxeAuctions.getInstance().numberFormat.format(this.playerAuction.getCreatePrice())))
                 .addPlaceholder("%item_displayname%", Utils.getDisplayName(this.createItem))
+                .addPlaceholder("%player_displayname%", this.player.getDisplayName())
+                .addPlaceholder("%player_name%", this.player.getName())
                 .addPlaceholder("%auction_time%", DeluxeAuctions.getInstance().timeFormat.formatTime(this.playerAuction.getCreateTime(), "other_times"));
 
         ItemStack itemStack = Utils.createItemFromSection(itemSection, placeholderUtil);
@@ -162,10 +164,11 @@ public class CreateMenu implements MenuManager {
 
                     Auction newAuction = new Auction(createItem, playerAuction.getCreateEconomy(), playerAuction.getCreatePrice(), createType, playerAuction.getCreateTime());
                     if (newAuction.create(this.player, totalFee)) {
+                        placeholderUtil
+                                .addPlaceholder("%auction_uuid%", String.valueOf(newAuction.getAuctionUUID()));
+
                         Utils.sendMessage(this.player, "created_" + type + "_auction", placeholderUtil);
-                        Utils.broadcastMessage(this.player, type + "_auction_broadcast", placeholderUtil
-                                .addPlaceholder("%player_displayname%", this.player.getDisplayName())
-                                .addPlaceholder("%auction_uuid%", String.valueOf(newAuction.getAuctionUUID())));
+                        Utils.broadcastMessage(this.player, type + "_auction_broadcast", placeholderUtil);
 
                         if (DeluxeAuctions.getInstance().discordWebhook != null)
                             DeluxeAuctions.getInstance().discordWebhook.sendMessage("create_auction", placeholderUtil);
@@ -227,21 +230,16 @@ public class CreateMenu implements MenuManager {
 
         int slot = exampleSection.getInt("slot");
         this.gui.setItem(slot, ClickableItem.of(example, (event) -> {
-            if (this.createItem != null) {
-                if (!Utils.hasEmptySlot(player)) {
-                    Utils.sendMessage(player, "no_empty_slot");
-                    return;
-                }
+            boolean status = playerAuction.updateCreateItem(player, null, true);
+            if (!status)
+                return;
 
-                player.getInventory().addItem(this.createItem);
-                playerAuction.updateCreate(null);
-                this.createItem = null;
+            this.createItem = null;
 
-                loadExampleItem();
-                loadConfirmItem();
-                loadPriceItem();
-                loadTimeItem();
-            }
+            loadExampleItem();
+            loadConfirmItem();
+            loadPriceItem();
+            loadTimeItem();
         }));
     }
 

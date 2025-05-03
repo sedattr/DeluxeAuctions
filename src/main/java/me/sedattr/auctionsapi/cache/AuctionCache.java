@@ -92,7 +92,7 @@ public class AuctionCache {
         ConcurrentHashMap.KeySetView<Auction, Boolean> result = ConcurrentHashMap.newKeySet();
 
         auctions.values().parallelStream().forEach(auction -> {
-            if (type != AuctionType.ALL && auction.getAuctionType() != type)
+            if (!type.equals(AuctionType.ALL) && !auction.getAuctionType().equals(type))
                 return;
             if (auction.isEnded())
                 return;
@@ -127,7 +127,7 @@ public class AuctionCache {
                     if (EnchantCache.isEnchantmentAdded(((EnchantmentStorageMeta) meta).getStoredEnchants(), lowerCaseSearch)) {
                         result.add(auction);
                         return;
-                }
+                    }
                 } else {
                     if (EnchantCache.isEnchantmentAdded(itemStack.getEnchantments(), lowerCaseSearch)) {
                         result.add(auction);

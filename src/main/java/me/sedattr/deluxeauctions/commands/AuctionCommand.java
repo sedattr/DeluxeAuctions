@@ -336,15 +336,10 @@ public class AuctionCommand implements CommandExecutor, TabCompleter {
                 if (event.isCancelled())
                     return false;
 
-                item = item.clone();
-                player.getInventory().removeItem(item);
-
-                ItemStack itemStack = PlayerCache.getItem(player.getUniqueId());
-                if (itemStack != null)
-                    player.getInventory().addItem(itemStack);
-
                 PlayerPreferences playerAuction = PlayerCache.getPreferences(player.getUniqueId());
-                playerAuction.updateCreate(item);
+                boolean status = playerAuction.updateCreateItem(player, item, true);
+                if (!status)
+                    return false;
 
                 playerAuction.setCreateType(AuctionType.valueOf(type.toUpperCase(Locale.ENGLISH)));
                 playerAuction.setCreatePrice(price);

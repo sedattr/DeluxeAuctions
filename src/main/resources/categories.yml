@@ -168,6 +168,8 @@ ingredients:
     - ALL_TEMPLATES
     - BRICK
     - NETHER_BRICK
+    - DIAMOND
+    - EMERALD
 
 blocks:
   name: '&aBlocks'

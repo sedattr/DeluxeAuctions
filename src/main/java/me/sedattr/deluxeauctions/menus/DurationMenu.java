@@ -68,7 +68,7 @@ public class DurationMenu implements MenuManager {
                     if (meta == null)
                         return;
 
-                    //meta.setEnchantmentGlintOverride(true);
+                    meta.addEnchant(Enchantment.SILK_TOUCH, 1, true);
                     itemStack.setItemMeta(meta);
                 } else
                     itemStack.addUnsafeEnchantment(Enchantment.SILK_TOUCH, 1);

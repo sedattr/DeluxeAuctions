@@ -56,25 +56,26 @@ public class AuctionsMenu implements MenuManager {
 
         this.playerAuction.setPage(page);
 
-        this.gui = DeluxeAuctions.getInstance().menuHandler.createInventory(this.player, this.section, this.playerAuction.getSearch().isEmpty() ? "auctions" : "search", createPlaceholderUtil());
-        DeluxeAuctions.getInstance().menuHandler.addNormalItems(this.player, this.gui, this.section, this.playerAuction.getCategory());
-
-        loadSearchItem();
-        loadCategories();
-        loadCategoriesItem();
-        loadFilterItem();
-        loadSorterItem();
-        loadPageItems();
-        loadResetItem();
-        loadRaritySorter();
-
-        int goBackSlot = this.section.getInt("back");
-        ItemStack goBackItem = DeluxeAuctions.getInstance().normalItems.get("go_back");
-        if (goBackSlot > 0 && goBackItem != null)
-            gui.setItem(goBackSlot, ClickableItem.of(goBackItem, (event) -> new MainMenu(this.player).open()));
-
         TaskUtils.runAsync(() -> {
             updateTotalPage();
+
+            this.gui = DeluxeAuctions.getInstance().menuHandler.createInventory(this.player, this.section, this.playerAuction.getSearch().isEmpty() ? "auctions" : "search", createPlaceholderUtil());
+            DeluxeAuctions.getInstance().menuHandler.addNormalItems(this.player, this.gui, this.section, this.playerAuction.getCategory());
+
+            loadSearchItem();
+            loadCategories();
+            loadCategoriesItem();
+            loadFilterItem();
+            loadSorterItem();
+            loadPageItems();
+            loadResetItem();
+            loadRaritySorter();
+
+            int goBackSlot = this.section.getInt("back");
+            ItemStack goBackItem = DeluxeAuctions.getInstance().normalItems.get("go_back");
+            if (goBackSlot > 0 && goBackItem != null)
+                gui.setItem(goBackSlot, ClickableItem.of(goBackItem, (event) -> new MainMenu(this.player).open()));
+
             loadItems();
 
             TaskUtils.run(() -> {
@@ -557,7 +558,7 @@ public class AuctionsMenu implements MenuManager {
                     if (meta == null)
                         return;
 
-                    //meta.setEnchantmentGlintOverride(true);
+                    meta.addEnchant(Enchantment.SILK_TOUCH, 1, true);
                     categoryItem.setItemMeta(meta);
                 } else
                     categoryItem.addUnsafeEnchantment(Enchantment.SILK_TOUCH, 1);
