@@ -10,6 +10,7 @@ import me.sedattr.auctionsapi.cache.PlayerCache;
 import me.sedattr.deluxeauctions.others.PlaceholderUtil;
 import me.sedattr.deluxeauctions.others.Utils;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -21,8 +22,6 @@ import java.util.UUID;
 public class Auction {
     private final UUID auctionUUID;
     private final double auctionPrice;
-    private final ItemStack auctionItem;
-    private final String auctionCategory;
     private final AuctionType auctionType;
     private final AuctionBids auctionBids = new AuctionBids();
     private final Economy economy;
@@ -31,18 +30,18 @@ public class Auction {
     private String auctionOwnerDisplayName;
     private long auctionStartTime;
 
+    private ItemStack auctionItem;
+    private String auctionCategory;
     @Setter private long auctionEndTime;
     @Setter private boolean sellerClaimed = false;
 
-    public Auction(ItemStack item, Economy economy, Double price, AuctionType type, long time) {
+    public Auction(Economy economy, Double price, AuctionType type, long time) {
         this.auctionUUID = UUID.randomUUID();
         this.economy = economy;
         this.auctionPrice = price;
-        this.auctionItem = item;
         this.auctionType = type;
         this.auctionStartTime = ZonedDateTime.now().toInstant().getEpochSecond();
         this.auctionEndTime = this.auctionStartTime + time;
-        this.auctionCategory = CategoryCache.getItemCategory(item);
     }
 
     public Auction(UUID uuid, UUID owner, String displayName, ItemStack item, Double price, AuctionType type, String economy, long end, boolean sellerClaimed) {
@@ -63,8 +62,11 @@ public class Auction {
     }
 
     public boolean create(Player player, double totalFee) {
-        if (this.auctionCategory.isEmpty())
+        ItemStack item = PlayerCache.getItem(player.getUniqueId());
+        if (item == null || item.getType().equals(Material.AIR)) {
+            Utils.sendMessage(player, "item_not_found");
             return false;
+        }
 
         double balance = this.economy.getManager().getBalance(player);
         if (balance < totalFee) {
@@ -74,6 +76,13 @@ public class Auction {
             return false;
         }
 
+        this.auctionCategory = CategoryCache.getItemCategory(item);
+        if (this.auctionCategory.isEmpty()) {
+            Utils.sendMessage(player, "unsellable_item");
+            return false;
+        }
+
+        this.auctionItem = item;
         this.auctionOwnerDisplayName = !player.getDisplayName().isEmpty() ? player.getDisplayName() : player.getName();
         this.auctionOwner = player.getUniqueId();
 
@@ -83,9 +92,11 @@ public class Auction {
             return false;
 
         PlayerPreferences playerPreferences = PlayerCache.getPreferences(this.auctionOwner);
-        boolean status = playerPreferences.updateCreateItem(player, null, false);
+        boolean status = playerPreferences.updateCreateItem(player, -1, false);
         if (!status)
             return false;
+
+        this.economy.getManager().removeBalance(player, totalFee);
 
         playerPreferences.setCreateEconomy(DeluxeAuctions.getInstance().createEconomy);
         playerPreferences.setCreatePrice(DeluxeAuctions.getInstance().createPrice);
@@ -93,7 +104,6 @@ public class Auction {
 
         AuctionCache.addAuction(this);
         AuctionCache.addUpdatingAuction(this.auctionUUID);
-        this.economy.getManager().removeBalance(player, totalFee);
 
         PlayerStats stats = PlayerCache.getStats(this.auctionOwner);
         stats.addCreatedAuction();

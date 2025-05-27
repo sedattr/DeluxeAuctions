@@ -4,7 +4,6 @@ import me.sedattr.auctionsapi.AuctionHook;
 import me.sedattr.auctionsapi.cache.AuctionCache;
 import me.sedattr.auctionsapi.cache.PlayerCache;
 import me.sedattr.deluxeauctions.inventoryapi.HInventory;
-import me.sedattr.deluxeauctions.inventoryapi.inventory.InventoryAPI;
 import me.sedattr.deluxeauctions.inventoryapi.item.ClickableItem;
 import me.sedattr.deluxeauctions.DeluxeAuctions;
 import me.sedattr.deluxeauctions.managers.*;
@@ -28,6 +27,7 @@ public class BidsMenu {
     private final List<Auction> bids;
     private final int totalPage;
     private int page;
+    private String back;
 
     public BidsMenu(Player player) {
         this.player = player;
@@ -38,18 +38,31 @@ public class BidsMenu {
         this.totalPage = getTotalPage();
     }
 
-    public void open(int page) {
+    public void open(int page, String back) {
         this.page = page;
+        this.back = back;
+
         PlaceholderUtil placeholderUtil = new PlaceholderUtil()
                 .addPlaceholder("%current_page%", String.valueOf(page))
                 .addPlaceholder("%total_page%", String.valueOf(getTotalPage()));
 
         this.gui = DeluxeAuctions.getInstance().menuHandler.createInventory(this.player, this.section, "bids", placeholderUtil);
 
-        int goBackSlot = this.section.getInt("back");
-        ItemStack goBackItem = DeluxeAuctions.getInstance().normalItems.get("go_back");
-        if (goBackSlot > 0 && goBackItem != null)
-            gui.setItem(goBackSlot, ClickableItem.of(goBackItem, (event) -> new MainMenu(this.player).open()));
+        if (!back.equals("command")) {
+            int goBackSlot = this.section.getInt("back");
+            ItemStack goBackItem = DeluxeAuctions.getInstance().normalItems.get("go_back");
+            if (goBackSlot > 0 && goBackItem != null)
+                gui.setItem(goBackSlot, ClickableItem.of(goBackItem, (event) -> {
+                    switch (back) {
+                        case "main":
+                            AuctionHook.openMainMenu(this.player);
+                            return;
+                        case "auctions":
+                            new AuctionsMenu(this.player).open(this.playerAuction.getCategory().getName(), this.playerAuction.getPage());
+                            return;
+                    }
+                }));
+        }
 
         loadClaimAll();
         loadBids();
@@ -61,9 +74,9 @@ public class BidsMenu {
                     this.gui.setItem(this.section.getInt("next_page.slot"), ClickableItem.of(nextPage, (event -> {
                         ClickType clickType = event.getClick();
                         if (clickType.equals(ClickType.RIGHT) || clickType.equals(ClickType.SHIFT_RIGHT))
-                            open(this.totalPage);
+                            open(this.totalPage, back);
                         else
-                            open(page+1);
+                            open(page+1, back);
                     })));
                 }
             }
@@ -74,9 +87,9 @@ public class BidsMenu {
                     this.gui.setItem(this.section.getInt("previous_page.slot"), ClickableItem.of(previousPage, (event -> {
                         ClickType clickType = event.getClick();
                         if (clickType.equals(ClickType.RIGHT) || clickType.equals(ClickType.SHIFT_RIGHT))
-                            open(1);
+                            open(1, back);
                         else
-                            open(page-1);
+                            open(page-1, back);
                     })));
             }
         }
@@ -166,7 +179,7 @@ public class BidsMenu {
             if (itemStack == null)
                 return;
 
-            this.gui.setItem(claimSection.getInt("slot"), ClickableItem.of(itemStack, (event) -> this.playerAuction.collectBids(this.player)));
+            this.gui.setItem(claimSection.getInt("slot"), ClickableItem.of(itemStack, (event) -> this.playerAuction.collectBids(this.player, this.back)));
         }
     }
 

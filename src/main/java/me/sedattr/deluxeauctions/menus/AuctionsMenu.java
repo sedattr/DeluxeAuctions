@@ -70,11 +70,19 @@ public class AuctionsMenu implements MenuManager {
             loadPageItems();
             loadResetItem();
             loadRaritySorter();
+            loadBidsItem();
+            loadManageItem();
+            loadCreateAuctionItem();
+            loadStatsItem();
 
-            int goBackSlot = this.section.getInt("back");
-            ItemStack goBackItem = DeluxeAuctions.getInstance().normalItems.get("go_back");
-            if (goBackSlot > 0 && goBackItem != null)
-                gui.setItem(goBackSlot, ClickableItem.of(goBackItem, (event) -> new MainMenu(this.player).open()));
+            boolean status = DeluxeAuctions.getInstance().configFile.getBoolean("settings.enable_main_menu", true);
+            if (status) {
+                int goBackSlot = this.section.getInt("back");
+                ItemStack goBackItem = DeluxeAuctions.getInstance().normalItems.get("go_back");
+                if (goBackSlot > 0 && goBackItem != null)
+                    gui.setItem(goBackSlot, ClickableItem.of(goBackItem, (event) ->
+                            AuctionHook.openMainMenu(this.player)));
+            }
 
             loadItems();
 
@@ -103,6 +111,141 @@ public class AuctionsMenu implements MenuManager {
                 .addPlaceholder("%search%", Utils.colorize(String.valueOf(this.playerAuction.getSearch())))
                 .addPlaceholder("%current_page%", String.valueOf(this.playerAuction.getPage()))
                 .addPlaceholder("%total_page%", String.valueOf(this.totalPage));
+    }
+
+    private void loadStatsItem() {
+        ConfigurationSection itemSection = this.section.getConfigurationSection("stats");
+        if (itemSection == null)
+            return;
+
+        ItemStack item = Utils.createItemFromSection(itemSection, null);
+        if (item == null)
+            return;
+
+        this.gui.setItem(itemSection, ClickableItem.of(item, (event) -> new StatsMenu(this.player).open()));
+    }
+
+    private void loadCreateAuctionItem() {
+        ConfigurationSection itemSection = this.section.getConfigurationSection("create");
+        if (itemSection == null)
+            return;
+
+        ItemStack item = Utils.createItemFromSection(itemSection, null);
+        if (item == null)
+            return;
+
+        this.gui.setItem(itemSection, ClickableItem.of(item, (event) -> new CreateMenu(this.player).open("main")));
+    }
+
+    private void loadManageItem() {
+        ConfigurationSection itemSection = this.section.getConfigurationSection("manage");
+        if (itemSection == null)
+            return;
+
+        ItemStack item = Utils.createItemFromSection(itemSection, null);
+        if (item == null)
+            return;
+
+        List<Auction> ownedAuctions = AuctionCache.getOwnedAuctions(this.player.getUniqueId());
+        String type;
+
+        int endedAmount = 0;
+        int itemAmount = 0;
+        double moneyAmount = 0.0;
+        for (Auction auction : ownedAuctions) {
+            if (!auction.isEnded())
+                continue;
+
+            endedAmount++;
+            PlayerBid playerBid = auction.getAuctionBids().getHighestBid();
+            if (playerBid == null)
+                itemAmount++;
+            else
+                moneyAmount+=playerBid.getBidPrice();
+        }
+        if (ownedAuctions.isEmpty())
+            type = "without_auctions";
+        else {
+            if (itemAmount > 0 || moneyAmount > 0)
+                type = "collectable";
+            else
+                type = "with_auctions";
+        }
+
+        List<String> lore = itemSection.getStringList("lore." + type);
+        if (!lore.isEmpty()) {
+            PlaceholderUtil placeholderUtil = new PlaceholderUtil()
+                    .addPlaceholder("%total_auction_amount%", String.valueOf(ownedAuctions.size()))
+                    .addPlaceholder("%collectable_money_amount%", DeluxeAuctions.getInstance().numberFormat.format(moneyAmount))
+                    .addPlaceholder("%collectable_item_amount%", String.valueOf(itemAmount))
+                    .addPlaceholder("%ended_auction_amount%", String.valueOf(endedAmount));
+
+            Utils.changeLore(item, lore, placeholderUtil);
+        }
+
+        this.gui.setItem(itemSection, ClickableItem.of(item, (event) -> new ManageMenu(this.player).open(1, "auctions")));
+    }
+
+    private void loadBidsItem() {
+        ConfigurationSection itemSection = this.section.getConfigurationSection("bids");
+        if (itemSection == null)
+            return;
+
+        ItemStack item = Utils.createItemFromSection(itemSection, null);
+        if (item == null)
+            return;
+
+        List<Auction> bidAuctions = AuctionCache.getBidAuctions(this.player.getUniqueId());
+        String type;
+
+        int collectableAmount = 0;
+        int topBidAmount = 0;
+        int itemAmount = 0;
+        double moneyAmount = 0.0;
+        for (Auction auction : bidAuctions) {
+            PlayerBid playerBid = auction.getAuctionBids().getHighestBid();
+            if (playerBid == null)
+                continue;
+
+            if (auction.isEnded()) {
+                if (playerBid.getBidOwner().equals(this.player.getUniqueId()))
+                    itemAmount++;
+                else
+                    moneyAmount+=auction.getAuctionBids().getPlayerBid(this.player.getUniqueId()).getBidPrice();
+
+                collectableAmount++;
+                continue;
+            }
+
+            if (playerBid.getBidOwner().equals(this.player.getUniqueId()))
+                topBidAmount++;
+        }
+        int totalBidAmount = bidAuctions.size() - collectableAmount;
+
+        if (bidAuctions.isEmpty())
+            type = "no_bids";
+        else {
+            if (itemAmount > 0 || moneyAmount > 0) {
+                if (totalBidAmount > 0)
+                    type = "collectable_with_bids";
+                else
+                    type = "collectable_without_bids";
+            } else
+                type = "bids";
+        }
+
+        List<String> lore = itemSection.getStringList("lore." + type);
+        if (!lore.isEmpty()) {
+            PlaceholderUtil placeholderUtil = new PlaceholderUtil()
+                    .addPlaceholder("%collectable_money_amount%", DeluxeAuctions.getInstance().numberFormat.format(moneyAmount))
+                    .addPlaceholder("%collectable_item_amount%", String.valueOf(itemAmount))
+                    .addPlaceholder("%total_bid_amount%", String.valueOf(totalBidAmount))
+                    .addPlaceholder("%top_bid_amount%", String.valueOf(topBidAmount));
+
+            Utils.changeLore(item, lore, placeholderUtil);
+        }
+
+        this.gui.setItem(itemSection, ClickableItem.of(item, (event) -> new BidsMenu(this.player).open(1, "auctions")));
     }
 
     private void loadPageItems() {

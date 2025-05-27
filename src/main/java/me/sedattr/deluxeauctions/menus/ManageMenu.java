@@ -26,6 +26,7 @@ public class ManageMenu {
     private final List<Auction> auctions;
     private int page;
     private SortType sortType = SortType.valueOf(DeluxeAuctions.getInstance().configFile.getString("settings.default_sort_type"));
+    private String back;
 
     public ManageMenu(Player player) {
         this.player = player;
@@ -34,8 +35,9 @@ public class ManageMenu {
         this.auctions = AuctionCache.getOwnedAuctions(this.player.getUniqueId());
     }
 
-    public void open(int page) {
+    public void open(int page, String back) {
         this.page = page;
+        this.back = back;
 
         PlaceholderUtil placeholderUtil = new PlaceholderUtil()
                 .addPlaceholder("%current_page%", String.valueOf(page))
@@ -43,10 +45,21 @@ public class ManageMenu {
 
         this.gui = DeluxeAuctions.getInstance().menuHandler.createInventory(this.player, this.section, "manage", placeholderUtil);
 
-        int goBackSlot = this.section.getInt("back");
-        ItemStack goBackItem = DeluxeAuctions.getInstance().normalItems.get("go_back");
-        if (goBackSlot > 0 && goBackItem != null)
-            gui.setItem(goBackSlot, ClickableItem.of(goBackItem, (event) -> new MainMenu(this.player).open()));
+        if (!back.equals("command")) {
+            int goBackSlot = this.section.getInt("back");
+            ItemStack goBackItem = DeluxeAuctions.getInstance().normalItems.get("go_back");
+            if (goBackSlot > 0 && goBackItem != null)
+                gui.setItem(goBackSlot, ClickableItem.of(goBackItem, (event) -> {
+                    switch (back) {
+                        case "main":
+                            AuctionHook.openMainMenu(this.player);
+                            return;
+                        case "auctions":
+                            new AuctionsMenu(this.player).open(this.playerAuction.getCategory().getName(), this.playerAuction.getPage());
+                            return;
+                    }
+                }));
+        }
 
         loadAuctions();
         loadCreateAuctionItem();
@@ -60,9 +73,9 @@ public class ManageMenu {
                     this.gui.setItem(this.section.getInt("next_page.slot"), ClickableItem.of(nextPage, (event -> {
                         ClickType clickType = event.getClick();
                         if (clickType.equals(ClickType.RIGHT) || clickType.equals(ClickType.SHIFT_RIGHT))
-                            open(getTotalPage());
+                            open(getTotalPage(), back);
                         else
-                            open(page+1);
+                            open(page+1, back);
                     })));
                 }
             }
@@ -73,9 +86,9 @@ public class ManageMenu {
                     this.gui.setItem(this.section.getInt("previous_page.slot"), ClickableItem.of(previousPage, (event -> {
                         ClickType clickType = event.getClick();
                         if (clickType.equals(ClickType.RIGHT) || clickType.equals(ClickType.SHIFT_RIGHT))
-                            open(1);
+                            open(1, back);
                         else
-                            open(page-1);
+                            open(page-1, back);
                     })));
             }
         }
@@ -229,7 +242,7 @@ public class ManageMenu {
 
         int slot = itemSection.getInt("slot");
         this.gui.setItem(slot, ClickableItem.of(item, (event) -> {
-            new CreateMenu(this.player).open("manage");
+            new CreateMenu(this.player).open(this.back);
         }));
     }
 

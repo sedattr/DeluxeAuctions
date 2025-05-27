@@ -142,7 +142,7 @@ public class AuctionCommand implements CommandExecutor, TabCompleter {
                     return false;
                 }
 
-                new BidsMenu(player).open(1);
+                new BidsMenu(player).open(1, "command");
                 return true;
             }
 
@@ -152,7 +152,7 @@ public class AuctionCommand implements CommandExecutor, TabCompleter {
                     return false;
                 }
 
-                new MainMenu(player).open();
+                AuctionHook.openMainMenu(player);
                 return true;
             }
 
@@ -162,7 +162,7 @@ public class AuctionCommand implements CommandExecutor, TabCompleter {
                     return false;
                 }
 
-                new ManageMenu(player).open(1);
+                new ManageMenu(player).open(1, "command");
                 return true;
             }
 
@@ -244,7 +244,9 @@ public class AuctionCommand implements CommandExecutor, TabCompleter {
                 }
 
                 // Check if item is wrong
-                ItemStack item = DeluxeAuctions.getInstance().version < 9 ? player.getItemInHand() : player.getInventory().getItemInMainHand();
+                int slot = player.getInventory().getHeldItemSlot();
+                ItemStack item = slot >= 0 ? player.getInventory().getItem(slot) : null;
+
                 if (item == null || item.getType() == Material.AIR) {
                     Utils.sendMessage(player, "wrong_item", placeholderUtil);
                     return false;
@@ -337,7 +339,7 @@ public class AuctionCommand implements CommandExecutor, TabCompleter {
                     return false;
 
                 PlayerPreferences playerAuction = PlayerCache.getPreferences(player.getUniqueId());
-                boolean status = playerAuction.updateCreateItem(player, item, true);
+                boolean status = playerAuction.updateCreateItem(player, slot, true);
                 if (!status)
                     return false;
 
@@ -356,7 +358,7 @@ public class AuctionCommand implements CommandExecutor, TabCompleter {
                 String category = PlayerCache.getPlayers().containsKey(player.getUniqueId()) ? PlayerCache.getPreferences(player.getUniqueId()).getCategory().getName() : DeluxeAuctions.getInstance().category;
                 new AuctionsMenu(player).open(category, 1);
             } else {
-                new MainMenu(player).open();
+                AuctionHook.openMainMenu(player);
             }
             return true;
         }

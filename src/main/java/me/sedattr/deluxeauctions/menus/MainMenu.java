@@ -98,7 +98,7 @@ public class MainMenu {
             Utils.changeLore(item, lore, placeholderUtil);
         }
 
-        this.gui.setItem(itemSection, ClickableItem.of(item, (event) -> new ManageMenu(this.player).open(1)));
+        this.gui.setItem(itemSection, ClickableItem.of(item, (event) -> new ManageMenu(this.player).open(1, "main")));
     }
 
     private void loadBidsItem() {
@@ -160,7 +160,7 @@ public class MainMenu {
             Utils.changeLore(item, lore, placeholderUtil);
         }
 
-        this.gui.setItem(itemSection, ClickableItem.of(item, (event) -> new BidsMenu(this.player).open(1)));
+        this.gui.setItem(itemSection, ClickableItem.of(item, (event) -> new BidsMenu(this.player).open(1, "main")));
     }
 
     private void loadCreateAuctionItem() {

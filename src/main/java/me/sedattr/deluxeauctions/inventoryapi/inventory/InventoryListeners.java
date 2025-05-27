@@ -63,7 +63,7 @@ public class InventoryListeners implements Listener {
             if (!type.equals("main") && !type.equals("create"))
                 return;
 
-            ItemStack item = event.getCurrentItem();
+            ItemStack item = clickedInventory.getItem(slot);
             if (item == null || item.getType().equals(Material.AIR))
                 return;
 
@@ -79,7 +79,7 @@ public class InventoryListeners implements Listener {
                 return;
 
             PlayerPreferences preferences = PlayerCache.getPreferences(player.getUniqueId());
-            boolean status = preferences.updateCreateItem(player, item, true);
+            boolean status = preferences.updateCreateItem(player, slot, true);
             if (!status)
                 return;
 

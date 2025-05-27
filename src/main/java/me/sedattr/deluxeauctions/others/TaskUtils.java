@@ -3,8 +3,8 @@ package me.sedattr.deluxeauctions.others;
 import me.sedattr.deluxeauctions.DeluxeAuctions;
 import me.sedattr.deluxeauctions.inventoryapi.HInventory;
 import me.sedattr.deluxeauctions.inventoryapi.inventory.InventoryAPI;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 
 public final class TaskUtils {
     public static boolean isFolia;
@@ -22,7 +22,12 @@ public final class TaskUtils {
         if (isFolia) {
             DeluxeAuctions.getInstance().getServer().getGlobalRegionScheduler().execute(DeluxeAuctions.getInstance(), runnable);
         } else {
-            Bukkit.getScheduler().runTask(DeluxeAuctions.getInstance(), runnable);
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    runnable.run();
+                }
+            }.runTask(DeluxeAuctions.getInstance());
         }
     }
 
@@ -30,7 +35,12 @@ public final class TaskUtils {
         if (isFolia) {
             DeluxeAuctions.getInstance().getServer().getGlobalRegionScheduler().execute(DeluxeAuctions.getInstance(), runnable);
         } else {
-            Bukkit.getScheduler().runTaskAsynchronously(DeluxeAuctions.getInstance(), runnable);
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    runnable.run();
+                }
+            }.runTaskAsynchronously(DeluxeAuctions.getInstance());
         }
     }
 
@@ -38,7 +48,12 @@ public final class TaskUtils {
         if (isFolia) {
             DeluxeAuctions.getInstance().getServer().getGlobalRegionScheduler().runDelayed(DeluxeAuctions.getInstance(), task -> runnable.run(), delayTicks);
         } else {
-            Bukkit.getScheduler().runTaskLater(DeluxeAuctions.getInstance(), runnable, delayTicks);
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    runnable.run();
+                }
+            }.runTaskLater(DeluxeAuctions.getInstance(), delayTicks);
         }
     }
 
@@ -46,7 +61,12 @@ public final class TaskUtils {
         if (isFolia) {
             DeluxeAuctions.getInstance().getServer().getGlobalRegionScheduler().runDelayed(DeluxeAuctions.getInstance(), task -> runnable.run(), delayTicks);
         } else {
-            Bukkit.getScheduler().runTaskLaterAsynchronously(DeluxeAuctions.getInstance(), runnable, delayTicks);
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    runnable.run();
+                }
+            }.runTaskLaterAsynchronously(DeluxeAuctions.getInstance(), delayTicks);
         }
     }
 
@@ -54,7 +74,12 @@ public final class TaskUtils {
         if (isFolia) {
             DeluxeAuctions.getInstance().getServer().getGlobalRegionScheduler().runAtFixedRate(DeluxeAuctions.getInstance(), task -> runnable.run(), delayTicks, periodTicks);
         } else {
-            Bukkit.getScheduler().runTaskTimerAsynchronously(DeluxeAuctions.getInstance(), runnable, delayTicks, periodTicks);
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    runnable.run();
+                }
+            }.runTaskTimerAsynchronously(DeluxeAuctions.getInstance(), delayTicks, periodTicks);
         }
     }
 
@@ -81,25 +106,29 @@ public final class TaskUtils {
                 runnable.run();
             }, delayTicks, periodTicks);
         } else {
-            Bukkit.getScheduler().runTaskTimerAsynchronously(DeluxeAuctions.getInstance(), (task) -> {
-                HInventory inventory = InventoryAPI.getInventory(player);
-                if (inventory == null) {
-                    task.cancel();
-                    return;
-                }
-
-                String inventoryId = inventory.getId();
-                if (!inventoryId.equalsIgnoreCase(id)) {
-                    if (id.equalsIgnoreCase("auctions") && inventoryId.equalsIgnoreCase("search")) {
-                        runnable.run();
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    HInventory inventory = InventoryAPI.getInventory(player);
+                    if (inventory == null) {
+                        cancel();
                         return;
                     }
 
-                    task.cancel();
-                    return;
+                    String inventoryId = inventory.getId();
+                    if (!inventoryId.equalsIgnoreCase(id)) {
+                        if (id.equalsIgnoreCase("auctions") && inventoryId.equalsIgnoreCase("search")) {
+                            runnable.run();
+                            return;
+                        }
+
+                        cancel();
+                        return;
+                    }
+
+                    runnable.run();
                 }
-                runnable.run();
-            }, delayTicks, periodTicks);
+            }.runTaskTimerAsynchronously(DeluxeAuctions.getInstance(), delayTicks, periodTicks);
         }
     }
 

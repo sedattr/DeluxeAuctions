@@ -228,7 +228,7 @@ public class AuctionAdminCommand implements CommandExecutor, TabCompleter {
                     }
                 }
 
-                new MainMenu(b).open();
+                AuctionHook.openMainMenu(b);
                 return true;
             }
         }

@@ -90,8 +90,8 @@ public class NormalViewMenu implements MenuManager {
 
         PlayerPreferences playerAuction = PlayerCache.getPreferences(player.getUniqueId());
         switch (back) {
-            case "bids" -> new BidsMenu(this.player).open(1);
-            case "manage" -> new ManageMenu(this.player).open(1);
+            case "bids" -> new BidsMenu(this.player).open(1, "auctions");
+            case "manage" -> new ManageMenu(this.player).open(1, "auctions");
             case "auctions" -> new AuctionsMenu(this.player).open(playerAuction.getCategory().getName(), playerAuction.getPage());
             default -> {
                 if (!back.isEmpty()) {

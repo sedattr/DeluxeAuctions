@@ -1,5 +1,6 @@
 package me.sedattr.deluxeauctions.menus;
 
+import me.sedattr.auctionsapi.AuctionHook;
 import me.sedattr.auctionsapi.cache.PlayerCache;
 import me.sedattr.deluxeauctions.inventoryapi.HInventory;
 import me.sedattr.deluxeauctions.inventoryapi.item.ClickableItem;
@@ -29,7 +30,8 @@ public class StatsMenu {
         int goBackSlot = this.section.getInt("back");
         ItemStack goBackItem = DeluxeAuctions.getInstance().normalItems.get("go_back");
         if (goBackSlot > 0 && goBackItem != null)
-            gui.setItem(goBackSlot, ClickableItem.of(goBackItem, (event) -> new MainMenu(this.player).open()));
+            gui.setItem(goBackSlot, ClickableItem.of(goBackItem, (event) ->
+                    AuctionHook.openMainMenu(this.player)));
 
         loadBuyerStatsItem();
         loadSellerStatsItem();

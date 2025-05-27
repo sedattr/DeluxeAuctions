@@ -42,7 +42,7 @@ public class Utils {
 
         String enabled = section.getString("enabled");
         if (enabled != null && !enabled.isEmpty() && !section.getBoolean("enabled"))
-            return true;
+            return !type.equalsIgnoreCase("bypass");
 
         if (type.equals("item") || type.equals("category")) {
             String permission = section.getString("permission");

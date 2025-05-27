@@ -2,11 +2,11 @@ package me.sedattr.auctionsapi;
 
 import com.google.common.collect.ImmutableMultimap;
 import me.sedattr.auctionsapi.cache.CategoryCache;
+import me.sedattr.auctionsapi.cache.PlayerCache;
 import me.sedattr.deluxeauctions.DeluxeAuctions;
-import me.sedattr.deluxeauctions.managers.Auction;
-import me.sedattr.deluxeauctions.managers.AuctionType;
-import me.sedattr.deluxeauctions.managers.Category;
-import me.sedattr.deluxeauctions.managers.PlayerBid;
+import me.sedattr.deluxeauctions.managers.*;
+import me.sedattr.deluxeauctions.menus.AuctionsMenu;
+import me.sedattr.deluxeauctions.menus.MainMenu;
 import me.sedattr.deluxeauctions.others.Utils;
 import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
@@ -42,10 +42,14 @@ public class AuctionHook {
     public static double calculatePriceFeePercent(double price, String type) {
         ConfigurationSection feeSection = DeluxeAuctions.getInstance().configFile.getConfigurationSection(type + "_auction.price_fees");
         if (feeSection == null)
-            return 0;
+            return 0.0;
 
-        double currentPrice = 0;
-        double currentFee = 0;
+        boolean status = DeluxeAuctions.getInstance().configFile.getBoolean(type + "_auction.fee");
+        if (!status)
+            return 0.0;
+
+        double currentPrice = 0.0;
+        double currentFee = 0.0;
         for (String key : feeSection.getKeys(false)) {
             double number;
             try {
@@ -56,20 +60,36 @@ public class AuctionHook {
 
             if (price < number)
                 continue;
-            if (currentPrice > 0 && currentPrice > number)
+            if (currentPrice > 0.0 && currentPrice > number)
                 continue;
 
             currentPrice = number;
             currentFee = feeSection.getDouble(key);
         }
 
-        return Math.max(currentFee, 0);
+        return Math.max(currentFee, 0.0);
+    }
+
+    public static void openMainMenu(Player player) {
+        boolean status = DeluxeAuctions.getInstance().configFile.getBoolean("settings.enable_main_menu", true);
+        if (!status) {
+            PlayerPreferences playerPreferences = PlayerCache.getPreferences(player.getUniqueId());
+
+            new AuctionsMenu(player).open(playerPreferences.getCategory().getName(), playerPreferences.getPage());
+            return;
+        }
+
+        new MainMenu(player).open();
     }
 
     public static double calculateDurationFee(long time) {
         ConfigurationSection durationSection = DeluxeAuctions.getInstance().configFile.getConfigurationSection("settings.duration_fee");
         if (durationSection == null)
-            return 0;
+            return 0.0;
+
+        boolean status = durationSection.getBoolean("enabled", true);
+        if (!status)
+            return 0.0;
 
         String formula = durationSection.getString("formula", "%hours% * 50");
         Expression e = new ExpressionBuilder(formula
@@ -81,7 +101,7 @@ public class AuctionHook {
                 .build();
         double formulaPrice = e.evaluate();
 
-        return Math.max(formulaPrice, durationSection.getDouble("minimum_fee", 50));
+        return Math.max(formulaPrice, durationSection.getDouble("minimum_fee", 0.0));
     }
 
     public static double getPriceLimit(Player player, String type) {

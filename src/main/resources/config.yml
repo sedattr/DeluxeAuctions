@@ -22,6 +22,7 @@ settings:
   enable_plugin: true # Plugin can be enabled and disabled
   enable_debug: true # Useful for debugging database and some systems.
   enable_log: true # Internal logging system, useful for finding exploits and bugs
+  enable_main_menu: true
   input_type: "sign" # Default input, types: sign, anvil or chat
   # Uncategorized items will be found in this category
   # All items can be sold with this setting
@@ -46,6 +47,7 @@ settings:
   purge_auctions: 60 # DAYS. Auctions older than this day will be automatically deleted. Recommended to keep the database clean.
   bid_formula: "%highest_bid% + %highest_bid% / 10" # You can set the minimum amount more than the previous bid for a new bid.
   duration_fee: # Duration fee can be customizable
+    enabled: true
     minimum_fee: 50 # Duration fee can't be lower than this setting
     formula: "%hours% * 50" # Current Placeholders: %hours%
   auction_flags: # Auctions' example items will have these flags
@@ -105,6 +107,7 @@ broadcast_messages:
 # BIN AUCTION SETTINGS
 bin_auction:
   enabled: true # BIN auctions can be enabled or disabled.
+  fee: true # enable or disable fee
   # Fee percentages can be editable within certain price ranges.
   # Default Configuration:
   # 0 to 500,000: 1%
@@ -118,6 +121,7 @@ bin_auction:
 # NORMAL AUCTION SETTINGS
 normal_auction:
   enabled: true # NORMAL auctions can be enabled or disabled.
+  fee: true # enable or disable fee
   # Fee percentages can be editable within certain price ranges.
   # Default Configuration:
   # 0 and higher: 1%
@@ -173,7 +177,7 @@ addons:
       message: ":small_blue_diamond:__%player_name%__ bought **%item_name%** for **%auction_price% coins** from **%seller_name%**!"
     sold_item:
       enabled: true
-      message: ":small_orange_diamond:__%player_name%__ sold **%item_name%** for **%auction_price% coins** to **%buyer_name%**!"
+      message: ":small_orange_diamond:__%seller_name%__ sold **%item_name%** for **%auction_price% coins** to **%player_name%**!"
     bid_item:
       enabled: true
       message: ":small_blue_diamond:__%player_name%__ bid **%bid_price% coins** for **%item_name%** in **%seller_name%**'s auction!"
@@ -372,4 +376,4 @@ sounds:
     pitch: 0.6
 
 # DON'T CHANGE THIS MANUALLY
-file_versions: 1.2
+file_versions: 1.3

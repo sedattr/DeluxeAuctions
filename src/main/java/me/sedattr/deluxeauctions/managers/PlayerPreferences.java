@@ -12,6 +12,7 @@ import me.sedattr.deluxeauctions.others.PlaceholderUtil;
 import me.sedattr.deluxeauctions.others.TaskUtils;
 import me.sedattr.deluxeauctions.others.Utils;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -43,7 +44,7 @@ public class PlayerPreferences {
         this.player = player;
     }
 
-    public boolean updateCreateItem(Player player, ItemStack newItem, boolean giveOldItem) {
+    public boolean updateCreateItem(Player player, int slot, boolean giveOldItem) {
         if (!this.clicked.compareAndSet(false, true))
             return false;
 
@@ -52,7 +53,8 @@ public class PlayerPreferences {
             PlayerCache.setItem(this.player, null);
 
             if (oldItem != null) {
-                if (!Utils.hasEmptySlot(player)) {
+                int empty = player.getInventory().firstEmpty();
+                if (empty < 0) {
                     Utils.sendMessage(player, "no_empty_slot");
 
                     PlayerCache.setItem(this.player, oldItem);
@@ -60,22 +62,24 @@ public class PlayerPreferences {
                     return false;
                 }
 
-                player.getInventory().addItem(oldItem);
+                player.getInventory().setItem(empty, oldItem);
                 DeluxeAuctions.getInstance().databaseManager.saveItem(this.player, null);
             }
         }
 
-        if (newItem != null) {
-            Map<Integer, ItemStack> items = player.getInventory().removeItem(newItem);
-            if (!items.isEmpty()) {
-                TaskUtils.runLater(() -> this.clicked.set(false), 1);
-                return false;
+        if (slot >= 0) {
+            ItemStack slotItem = player.getInventory().getItem(slot);
+            if (slotItem != null && slotItem.getType() != Material.AIR) {
+                ItemStack clone = slotItem.clone();
+                player.getInventory().setItem(slot, null);
+                TaskUtils.run(player::updateInventory);
+
+                PlayerCache.setItem(this.player, clone);
+                DeluxeAuctions.getInstance().databaseManager.saveItem(this.player, clone);
+            } else {
+                PlayerCache.setItem(this.player, null);
+                DeluxeAuctions.getInstance().databaseManager.saveItem(this.player, null);
             }
-
-            newItem = newItem.clone();
-
-            PlayerCache.setItem(this.player, newItem.clone());
-            DeluxeAuctions.getInstance().databaseManager.saveItem(this.player, newItem);
         } else {
             PlayerCache.setItem(this.player, null);
             DeluxeAuctions.getInstance().databaseManager.saveItem(this.player, null);
@@ -123,7 +127,7 @@ public class PlayerPreferences {
         });
     }
 
-    public void collectBids(Player player) {
+    public void collectBids(Player player, String back) {
         List<Auction> auctions = new ArrayList<>(AuctionCache.getBidAuctions(this.player));
 
         AuctionPreCollectAllEvent event = new AuctionPreCollectAllEvent(player, auctions, false);
@@ -160,7 +164,7 @@ public class PlayerPreferences {
                         .addPlaceholder("%total_item_amount%", String.valueOf(item)));
 
 
-            new BidsMenu(player).open(1);
+            new BidsMenu(player).open(1, back);
         });
     }
 }

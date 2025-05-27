@@ -58,6 +58,7 @@ low_bid: "&8[&cAuctions&8] &7Your bid is too low!"
 cancelled: "&8[&aAuctions&8] &7You cancelled your auction for &f%item_displayname%&7!"
 admin_cancelled: "&8[&aAuctions&8] &7You cancelled &f%player_displayname%'s &7auction!"
 ended_auction: "&8[&cAuctions&8] &f%item_displayname% &7auction is ended!"
+item_not_found: "&8[&cAuctions&8] &7Create item is not found!"
 
 created_normal_auction: "&8[&aAuctions&8] &7You started &eNORMAL &7auction for &f%item_displayname%&7!"
 created_bin_auction: "&8[&aAuctions&8] &7You started &eBIN &7auction for &f%item_displayname%&7!"

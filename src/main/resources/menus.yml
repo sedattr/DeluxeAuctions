@@ -414,6 +414,89 @@ auctions_menu:
       - ""
       - "&bRight click to go backwards!"
       - "&eLeft click to switch category!"
+  create:
+    material: GOLDEN_HORSE_ARMOR
+    data: 0
+    slot: 5
+    name: "&5Create Auction"
+    lore:
+      - "&7Set your own items on auction"
+      - "&7for other players to purchase!"
+      - ""
+      - "&dClick to sell your items!"
+  bids:
+    material: GOLDEN_CARROT
+    data: 0
+    slot: 4
+    name: "&2View Bids"
+    lore:
+      no_bids:
+        - "&7View and manage your bids."
+        - "&r"
+        - "&cYou don't have any outgoing bids."
+      bids:
+        - "&7View and manage your bids."
+        - "&r"
+        - "&7You placed &a%total_bid_amount% bids"
+        - "&7on pending auctions."
+        - "&r"
+        - "&7You hold the top bid on &7(&a%top_bid_amount%&7/&a%total_bid_amount%&7)"
+        - "&7of these auctions."
+        - "&r"
+        - "&aClick to view!"
+      collectable_with_bids:
+        - "&7View and manage your bids."
+        - "&r"
+        - "&7You placed &a%total_bid_amount% bids"
+        - "&7on pending auctions."
+        - "&r"
+        - "&7You hold the top bid on &7(&a%top_bid_amount%&7/&a%total_bid_amount%&7)"
+        - "&7of these auctions."
+        - "&r"
+        - "&eYou have &a%collectable_item_amount% items &eto pickup!"
+        - "&eYou have &6%collectable_money_amount% money &eto pickup!"
+        - "&aClick to view!"
+      collectable_without_bids:
+        - "&7View and manage your bids."
+        - "&r"
+        - "&eYou have &a%collectable_item_amount% items &eto pickup!"
+        - "&eYou have &6%collectable_money_amount% money &eto pickup!"
+        - "&aClick to view!"
+  manage:
+    material: GOLDEN_APPLE
+    data: 0
+    slot: 6
+    name: "&3Manage Auctions"
+    lore:
+      without_auctions:
+        - "&7View and manage your auctions."
+        - "&r"
+        - "&cYou don't have any outgoing auctions."
+      with_auctions:
+        - "&7View and manage your auctions."
+        - "&r"
+        - "&7You have total &a%total_auction_amount% auctions&7."
+        - "&r"
+        - "&bClick to view!"
+      collectable:
+        - "&7View and manage your auctions."
+        - "&r"
+        - "&7You have total &a%total_auction_amount% auctions&7."
+        - "&7You have ended &a%ended_auction_amount% auctions&7."
+        - "&r"
+        - "&eYou have &a%collectable_item_amount% items &eto pickup!"
+        - "&eYou have &6%collectable_money_amount% money &eto pickup!"
+        - "&bClick to view!"
+  stats:
+    material: PAPER
+    data: 0
+    slot: 7
+    name: "&aAuction Stats"
+    lore:
+      - "&7View various statistics about"
+      - "&7you and the Auction House."
+      - ""
+      - "&eClick to view!"
 
 bin_auction_view_menu:
   title: "&8Auction View ➜ Buy It Now"

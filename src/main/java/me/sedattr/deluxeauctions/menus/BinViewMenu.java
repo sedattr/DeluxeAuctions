@@ -75,8 +75,8 @@ public class BinViewMenu {
 
         PlayerPreferences playerAuction = PlayerCache.getPreferences(this.player.getUniqueId());
         switch (this.back) {
-            case "bids" -> new BidsMenu(this.player).open(1);
-            case "manage" -> new ManageMenu(this.player).open(1);
+            case "bids" -> new BidsMenu(this.player).open(1, "auctions");
+            case "manage" -> new ManageMenu(this.player).open(1, "auctions");
             case "auctions" -> new AuctionsMenu(this.player).open(playerAuction.getCategory().getName(), playerAuction.getPage());
             default -> {
                 if (!this.back.isEmpty()) {
