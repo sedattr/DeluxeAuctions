@@ -56,7 +56,6 @@ public class ManageMenu {
                             return;
                         case "auctions":
                             new AuctionsMenu(this.player).open(this.playerAuction.getCategory().getName(), this.playerAuction.getPage());
-                            return;
                     }
                 }));
         }

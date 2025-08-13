@@ -1,14 +1,20 @@
 package me.sedattr.deluxeauctions.others;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import me.sedattr.deluxeauctions.DeluxeAuctions;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.profile.PlayerProfile;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.net.URL;
+import java.util.Base64;
 import java.util.UUID;
 
 @SuppressWarnings("ConstantConditions")
@@ -61,6 +67,20 @@ public class SkullTexture {
         return null;
     }
 
+    public ItemStack getOldSkull(ItemStack item, String texture) {
+        final ItemMeta meta = item.getItemMeta();
+        try {
+            final Object profile = GAME_PROFILE_CONSTRUCTOR.newInstance(UUID.randomUUID(), UUID.randomUUID().toString().substring(17).replace("-", ""));
+            final Object properties = GET_PROPERTIES.invoke(profile);
+            INSERT_PROPERTY.invoke(properties, "textures", PROPERTY_CONSTRUCTOR.newInstance("textures", texture));
+            setFieldValue(meta, "profile", profile);
+        } catch (Exception e) {
+            return item;
+        }
+        item.setItemMeta(meta);
+        return item;
+    }
+
     public ItemStack getSkull(Material material, String texture) {
         if (material == null)
             return null;
@@ -74,35 +94,44 @@ public class SkullTexture {
             return item;
 
         texture = texture.replace(" ", "");
-        if (texture.length() > 16) {
-            try {
-                final ItemMeta meta = item.getItemMeta();
-                try {
-                    final Object profile = GAME_PROFILE_CONSTRUCTOR.newInstance(UUID.randomUUID(), UUID.randomUUID().toString().substring(17).replace("-", ""));
-                    final Object properties = GET_PROPERTIES.invoke(profile);
-                    INSERT_PROPERTY.invoke(properties, "textures", PROPERTY_CONSTRUCTOR.newInstance("textures", texture));
-                    setFieldValue(meta, "profile", profile);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                item.setItemMeta(meta);
-                return item;
-            } catch (Exception e) {
-               return null;
-            }
-        }
-        else {
-            if (texture.contains("hdb-"))
+        if (texture.length() <= 16) {
+            if (texture.startsWith("hdb-")) {
                 try {
                     return DeluxeAuctions.getInstance().headDatabase.getHdbAPI().getItemHead(texture.replace("hdb-", ""));
                 } catch (Exception ignored) {
+                    return item;
                 }
+            }
 
             SkullMeta sm = (SkullMeta) item.getItemMeta();
             sm.setOwner(texture);
 
             item.setItemMeta(sm);
             return item;
+        } else {
+            if (DeluxeAuctions.getInstance().version >= 21) {
+                try {
+                    String json = new String(Base64.getDecoder().decode(texture));
+                    JsonObject textureJson = JsonParser.parseString(json).getAsJsonObject();
+
+                    String url = textureJson.getAsJsonObject("textures")
+                            .getAsJsonObject("SKIN")
+                            .get("url").getAsString();
+
+                    URL skinUrl = new URL(url);
+                    PlayerProfile profile = Bukkit.createPlayerProfile(UUID.randomUUID());
+                    profile.getTextures().setSkin(skinUrl);
+                    SkullMeta meta = (SkullMeta) item.getItemMeta();
+                    meta.setOwnerProfile(profile);
+                    item.setItemMeta(meta);
+                } catch (Exception e) {
+                    return getOldSkull(item, texture);
+                }
+            } else {
+                return getOldSkull(item, texture);
+            }
         }
+
+        return item;
     }
 }

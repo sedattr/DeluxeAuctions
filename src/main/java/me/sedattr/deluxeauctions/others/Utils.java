@@ -163,11 +163,11 @@ public class Utils {
             ByteArrayInputStream inputStream = new ByteArrayInputStream(Base64Coder.decodeLines(data));
             BukkitObjectInputStream dataInput = new BukkitObjectInputStream(inputStream);
             Object object = dataInput.readObject();
-            if (!(object instanceof ItemStack item))
+            if (!(object instanceof ItemStack))
                 return null;
 
             dataInput.close();
-            return item;
+            return (ItemStack) object;
         } catch (Exception e) {
             return null;
         }
