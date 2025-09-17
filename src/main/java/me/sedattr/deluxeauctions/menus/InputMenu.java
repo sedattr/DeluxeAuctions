@@ -48,7 +48,8 @@ public class InputMenu {
                 SignGUI gui = SignGUI.builder()
                         .setLines(lines.get(0), lines.get(1), lines.get(2), lines.get(3))
                         .setHandler((p, entry) -> {
-                            TaskUtils.run(() -> menuManager.inputResult(entry.getLineWithoutColor(0)));
+                            String result = entry.getLineWithoutColor(0).trim();
+                            TaskUtils.run(() -> menuManager.inputResult(result));
 
                             return Collections.emptyList();
                         }).build();
@@ -67,7 +68,9 @@ public class InputMenu {
         try {
             AnvilGUI.Builder builder = new AnvilGUI.Builder()
                     .onClick((slot, state) -> {
-                        menuManager.inputResult(state.getText());
+                        String result = state.getText().trim();
+
+                        menuManager.inputResult(result);
                         return Collections.singletonList(AnvilGUI.ResponseAction.close());
                     }).text(Utils.colorize((DeluxeAuctions.getInstance().messagesFile.getString("input_lines.anvil." + textType))))
                     .plugin(DeluxeAuctions.getInstance());

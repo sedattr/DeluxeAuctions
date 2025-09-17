@@ -62,6 +62,7 @@ public class DeluxeAuctions extends JavaPlugin {
     public TimeFormat timeFormat;
     public InputMenu inputMenu;
 
+    public boolean placeholderApi = false;
     public EcoItemsAddon ecoItemsAddon;
     public MultiServerManager multiServerManager;
     public HeadDatabase headDatabase;
@@ -177,6 +178,7 @@ public class DeluxeAuctions extends JavaPlugin {
         }
 
         if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            this.placeholderApi = true;
             new Placeholders().register();
             Logger.sendConsoleMessage("Enabled &fPlaceholderAPI %level_color%support!", Logger.LogLevel.INFO);
         }

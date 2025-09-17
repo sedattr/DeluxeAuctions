@@ -328,10 +328,10 @@ public class Utils {
             if (message.isEmpty())
                 return false;
 
-            player.sendMessage(colorize(replacePlaceholders(message, placeholderUtil)));
+            player.sendMessage(placeholderApi(player, colorize(replacePlaceholders(message, placeholderUtil))));
         } else
             for (String message : messageList)
-                player.sendMessage(colorize(replacePlaceholders(message, placeholderUtil)));
+                player.sendMessage(placeholderApi(player, colorize(replacePlaceholders(message, placeholderUtil))));
 
         return true;
     }
@@ -351,10 +351,10 @@ public class Utils {
             if (message.isEmpty())
                 return false;
 
-            player.sendMessage(colorize(message));
+            player.sendMessage(placeholderApi(player, colorize(message)));
         } else
             for (String message : messageList)
-                player.sendMessage(colorize(message));
+                player.sendMessage(placeholderApi(player, colorize(message)));
 
         return true;
     }
@@ -387,6 +387,15 @@ public class Utils {
             newLore.add(Utils.colorize(line));
 
         return newLore;
+    }
+
+    public static String placeholderApi(CommandSender player, String message) {
+        if (!(player instanceof Player))
+            return message;
+        if (!DeluxeAuctions.getInstance().placeholderApi)
+            return message;
+
+        return me.clip.placeholderapi.PlaceholderAPI.setPlaceholders((Player) player, message);
     }
 
     public static String getDisplayName(ItemStack item) {

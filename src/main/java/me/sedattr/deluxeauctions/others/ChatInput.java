@@ -43,7 +43,9 @@ public class ChatInput {
             ChatInput.this.listening = false;
 
             TaskUtils.run(() -> {
-                handler.onChat(e.getMessage());
+                String result = e.getMessage().trim();
+
+                handler.onChat(result);
                 handler = null;
             });
         }

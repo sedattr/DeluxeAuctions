@@ -10,6 +10,7 @@ import me.sedattr.deluxeauctions.others.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
@@ -30,34 +31,47 @@ public class MenuHandler {
             return;
 
         for (String key : keys) {
-            ItemStack item = Utils.createItemFromSection(section.getConfigurationSection(key), null);
+            ConfigurationSection itemSection = section.getConfigurationSection(key);
+
+            ItemStack item = Utils.createItemFromSection(itemSection, null);
             if (item == null)
                 continue;
 
-            List<String> commands = section.getStringList(key + ".commands");
-            if (commands.isEmpty())
-                gui.setItem(section, ClickableItem.empty(item));
-            else
-                gui.setItem(section, ClickableItem.of(item, (event) -> {
-                    for (String command : commands) {
-                        command = command
-                                .replace("%player_displayname%", player.getDisplayName())
-                                .replace("%player_name%", player.getName())
-                                .replace("%player_uuid%", String.valueOf(player.getUniqueId()));
-
-                        if (command.startsWith("[close]"))
-                            player.closeInventory();
-                        else if (command.startsWith("[player]"))
-                            player.performCommand(command
-                                    .replace("[player] ", "")
-                                    .replace("[player]", ""));
-                        else
-                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command
-                                    .replace("[console] ", "")
-                                    .replace("[console]", ""));
-                    }
-                }));
+            commands(gui, itemSection, player, item, itemSection.getStringList("left_commands"), true);
+            commands(gui, itemSection, player, item, itemSection.getStringList("right_commands"), false);
         }
+    }
+
+    private void commands(HInventory gui, ConfigurationSection itemSection, Player player, ItemStack item, List<String> commands, boolean isLeft) {
+        if (commands.isEmpty())
+            gui.setItem(itemSection, ClickableItem.empty(item));
+        else
+            gui.setItem(itemSection, ClickableItem.of(item, (event) -> {
+                ClickType clickType = event.getClick();
+                if (!isLeft) {
+                    if (!clickType.equals(ClickType.RIGHT) && !clickType.equals(ClickType.SHIFT_RIGHT))
+                        return;
+                } else if (clickType.equals(ClickType.RIGHT) || clickType.equals(ClickType.SHIFT_RIGHT))
+                        return;
+
+                for (String command : commands) {
+                    command = command
+                            .replace("%player_displayname%", player.getDisplayName())
+                            .replace("%player_name%", player.getName())
+                            .replace("%player_uuid%", String.valueOf(player.getUniqueId()));
+
+                    if (command.startsWith("[close]"))
+                        player.closeInventory();
+                    else if (command.startsWith("[player]"))
+                        player.performCommand(command
+                                .replace("[player] ", "")
+                                .replace("[player]", ""));
+                    else
+                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command
+                                .replace("[console] ", "")
+                                .replace("[console]", ""));
+                }
+            }));
     }
 
     public void addNormalItems(Player player, HInventory gui, ConfigurationSection section, Category category) {

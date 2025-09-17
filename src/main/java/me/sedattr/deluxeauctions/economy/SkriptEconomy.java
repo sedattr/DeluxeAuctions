@@ -43,6 +43,8 @@ public class SkriptEconomy implements EconomyManager {
                 .replace("%player_name%", player.getName())
                 .replace("%player_uuid%", player.getUniqueId().toString()), null, false);
 
+        if (balanceObj == null)
+            return 0;
         if (balanceObj instanceof Number)
             return ((Number) balanceObj).doubleValue();
 

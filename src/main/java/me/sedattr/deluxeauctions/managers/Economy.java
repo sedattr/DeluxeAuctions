@@ -31,6 +31,12 @@ public class Economy {
         this.slot = 0;
 
         switch (this.type) {
+            case "coins_engine":
+                if (!Bukkit.getServer().getPluginManager().isPluginEnabled("CoinsEngine"))
+                    break;
+
+                this.manager = new CoinsEngineEconomy(DeluxeAuctions.getInstance().configFile.getString("economy.coinsengine_settings.currency_name", "coins"));
+                break;
             case "ed_prison":
                 if (!Bukkit.getServer().getPluginManager().isPluginEnabled("EdPrison"))
                     break;
@@ -108,6 +114,12 @@ public class Economy {
         this.item = Utils.createItemFromSection(section.getConfigurationSection("item"), null);
 
         switch (this.type) {
+            case "coins_engine":
+                if (!Bukkit.getServer().getPluginManager().isPluginEnabled("EdPrison"))
+                    break;
+
+                this.manager = new CoinsEngineEconomy(section.getString("coinsengine_currency", "coins"));
+                break;
             case "ed_prison":
                 if (!Bukkit.getServer().getPluginManager().isPluginEnabled("EdPrison"))
                     break;

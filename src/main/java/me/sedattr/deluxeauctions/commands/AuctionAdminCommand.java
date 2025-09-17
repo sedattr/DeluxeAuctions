@@ -8,8 +8,7 @@ import me.sedattr.deluxeauctions.converters.ZAuctionHouseConverter;
 import me.sedattr.deluxeauctions.inventoryapi.inventory.InventoryAPI;
 import me.sedattr.deluxeauctions.managers.Auction;
 import me.sedattr.deluxeauctions.managers.Category;
-import me.sedattr.deluxeauctions.menus.AuctionsMenu;
-import me.sedattr.deluxeauctions.menus.MainMenu;
+import me.sedattr.deluxeauctions.menus.*;
 import me.sedattr.deluxeauctions.others.Logger;
 import me.sedattr.deluxeauctions.others.PlaceholderUtil;
 import me.sedattr.deluxeauctions.others.Utils;
@@ -225,6 +224,24 @@ public class AuctionAdminCommand implements CommandExecutor, TabCompleter {
                     if (category != null) {
                         new AuctionsMenu(b).open(category.getName(), 1);
                         return true;
+                    } else {
+                        switch (args[2]) {
+                            case "manage":
+                                new ManageMenu(b).open(1, "command");
+                                return true;
+                            case "bids":
+                                new BidsMenu(b).open(1, "command");
+                                return true;
+                            case "create":
+                                new CreateMenu(b).open("command");
+                                return true;
+                            case "main":
+                                new MainMenu(b).open();
+                                return true;
+                            case "stats":
+                                new StatsMenu(b).open();
+                                return true;
+                        }
                     }
                 }
 
