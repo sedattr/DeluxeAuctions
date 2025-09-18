@@ -43,6 +43,7 @@ public class AuctionsMenu implements MenuManager {
     }
 
     public void open(String categoryName, int page) {
+        this.itemUpdater = false;
         page = Math.max(page, 1);
 
         if (!categoryName.equalsIgnoreCase("search")) {
@@ -84,10 +85,11 @@ public class AuctionsMenu implements MenuManager {
                             AuctionHook.openMainMenu(this.player)));
             }
 
-            loadItems();
 
             TaskUtils.run(() -> {
                 this.gui.open(this.player);
+
+                loadItems();
                 updateItems();
             });
         });
@@ -301,7 +303,7 @@ public class AuctionsMenu implements MenuManager {
         this.playerAuction.setSearch("");
         this.playerAuction.setAuctionType(DeluxeAuctions.getInstance().auctionType);
         this.playerAuction.setSortType(DeluxeAuctions.getInstance().sortType);
-        this.playerAuction.setRarityType("all");
+        this.playerAuction.setRarityType(DeluxeAuctions.getInstance().rarityType);
 
         open(this.playerAuction.getCategory().getName(), 1);
     }
@@ -545,7 +547,7 @@ public class AuctionsMenu implements MenuManager {
     }
 
     private void loadItems() {
-        if (slots.isEmpty())
+        if (this.slots.isEmpty())
             return;
 
         if (!InventoryAPI.hasInventory(this.player))
@@ -554,7 +556,7 @@ public class AuctionsMenu implements MenuManager {
             return;
 
         int i = 0;
-        for (int slot : slots) {
+        for (int slot : this.slots) {
             if (slot <= 0)
                 continue;
 
@@ -621,7 +623,7 @@ public class AuctionsMenu implements MenuManager {
                 loadPaginationCategories(categoriesSection);
             }));
         } else if (addPageSlots) {
-            Category currentCategory = categories.get(0);
+            Category currentCategory = categories.getFirst();
             loadCategory(currentCategory, previousSlot);
 
             categories.remove(currentCategory);
