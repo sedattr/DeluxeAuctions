@@ -85,12 +85,13 @@ public class AuctionsMenu implements MenuManager {
                             AuctionHook.openMainMenu(this.player)));
             }
 
-
             TaskUtils.run(() -> {
                 this.gui.open(this.player);
 
-                loadItems();
-                updateItems();
+                TaskUtils.runAsync(() -> {
+                    loadItems();
+                    updateItems();
+                });
             });
         });
     }

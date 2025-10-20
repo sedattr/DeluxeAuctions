@@ -24,19 +24,17 @@ public class InputMenu {
     }
 
     public void open(Player player, MenuManager menuManager) {
-        TaskUtils.run(() -> {
-            InputOpenEvent event = new InputOpenEvent(player, menuManager.getMenuName());
-            Bukkit.getPluginManager().callEvent(event);
-            if (event.isCancelled())
-                return;
+        InputOpenEvent event = new InputOpenEvent(player, menuManager.getMenuName());
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled())
+            return;
 
-            if (this.type.equalsIgnoreCase("sign"))
-                signInput(player, menuManager);
-            else if (this.type.equalsIgnoreCase("anvil"))
-                anvilInput(player, menuManager);
-            else
-                chatInput(player, menuManager);
-        });
+        if (this.type.equalsIgnoreCase("sign"))
+            signInput(player, menuManager);
+        else if (this.type.equalsIgnoreCase("anvil"))
+            anvilInput(player, menuManager);
+        else
+            chatInput(player, menuManager);
     }
 
     private void signInput(Player player, MenuManager menuManager) {
@@ -47,6 +45,7 @@ public class InputMenu {
             try {
                 SignGUI gui = SignGUI.builder()
                         .setLines(lines.get(0), lines.get(1), lines.get(2), lines.get(3))
+                        .callHandlerSynchronously(DeluxeAuctions.getInstance())
                         .setHandler((p, entry) -> {
                             String result = entry.getLineWithoutColor(0).trim();
                             TaskUtils.runLater(() -> menuManager.inputResult(result), 1L);
